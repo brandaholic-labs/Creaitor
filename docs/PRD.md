@@ -2900,93 +2900,171 @@ ENCRYPTION_KEY=... (crypto.randomBytes(32).toString('hex'))
 ---
 ## Technical Architecture (Technikai Architektúra)
 
-> **Architecture filozófia (P0):** Egyszerű, monolitikus architektúra. Nem microservices, nem over-engineered. Gyors fejlesztés és deploy a cél.
+> **Architecture filozófia (P0):** Egyszerű, monolitikus architektúra - minimális stack complexity, gyors fejlesztés, kevés mozgó alkatrész. **Nem** microservices, **nem** over-engineered.
+
+**FONTOS:** Ez a szekció NEM teljes implementációs guide (az a Tech Spec dokumentumba tartozik). Ez:
+- **Magas szintű architektúra** (komponensek, adatfolyam)
+- **Stack döntések** (P0-core: mandatory, P0-nice: opcionális)
+- **Adatmodell summary** (single source of truth)
+- **Multi-tenancy stratégia** (P0/P1/P2 terv)
 
 ---
 
-### TA1: High-Level System Architecture (P0)
+## TA0: P0 Stack Philosophy - "Must" vs. "Nice to Have"
 
-**System Components:**
+> **P0-core:** Minimális stack, ami P0 feature-ök implementálásához **feltétlenül kell**.
+> **P0-nice:** Kényelmi/production-polish library-k, amik **elhagyhatók** időhiány esetén.
+
+### TA0.1: P0-Core (Mandatory)
+
+**Frontend (mandatory):**
+- React 18+ (UI framework)
+- TypeScript (type safety)
+- Tailwind CSS (styling)
+- React Router v6 (client-side routing)
+- **State management:** React Context API VAGY Zustand (válassz egyet)
+- **Forms:** React Hook Form + Zod (validation)
+- Vite (build tool)
+
+**Backend (mandatory):**
+- Node.js 20 LTS (runtime)
+- TypeScript (type safety)
+- Express.js (web framework)
+- Prisma (ORM - DB schema, migrations)
+- **Session management:** express-session + **DB-backed session store** (PostgreSQL session table VAGY connect-pg-simple)
+- **Auth:** Egyszerű email/password (custom implementation VAGY Passport.js - válassz egyet)
+- node-cron (scheduling)
+
+**Database & Storage (mandatory):**
+- PostgreSQL 15+ (Render/Railway managed DB)
+- **File storage:** Cloudinary (egyszerűbb setup, auto-resize, CDN beépített) - **P0: csak Cloudinary, S3 OUT**
+
+**External Services (mandatory):**
+- **Meta Graph API** (FB/IG publishing - nincs alternatíva)
+- **AI API:** OpenAI GPT-4o VAGY Anthropic Claude 3.5 Sonnet - **P0: válassz egyet, mindkettő OUT**
+- **Email:** SendGrid VAGY Mailgun - **P0: válassz egyet**
+
+**Infrastructure (mandatory):**
+- Render / Railway / Fly.io (managed hosting - **P0: válassz egyet**)
+- Let's Encrypt (SSL - auto, Render/Railway beépített)
+
+**Döntési pontok csökkentése (P0):**
+- ❌ **S3 vagy Cloudinary?** → **Csak Cloudinary P0**
+- ❌ **OpenAI vagy Anthropic?** → **Válassz egyet P0, mindkettő P1**
+- ❌ **SendGrid vagy Mailgun?** → **Válassz egyet P0**
+- ❌ **Context vagy Zustand?** → **Válassz egyet P0**
+- ❌ **Custom auth vagy Passport?** → **Válassz egyet P0**
+
+**Miért fontos ez:**
+- Kevesebb mozgó alkatrész → gyorsabb fejlesztés
+- Kevesebb provider → kevesebb integration debugging
+- **Cél:** H1/H2/H3 hipotézisek validálása, **nem** technológiai felfedezés
+
+---
+
+### TA0.2: P0-Nice (Opcionális - időhiány esetén elhagyható)
+
+**Frontend (nice-to-have):**
+- Winston/Pino structured logging → **Helyette:** console.log (wrapper nélkül)
+- React Query (TanStack Query) → **Helyette:** egyszerű axios fetch, Zustand-ban cache (ha kell)
+- ESLint + Prettier (pre-commit hook) → **P0-nice:** Manual formatting, P1: automated
+
+**Backend (nice-to-have):**
+- Winston/Pino structured logging → **Helyette:** console.log (vagy egyszerű console wrapper)
+- Passport.js (ha bonyolultnak tűnik) → **Helyette:** Egyszerű custom email/password auth (bcrypt + session)
+- Zod backend validation → **P0-nice:** Csak frontend Zod, backend: egyszerű type check
+
+**Infrastructure (nice-to-have):**
+- Docker containerization → **P0:** Render/Railway natívan futtatja Node.js-t (package.json alapján)
+- CI/CD pipeline → **P0:** Manual testing, manual deploy (git push → auto-build)
+
+**Ha idő szűk, vágd le P0-nice-ot → Fókusz: core feature-ök (Brand Brain, AI Copy, Calendar, Publishing).**
+
+---
+
+## TA1: High-Level System Architecture (P0)
+
+**System Components (egyszerűsített):**
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                         User (Socialos)                      │
-│                      Browser (Chrome/Firefox)                │
-└────────────────┬────────────────────────────────────────────┘
-                 │ HTTPS
-                 ▼
-┌─────────────────────────────────────────────────────────────┐
-│                    Frontend (React SPA)                      │
-│  - React + TypeScript                                        │
-│  - Tailwind CSS                                              │
-│  - React Router (client-side routing)                        │
-│  - Zustand / Context API (state management)                  │
-└────────────────┬────────────────────────────────────────────┘
-                 │ REST API (JSON)
-                 ▼
-┌─────────────────────────────────────────────────────────────┐
-│                  Backend API (Node.js)                       │
-│  - Express / Fastify                                         │
-│  - TypeScript                                                │
-│  - Session-based auth (express-session + cookie)             │
-│  - ORM (Prisma / TypeORM)                                    │
-└─┬───────┬───────┬───────┬───────┬───────────────────────────┘
-  │       │       │       │       │
-  │       │       │       │       └──> Cron Job (Scheduling)
-  │       │       │       │             - node-cron / node-schedule
-  │       │       │       │             - 5 percenként ellenőrzi scheduled posztokat
+┌──────────────────────────────────────────────────────┐
+│         User (Socialos) - Browser (Desktop)          │
+└─────────────────┬────────────────────────────────────┘
+                  │ HTTPS
+                  ▼
+┌──────────────────────────────────────────────────────┐
+│             Frontend (React SPA)                     │
+│  - React + TypeScript + Tailwind                    │
+│  - React Router (client-side routing)               │
+│  - Context API / Zustand (state)                    │
+└─────────────────┬────────────────────────────────────┘
+                  │ REST API (JSON)
+                  ▼
+┌──────────────────────────────────────────────────────┐
+│            Backend API (Node.js)                     │
+│  - Express + TypeScript                             │
+│  - Prisma ORM (PostgreSQL)                          │
+│  - express-session (DB-backed store)                │
+│  - node-cron (scheduling cron job)                  │
+└─┬───────┬───────┬───────┬──────────────────────────┘
   │       │       │       │
-  │       │       │       └──────────> File Storage (S3 / Cloudinary)
-  │       │       │                     - Image upload (JPEG/PNG)
-  │       │       │                     - Pre-signed URLs (S3) vagy direct upload
+  │       │       │       └──> Cron Job (5 perc)
+  │       │       │            - Check scheduled posts
+  │       │       │            - Publish via Meta API
   │       │       │
-  │       │       └──────────────────> Email Service (SendGrid / Mailgun)
-  │       │                             - Transactional emails (password reset, user invite)
+  │       │       └──────────> Cloudinary
+  │       │                    - Image upload (JPEG/PNG)
+  │       │                    - Auto resize
   │       │
-  │       └──────────────────────────> AI API (OpenAI / Anthropic)
-  │                                     - GPT-4o / Claude 3.5 Sonnet
-  │                                     - Copy generation
+  │       └──────────────────> SendGrid / Mailgun
+  │                            - Transactional emails
   │
-  └──────────────────────────────────> Meta Graph API
-                                        - OAuth 2.0 (FB Page + IG Account access)
-                                        - POST /feed, POST /media (publishing)
-┌─────────────────────────────────────────────────────────────┐
-│                    Database (PostgreSQL)                     │
-│  - Render / Railway managed PostgreSQL                       │
-│  - Tables: agencies, users, brands, posts, events            │
-│  - Encryption: Meta access tokens (column-level encryption)  │
-└─────────────────────────────────────────────────────────────┘
+  ├──────────────────────────> AI API
+  │                            - OpenAI GPT-4o VAGY
+  │                            - Anthropic Claude 3.5
+  │                            - (P0: válassz egyet!)
+  │
+  └──────────────────────────> Meta Graph API
+                               - FB Page + IG Account
+                               - OAuth + Publishing
+
+┌──────────────────────────────────────────────────────┐
+│           Database (PostgreSQL)                      │
+│  - Render / Railway managed DB                      │
+│  - Tables: agencies, users, brands, posts, events   │
+│  - Sessions table (express-session store)           │
+└──────────────────────────────────────────────────────┘
 ```
 
 **P0 megjegyzés:**
-- **Monolitikus architektúra:** Frontend + Backend egyetlen repository-ban (monorepo VAGY külön repo-k)
-- **Single-server deployment:** Nincs load balancer, nincs multi-region
-- **No message queue:** Cron job futtat scheduled publishing (egyszerű, de elég pilot-hoz)
+- **Monolitikus:** Frontend + Backend egyetlen repo (monorepo) vagy 2 külön repo (de egyetlen deployment)
+- **Single-server:** Nincs load balancer, nincs horizontal scaling, nincs multi-region
+- **Egyszerű scheduling:** node-cron (nem queue system - Sidekiq/BullMQ P1)
 
 **P1 - Skálázás:**
-- Background job queue (Sidekiq, BullMQ) → decoupled publishing
-- Redis cache (session storage, API response caching)
+- Background job queue (BullMQ, Sidekiq) → decoupled publishing, retry logic
+- Redis cache (session store, API response cache)
 - CDN (CloudFront, Cloudflare) → static asset delivery
-- Microservices (AI Copy Studio külön service, Publishing Service külön)
+- Horizontal scaling (Kubernetes, load balancer)
 
 ---
 
-### TA2: Technology Stack (P0)
+## TA2: Technology Stack Decisions (P0)
 
-#### TA2.1: Frontend Stack
+### TA2.1: Frontend Stack
 
-| Technológia | P0 Választás | Alternatíva (P1) | Döntési indok |
-|-------------|--------------|------------------|---------------|
-| **Framework** | React 18+ | Next.js (SSR/SSG), Vue.js | React: széles ecosystem, TypeScript support, nagy developer pool |
-| **Language** | TypeScript (strict mode) | - | Type safety, jobb DX, kevesebb runtime hiba |
-| **Styling** | Tailwind CSS | CSS Modules, Styled Components | Gyors UI development, utility-first, nincs CSS bloat |
-| **State Management** | Zustand / React Context | Redux Toolkit, Jotai | Egyszerűbb mint Redux, elég pilot skálához |
-| **Routing** | React Router v6 | TanStack Router | Standard, proven, dokumentáció kiváló |
-| **Forms** | React Hook Form + Zod | Formik, TanStack Form | Jó validation (Zod schema), jó performance |
-| **HTTP Client** | Axios / Fetch API | TanStack Query (React Query) | P0: egyszerű fetch. P1: React Query (caching, optimistic updates) |
-| **Build Tool** | Vite | Create React App, Webpack | Gyorsabb dev server, jobb HMR |
+| Komponens | P0-Core (mandatory) | P0-Nice (opcionális) | Döntési indok |
+|-----------|---------------------|----------------------|---------------|
+| **Framework** | React 18+ | - | Széles ecosystem, jó TypeScript support |
+| **Language** | TypeScript (strict) | - | Type safety, DX, kevesebb runtime hiba |
+| **Styling** | Tailwind CSS | - | Gyors UI development, utility-first |
+| **State** | Context API VAGY Zustand | React Query (cache) | Egyszerű state management elég |
+| **Routing** | React Router v6 | - | Standard, proven |
+| **Forms** | React Hook Form + Zod | - | Validation + performance |
+| **HTTP** | Axios / Fetch API | - | Egyszerű fetch elég P0-ban |
+| **Build** | Vite | - | Gyors dev server |
 
-**P0 Package list (frontend):**
+**P0 Package list (frontend - minimalizált):**
 ```json
 {
   "dependencies": {
@@ -2997,35 +3075,32 @@ ENCRYPTION_KEY=... (crypto.randomBytes(32).toString('hex'))
     "axios": "^1.6.0",
     "react-hook-form": "^7.48.0",
     "zod": "^3.22.0",
-    "tailwindcss": "^3.3.0",
-    "date-fns": "^2.30.0"
+    "tailwindcss": "^3.3.0"
   },
   "devDependencies": {
     "typescript": "^5.2.0",
     "vite": "^5.0.0",
-    "@types/react": "^18.2.0",
-    "eslint": "^8.54.0",
-    "prettier": "^3.1.0"
+    "@types/react": "^18.2.0"
   }
 }
 ```
 
 ---
 
-#### TA2.2: Backend Stack
+### TA2.2: Backend Stack
 
-| Technológia | P0 Választás | Alternatíva (P1) | Döntési indok |
-|-------------|--------------|------------------|---------------|
-| **Runtime** | Node.js 20 LTS | Bun, Deno | Proven, széles ecosystem, hosting support (Render, Railway) |
-| **Framework** | Express.js | Fastify, NestJS, Hono | Egyszerű, jól ismert, gyors setup. P1: Fastify (gyorsabb performance) |
-| **Language** | TypeScript (strict mode) | - | Type safety, shared types (frontend-backend) |
-| **ORM** | Prisma | TypeORM, Drizzle | Modern DX, type-safe, migration kezelés jó |
-| **Auth** | express-session + Passport.js | NextAuth.js, Lucia | Session-based (cookie), egyszerű, elég pilot-hoz |
-| **Validation** | Zod | Joi, Yup | Shared schema (frontend-backend), TypeScript inference |
-| **Scheduling** | node-cron | node-schedule, Agenda | Egyszerű cron job (5 perc interval), nincs queue szükség |
-| **Logging** | Winston / Pino | - | Structured logging (JSON), production-ready |
+| Komponens | P0-Core (mandatory) | P0-Nice (opcionális) | Döntési indok |
+|-----------|---------------------|----------------------|---------------|
+| **Runtime** | Node.js 20 LTS | - | Proven, széles ecosystem |
+| **Framework** | Express.js | - | Egyszerű, jól ismert |
+| **Language** | TypeScript (strict) | - | Type safety, shared types (FE-BE) |
+| **ORM** | Prisma | - | Modern DX, type-safe, migrations |
+| **Auth** | express-session + Passport VAGY custom | - | Session-based, egyszerű |
+| **Session Store** | **DB-backed (PostgreSQL)** | Redis | **P0: PostgreSQL session table (idempotent, persistent)** |
+| **Scheduling** | node-cron | - | Egyszerű cron job (5 perc) |
+| **Logging** | console.log | Winston/Pino | **P0: egyszerű console elég** |
 
-**P0 Package list (backend):**
+**P0 Package list (backend - minimalizált):**
 ```json
 {
   "dependencies": {
@@ -3034,361 +3109,495 @@ ENCRYPTION_KEY=... (crypto.randomBytes(32).toString('hex'))
     "prisma": "^5.7.0",
     "@prisma/client": "^5.7.0",
     "express-session": "^1.17.0",
-    "passport": "^0.7.0",
-    "passport-local": "^1.0.0",
+    "connect-pg-simple": "^9.0.0",
     "bcrypt": "^5.1.0",
-    "zod": "^3.22.0",
     "node-cron": "^3.0.0",
     "axios": "^1.6.0",
-    "winston": "^3.11.0",
     "dotenv": "^16.3.0"
   },
   "devDependencies": {
     "@types/express": "^4.17.0",
     "@types/node": "^20.10.0",
-    "ts-node": "^10.9.0",
-    "nodemon": "^3.0.0",
-    "eslint": "^8.54.0",
-    "prettier": "^3.1.0"
+    "ts-node": "^10.9.0"
   }
 }
 ```
 
+**Session Store Döntés (P0):**
+- ❌ **MemoryStore (default express-session):** Session elvész restart-nál → instabil user élmény → **NEM ELFOGADHATÓ P0-ban**
+- ✅ **DB-backed (connect-pg-simple):** Session perzisztens PostgreSQL-ben → restart-proof → **P0 MANDATORY**
+- ✅ **Redis (alternative):** Gyorsabb, de extra dependency → **P1** (ha performance issue)
+
+**Miért fontos session store P0-ban:**
+- Ha MemoryStore → app restart/deploy → user random kijelentkezik → **bizalomvesztés pilotban**
+- DB-backed session → minimális complexity növelés, de stabil UX
+
 ---
 
-#### TA2.3: Database & Storage
+### TA2.3: Database & Storage
 
 | Komponens | P0 Választás | Alternatíva (P1) | Döntési indok |
 |-----------|--------------|------------------|---------------|
-| **Primary DB** | PostgreSQL 15+ | MySQL, SQLite (csak dev) | Relational data, JSON support (brand_brain), ACID compliance |
-| **Hosting** | Render Managed PostgreSQL / Railway | Supabase, AWS RDS, Neon | Egyszerű setup, auto backup, elég pilot-hoz |
-| **Migration** | Prisma Migrate | Raw SQL, TypeORM migrations | Deklaratív schema, version control, rollback support |
-| **File Storage** | S3 / Cloudinary | Supabase Storage, UploadThing | S3: industry standard. Cloudinary: auto-resize, CDN beépített |
-| **Cache (P1)** | - | Redis (session, API cache) | P0: nincs cache layer. P1: Redis session store, API response cache |
+| **Primary DB** | PostgreSQL 15+ | - | Relational data, JSON support, ACID |
+| **Hosting** | Render Managed / Railway | Supabase, AWS RDS, Neon | Egyszerű setup, auto backup |
+| **Migration** | Prisma Migrate | - | Deklaratív schema, version control |
+| **File Storage** | **Cloudinary (P0 ONLY)** | S3 (P1) | **Auto-resize, CDN, egyszerű setup** |
+| **Cache** | - | Redis (P1) | P0: nincs cache layer |
 
-**Database schema (Prisma példa - core entities):**
-```prisma
-model Agency {
-  id         String   @id @default(uuid())
-  name       String
-  ownerEmail String   @unique
-  createdAt  DateTime @default(now())
+**Cloudinary vs. S3 döntés (P0):**
+- ✅ **Cloudinary P0:** Auto-resize (1200×630, 1080×1080), CDN beépített, egyszerű API → **GYORSABB FEJLESZTÉS**
+- ❌ **S3 OUT P0:** Manual resize implementation, CDN setup (CloudFront), több kód → **LASSABB FEJLESZTÉS**
+- **P1:** S3 + CloudFront (olcsóbb nagy volumen esetén, de több work)
 
-  users      User[]
-  brands     Brand[]
-}
+**Miért fontos ez:**
+- Kevesebb integration → kevesebb debugging → **gyorsabb pilot launch**
 
-model User {
-  id        String   @id @default(uuid())
-  agencyId  String
-  email     String   @unique
-  password  String   // bcrypt hash
-  role      String   @default("socialos") // P1: enum (admin, socialos)
-  createdAt DateTime @default(now())
+---
 
-  agency    Agency   @relation(fields: [agencyId], references: [id])
-  posts     Post[]
-}
+### TA2.4: External Services (P0)
 
-model Brand {
-  id             String   @id @default(uuid())
-  agencyId       String
-  name           String
-  fbPageId       String?
-  igAccountId    String?
-  accessToken    String?  // encrypted
-  brandBrain     Json?    // {tone_of_voice, key_messages, reference_posts, visual_direction}
-  createdAt      DateTime @default(now())
+| Service | P0 Választás | Alternatíva (P1) | Döntési indok |
+|---------|--------------|------------------|---------------|
+| **AI API** | **OpenAI GPT-4o VAGY Anthropic Claude 3.5 (válassz egyet)** | Mindkettő (P1) | **P0: 1 provider → gyorsabb fejlesztés** |
+| **Email** | **SendGrid VAGY Mailgun (válassz egyet)** | Mindkettő (P1) | **P0: 1 provider** |
+| **Meta API** | Meta Graph API v18.0+ | - | Nincs alternatíva (core dependency) |
+| **Hosting** | **Render VAGY Railway VAGY Fly.io (válassz egyet)** | - | **P0: 1 platform** |
 
-  agency         Agency   @relation(fields: [agencyId], references: [id])
-  posts          Post[]
-}
+**AI Provider Döntés (P0):**
+- **Választási szempontok:**
+  - **OpenAI GPT-4o:** Jobb ismert, több példakód, széles community support → **Javaslat: kezdj ezzel**
+  - **Anthropic Claude 3.5 Sonnet:** Jobb hosszú context handling, instruction following → Alternatíva, ha OpenAI nem felel meg
+- **P0: Válassz egyet, ne implementáld mindkettőt** (P1: dual-provider support, model switching)
 
-model Post {
-  id              String    @id @default(uuid())
-  brandId         String
-  userId          String
-  text            String
-  platform        String    // facebook | instagram
-  status          String    // draft | approved | scheduled | published | failed
-  aiGenerated     Boolean   @default(false)
-  usabilityRating String?   // usable | heavy_edit | not_usable
-  imageUrl        String?
-  scheduledAt     DateTime?
-  publishedAt     DateTime?
-  fbPostId        String?
-  igMediaId       String?
-  errorMessage    String?
-  createdAt       DateTime  @default(now())
+**Email Provider Döntés (P0):**
+- **SendGrid:** Jó UI, egyszerű setup, free tier (100 email/nap)
+- **Mailgun:** Jobb deliverability (tapasztalat szerint), de bonyolultabb setup
+- **P0: Válassz egyet** (P1: fallback provider)
 
-  brand           Brand     @relation(fields: [brandId], references: [id])
-  user            User      @relation(fields: [userId], references: [id])
-}
+**Hosting Platform Döntés (P0):**
+- **Render:** Egyszerű UI, jó PostgreSQL managed DB, auto SSL
+- **Railway:** Gyorsabb deploy, jó DX, de drágább
+- **Fly.io:** Leggyorsabb (edge deployment), de bonyolultabb config
+- **P0: Javaslat - Render** (egyszerűség), de válassz egyet és maradj nála
 
-model Event {
-  id         String   @id @default(uuid())
-  userId     String?
-  eventType  String   // user_login, ai_generation, post_saved, post_published, etc.
-  eventData  Json     // {brand_id, post_id, generation_time_ms, ...}
-  timestamp  DateTime @default(now())
-}
+---
+
+## TA3: Data Model (Single Source of Truth)
+
+> **Ez az adatmodell az autoritatív verzió.** FR-ek és Tech Spec (Prisma schema) ennek felel meg.
+
+### TA3.1: Core Entities
+
+**Agency (Ügynökség):**
+```
+Agency
+  ├─ id: UUID (PK)
+  ├─ name: String (max 100 char)
+  ├─ owner_email: String (unique)
+  ├─ created_at: Timestamp
+  └─ updated_at: Timestamp
+```
+
+**User:**
+```
+User
+  ├─ id: UUID (PK)
+  ├─ agency_id: UUID (FK → Agency)
+  ├─ email: String (unique)
+  ├─ password_hash: String (bcrypt)
+  ├─ role: String (P0: "admin" vagy "socialos", P1: enum)
+  ├─ created_at: Timestamp
+  └─ updated_at: Timestamp
+```
+
+**Brand:**
+```
+Brand
+  ├─ id: UUID (PK)
+  ├─ agency_id: UUID (FK → Agency)
+  ├─ name: String (max 100 char)
+  ├─ description: String (nullable, max 500 char)
+  │
+  ├─ fb_page_id: String (nullable)
+  ├─ fb_page_name: String (nullable)
+  ├─ fb_access_token_encrypted: String (nullable) - AES-256 encrypted
+  ├─ fb_token_expires_at: Timestamp (nullable)
+  │
+  ├─ ig_account_id: String (nullable)
+  ├─ ig_username: String (nullable)
+  ├─ ig_access_token_encrypted: String (nullable) - AES-256 encrypted
+  ├─ ig_token_expires_at: Timestamp (nullable)
+  │
+  ├─ brand_brain: JSON (Brand Brain v1 struktura - lásd TA3.2)
+  ├─ archived_at: Timestamp (nullable - soft delete)
+  ├─ created_at: Timestamp
+  └─ updated_at: Timestamp
+```
+
+**FONTOS - FB/IG token kezelés:**
+- **Külön mezők** FB és IG token-eknek (nem egyetlen `accessToken` mező!)
+- **Külön expiry tracking** (60 napos lejárat követése)
+- **Encrypted** (AES-256, encryption key env var-ból)
+
+**Post:**
+```
+Post
+  ├─ id: UUID (PK)
+  ├─ brand_id: UUID (FK → Brand)
+  ├─ user_id: UUID (FK → User - creator)
+  ├─ text: Text
+  ├─ platform: String ("facebook" vagy "instagram")
+  ├─ status: String ("draft" | "approved" | "scheduled" | "published" | "failed")
+  │
+  ├─ ai_generated: Boolean (default: false)
+  ├─ usability_rating: String (nullable: "usable" | "heavy_edit" | "not_usable")
+  │
+  ├─ image_url: String (nullable - Cloudinary URL)
+  │
+  ├─ scheduled_at: Timestamp (nullable)
+  ├─ published_at: Timestamp (nullable)
+  │
+  ├─ fb_post_id: String (nullable - Meta API response)
+  ├─ ig_media_id: String (nullable - Meta API response)
+  │
+  ├─ error_message: String (nullable - ha failed státusz)
+  │
+  ├─ publishing_lock: Boolean (default: false - idempotencia P0)
+  ├─ last_publish_attempt_at: Timestamp (nullable - idempotencia P0)
+  │
+  ├─ created_at: Timestamp
+  └─ updated_at: Timestamp
+```
+
+**FONTOS - Publishing idempotencia mezők (P0):**
+- **publishing_lock:** Boolean flag → cron job ellenőrzi, ha `true` → skip (már folyamatban van)
+- **last_publish_attempt_at:** Timestamp → ha < 5 perc → skip (túl közeli retry védelem)
+- **Cél:** Duplikált poszt kockázat csökkentése (lásd TA5.2)
+
+**Event (Analytics):**
+```
+Event
+  ├─ id: UUID (PK)
+  ├─ user_id: UUID (FK → User, nullable)
+  ├─ event_type: String ("user_login", "ai_generation", "post_saved", stb.)
+  ├─ event_data: JSON (event-specifikus paraméterek)
+  └─ timestamp: Timestamp
+```
+
+**Session (express-session store):**
+```
+Session
+  ├─ sid: String (PK - session ID)
+  ├─ sess: JSON (session data: user_id, stb.)
+  └─ expire: Timestamp (session expiry - 7 nap)
 ```
 
 ---
 
-#### TA2.4: Infrastructure & DevOps
+### TA3.2: Brand Brain JSON Structure (Autoritatív)
 
-| Komponens | P0 Választás | Alternatíva (P1) | Döntési indok |
-|-----------|--------------|------------------|---------------|
-| **Hosting (App)** | Render / Railway / Fly.io | Vercel (frontend), AWS EC2, DigitalOcean | Zero-config deploy, auto-scaling (P1), SSL included |
-| **Database Hosting** | Render Managed DB / Railway | Supabase, AWS RDS, Neon | Managed service, auto backup, connection pooling |
-| **CI/CD** | - (manual git push) | GitHub Actions, GitLab CI | P0: nincs automatizált testing. P1: automated tests + deploy |
-| **Monitoring** | - (console logs) | Datadog, New Relic, Sentry | P0: best-effort. P1: APM, error tracking, alerting |
-| **Domain & DNS** | Namecheap / Cloudflare | AWS Route 53 | Egyszerű DNS management, Cloudflare CDN (P1) |
-| **SSL** | Let's Encrypt (Render auto) | - | Free, auto-renewal |
+**Brand Brain v1 struktúra (brand_brain mező):**
 
-**P0 megjegyzés:**
-- **Deployment:** `git push` → Render/Railway auto-build → deploy (< 5 perc)
-- **Nincs staging environment:** Pilot során direkt production deploy → elfogadható
-- **Nincs Docker:** Render/Railway natívan futtat Node.js projektet (package.json alapján)
+```json
+{
+  "tone_of_voice": {
+    "description": "string (max 1000 char)"
+  },
+  "key_messages": [
+    "string (max 200 char)",
+    ...  // max 10 darab
+  ],
+  "reference_posts": [
+    {
+      "text": "string (max 5000 char)",
+      "source": "manual_input",
+      "created_at": "ISO timestamp"
+    },
+    ...  // max 5 darab
+  ],
+  "visual_direction": {
+    "description": "string (max 1000 char)"
+  }
+}
+```
 
-**P1 - Production infra:**
-- Staging + Production env (külön DB)
-- CI/CD pipeline (tests + linting + deploy)
-- Docker containerization (Dockerfile + docker-compose)
-- IaC (Terraform / Pulumi)
+**Validáció:** Lásd FR2.1 (nincs kötelező mező P0-ban, de fallback prompt kezelés van - FR0.1).
 
 ---
 
-### TA3: Multi-Tenant Architecture Pattern (P0)
+## TA4: Multi-Tenancy Strategy (P0/P1/P2 Roadmap)
 
-**Multi-tenancy modell:** **Shared Database, Row-Level Isolation**
+> **Tudatos, lépcsőzetes terv** - nem ad-hoc megoldás.
 
-**Agency-level izolálás:**
+### TA4.1: P0 - Application-Level Row Isolation
+
+**Stratégia:** Minden query `agencyId` filter-rel (app-rétű izolálás).
+
+**Implementation pattern:**
+
 ```typescript
-// Minden query agency_id filter-rel
-async function getUserBrands(userId: string): Promise<Brand[]> {
+// Middleware - Agency Access Check (P0 - optimalizált)
+async function checkAgencyAccess(req, res, next) {
+  const { brandId } = req.params;
+  const userId = req.session.userId;
+
+  // 1. Get user's agencyId (session-ből vagy DB-ből)
   const user = await prisma.user.findUnique({
     where: { id: userId },
     select: { agencyId: true }
   });
 
-  // Csak az agency saját márkái
-  return prisma.brand.findMany({
-    where: { agencyId: user.agencyId }
-  });
-}
-```
+  if (!user) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
 
-**Authorization middleware:**
-```typescript
-// Express middleware - ellenőrzi, hogy user csak saját agency adatait éri el
-async function checkAgencyAccess(req, res, next) {
-  const { brandId } = req.params;
-  const userId = req.session.userId;
-
+  // 2. Get brand's agencyId (1 query, ne töltsünk user listát!)
   const brand = await prisma.brand.findUnique({
     where: { id: brandId },
-    include: { agency: { include: { users: true } } }
+    select: { agencyId: true }
   });
 
-  // Ellenőrzés: user agency_id === brand agency_id
-  const userBelongsToAgency = brand.agency.users.some(u => u.id === userId);
-
-  if (!userBelongsToAgency) {
-    return res.status(403).json({ error: "Forbidden" });
+  if (!brand) {
+    return res.status(404).json({ error: "Brand not found" });
   }
+
+  // 3. Check match
+  if (user.agencyId !== brand.agencyId) {
+    return res.status(403).json({ error: "Forbidden - wrong agency" });
+  }
+
+  // 4. Attach agencyId to request (later queries can use this)
+  req.agencyId = user.agencyId;
 
   next();
 }
 ```
 
-**P0 megjegyzés:**
-- **Nincs separate database per tenant** (túl komplex pilot-hoz)
-- **Row-level security (RLS):** Minden query tartalmaz `agencyId` filter-t
-- **Nincs Kubernetes multi-tenancy:** Single-server deployment elég
+**FONTOS - P0 optimalizálás:**
+- ❌ **NE:** `brand.agency.users.some(...)` → teljes user lista fetch (N+1 query, lassú)
+- ✅ **IGEN:** `user.agencyId === brand.agencyId` → egyszerű ID match (gyors, 2 query)
 
-**P1 - Enterprise multi-tenancy:**
-- Database-level isolation (külön schema per agency, PostgreSQL schema-k)
-- Fine-grained permissions (márka-szintű hozzáférés, szerepkörök)
-- Audit log (ki, mit, mikor ért el)
+**Query pattern (minden brand/post lekérdezésnél):**
+```typescript
+// Example: List brands for agency
+async function getUserBrands(userId: string) {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { agencyId: true }
+  });
+
+  return prisma.brand.findMany({
+    where: { agencyId: user.agencyId, archived_at: null }
+  });
+}
+```
+
+**Kockázatok (P0):**
+- ❌ **Nincs DB-szintű védelem:** Ha elfelejtünk `agencyId` filter-t → tenant isolation sérül
+- ❌ **Manuális minden query-nél:** Developer error-prone
+
+**Mitigálás (P0):**
+- Code review (minden query ellenőrzés)
+- Testing (multi-agency test case-ek)
 
 ---
 
-### TA4: Third-Party Integrations (P0)
+### TA4.2: P1 - Database-Level Row-Level Security (RLS)
 
-#### TA4.1: Meta Graph API Integration
+**Stratégia:** PostgreSQL RLS policy + app-layer filter kombinálva.
 
-**OAuth 2.0 Flow (FB Page + IG Account):**
+**PostgreSQL RLS policy example (P1):**
+```sql
+-- Enable RLS on Brand table
+ALTER TABLE brands ENABLE ROW LEVEL SECURITY;
 
+-- Policy: user csak saját agency brand-jeit látja
+CREATE POLICY agency_isolation_policy ON brands
+  FOR ALL
+  USING (agency_id = current_setting('app.current_agency_id')::uuid);
 ```
-User clicks "Connect Facebook/Instagram"
-  ↓
-Frontend redirects to Meta OAuth:
-  https://www.facebook.com/v18.0/dialog/oauth?
-    client_id={app_id}
-    &redirect_uri={callback_url}
-    &scope=pages_manage_posts,instagram_basic,instagram_content_publish
-  ↓
-User approves
-  ↓
-Meta redirects to callback with `code`:
-  https://creaitor.app/auth/meta/callback?code=ABC123
-  ↓
-Backend exchanges code for access_token:
-  POST https://graph.facebook.com/v18.0/oauth/access_token
-    ?client_id={app_id}
-    &client_secret={app_secret}
-    &code=ABC123
-    &redirect_uri={callback_url}
-  ↓
-Meta returns:
-  {
-    "access_token": "EAAxxxx...",
-    "token_type": "bearer",
-    "expires_in": 5183944 (60 days)
+
+**App-layer set agency context:**
+```typescript
+// Set session variable before queries
+await prisma.$executeRaw`SET app.current_agency_id = ${user.agencyId}`;
+```
+
+**Előny:**
+- ✅ DB-szintű védelem (még ha app-layer filter elfelejt is → RLS policy blokkol)
+- ✅ Defense in depth
+
+**Hátrány:**
+- Bonyolultabb setup
+- Session variable management (Prisma-val nem triviális)
+
+---
+
+### TA4.3: P2 - Schema-Per-Tenant (Enterprise)
+
+**Stratégia:** Külön PostgreSQL schema / database per agency.
+
+**Előny:**
+- ✅ Teljes izolálás (performance + security)
+- ✅ Enterprise compliance (SOC2, ISO27001)
+
+**Hátrány:**
+- Nagyon komplex (migration, backup, monitoring per-tenant)
+- Csak nagy enterprise use case-nél érdemes
+
+**P0/P1:** Nem releváns.
+
+---
+
+## TA5: Key Implementation Patterns (P0)
+
+### TA5.1: Session Management (DB-Backed)
+
+**Config (express-session + connect-pg-simple):**
+
+```typescript
+import session from 'express-session';
+import connectPgSimple from 'connect-pg-simple';
+import { Pool } from 'pg';
+
+const PgSession = connectPgSimple(session);
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+
+app.use(session({
+  store: new PgSession({
+    pool: pool,
+    tableName: 'sessions'  // sessions table in PostgreSQL
+  }),
+  secret: process.env.SESSION_SECRET,
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    httpOnly: true,
+    secure: true,  // HTTPS only
+    sameSite: 'lax',
+    maxAge: 7 * 24 * 60 * 60 * 1000  // 7 days
   }
-  ↓
-Backend fetches Page + IG Account IDs:
-  GET https://graph.facebook.com/v18.0/me/accounts?access_token={token}
-    → FB Page ID, Page Access Token
-  GET https://graph.facebook.com/v18.0/{page_id}?fields=instagram_business_account
-    → IG Account ID
-  ↓
-Backend saves to DB (encrypted):
-  Brand.update({
-    fbPageId: "123456789",
-    igAccountId: "987654321",
-    accessToken: encrypt("EAAxxxx...")
-  })
+}));
 ```
 
-**Publishing (FB Page):**
-```typescript
-async function publishToFacebook(postId: string) {
-  const post = await prisma.post.findUnique({
-    where: { id: postId },
-    include: { brand: true }
-  });
+**Sessions table (Prisma schema):**
+```prisma
+model Session {
+  sid    String   @id
+  sess   Json
+  expire DateTime
 
-  const accessToken = decrypt(post.brand.accessToken);
-
-  const response = await axios.post(
-    `https://graph.facebook.com/v18.0/${post.brand.fbPageId}/feed`,
-    {
-      message: post.text,
-      ...(post.imageUrl && { link: post.imageUrl }), // vagy `picture` param
-      access_token: accessToken
-    }
-  );
-
-  // {id: "123456789_987654321", post_id: "..."}
-  await prisma.post.update({
-    where: { id: postId },
-    data: {
-      status: "published",
-      fbPostId: response.data.id,
-      publishedAt: new Date()
-    }
-  });
+  @@index([expire])
 }
 ```
 
-**Publishing (IG Account):**
-```typescript
-async function publishToInstagram(postId: string) {
-  const post = await prisma.post.findUnique({
-    where: { id: postId },
-    include: { brand: true }
-  });
-
-  const accessToken = decrypt(post.brand.accessToken);
-
-  // Step 1: Create media container
-  const containerResponse = await axios.post(
-    `https://graph.facebook.com/v18.0/${post.brand.igAccountId}/media`,
-    {
-      image_url: post.imageUrl, // publicly accessible URL (S3 pre-signed URL)
-      caption: post.text,
-      access_token: accessToken
-    }
-  );
-
-  const containerId = containerResponse.data.id;
-
-  // Step 2: Publish container
-  const publishResponse = await axios.post(
-    `https://graph.facebook.com/v18.0/${post.brand.igAccountId}/media_publish`,
-    {
-      creation_id: containerId,
-      access_token: accessToken
-    }
-  );
-
-  // {id: "18123456789"}
-  await prisma.post.update({
-    where: { id: postId },
-    data: {
-      status: "published",
-      igMediaId: publishResponse.data.id,
-      publishedAt: new Date()
-    }
-  });
-}
-```
-
-**Rate Limiting (P0 - basic):**
-- Facebook: 200 calls / hour (per app)
-- Ha rate limit error (code 4, 17, 32, 613) → error message + manual retry
-- P1: Exponential backoff, queue management
+**Miért fontos:**
+- ✅ Session perzisztens (app restart → user marad bejelentkezve)
+- ✅ Stabil UX pilotban
 
 ---
 
-#### TA4.2: AI API Integration (OpenAI / Anthropic)
+### TA5.2: Cron Job Idempotencia (Publishing)
 
-**Copy Generation:**
+**Probléma:** Cron job duplikáltan fut → duplikált poszt kockázat.
+
+**Megoldás (P0):**
 
 ```typescript
-import OpenAI from 'openai';
+import cron from 'node-cron';
 
-async function generateAICopy(brief: string, brandId: string): Promise<string> {
-  const brand = await prisma.brand.findUnique({
-    where: { id: brandId }
+// Run every 5 minutes
+cron.schedule('*/5 * * * *', async () => {
+  console.log('[CRON] Checking scheduled posts...');
+
+  const now = new Date();
+
+  // Find scheduled posts ready to publish
+  const postsToPublish = await prisma.post.findMany({
+    where: {
+      status: 'scheduled',
+      scheduled_at: { lte: now },
+      publishing_lock: false,  // P0 idempotencia check
+      OR: [
+        { last_publish_attempt_at: null },
+        { last_publish_attempt_at: { lt: new Date(now.getTime() - 5 * 60 * 1000) } }  // > 5 min ago
+      ]
+    },
+    include: { brand: true }
   });
 
-  const brandBrain = brand.brandBrain as BrandBrain; // Type assertion
+  for (const post of postsToPublish) {
+    try {
+      // 1. Set lock (idempotencia)
+      await prisma.post.update({
+        where: { id: post.id },
+        data: {
+          publishing_lock: true,
+          last_publish_attempt_at: now
+        }
+      });
 
-  const systemPrompt = "Te egy tapasztalt social media copywriter vagy.";
+      // 2. Publish to Meta API
+      const result = await publishToMeta(post);
 
-  const userPrompt = `
-Írj egy Facebook posztot a következő márka számára:
+      // 3. Update status (success)
+      await prisma.post.update({
+        where: { id: post.id },
+        data: {
+          status: 'published',
+          published_at: now,
+          fb_post_id: result.fb_post_id,
+          ig_media_id: result.ig_media_id,
+          publishing_lock: false
+        }
+      });
 
-**Márka Tone of Voice:**
-${brandBrain.tone_of_voice.description}
+      console.log(`[CRON] Published post ${post.id}`);
+    } catch (error) {
+      // 4. Update status (failed)
+      await prisma.post.update({
+        where: { id: post.id },
+        data: {
+          status: 'failed',
+          error_message: error.message,
+          publishing_lock: false  // Release lock
+        }
+      });
 
-**Márka Key Messages:**
-${brandBrain.key_messages.join('\n')}
+      console.error(`[CRON] Failed to publish post ${post.id}:`, error);
+    }
+  }
+});
+```
 
-**Példaposztok (referencia):**
-${brandBrain.reference_posts.map(p => p.text).join('\n\n')}
+**Idempotencia mechanizmus:**
+- ✅ **publishing_lock:** Boolean flag → elkerüli a duplikált publish attempt-et
+- ✅ **last_publish_attempt_at:** Timestamp check → ha < 5 perc → skip (túl közeli retry védelem)
+- ✅ **Transaction-like pattern:** Lock set → publish → lock release
 
-**Poszt téma / brief:**
-${brief}
+**P1 - Queue-based:**
+- BullMQ / Sidekiq → automatic retry, exponential backoff, job monitoring
+- Idempotencia built-in (job ID alapján)
 
-**Platform:** Facebook (max 500 karakter ajánlott)
+---
 
-Generálj 1 posztot, ami tükrözi a márka hangját. Csak a poszt szövegét add vissza, semmi mást.
-  `.trim();
+### TA5.3: AI Provider Abstraction (P0 - Single Provider, P1 - Multi)
 
-  const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY
-  });
+**P0 - Single provider (OpenAI VAGY Anthropic):**
+
+```typescript
+// AI service (single provider P0)
+async function generateAICopy(brief: string, brandBrain: BrandBrain): Promise<string> {
+  const prompt = constructPrompt(brief, brandBrain);  // lásd FR3.1
+
+  // P0: Hardcoded provider (OpenAI VAGY Anthropic - build-time döntés)
+  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
   const completion = await openai.chat.completions.create({
-    model: "gpt-4o", // vagy "gpt-4-turbo"
+    model: "gpt-4o",
     messages: [
-      { role: "system", content: systemPrompt },
-      { role: "user", content: userPrompt }
+      { role: "system", content: "Te egy social media copywriter vagy." },
+      { role: "user", content: prompt }
     ],
     temperature: 0.7,
     max_tokens: 500
@@ -3398,336 +3607,107 @@ Generálj 1 posztot, ami tükrözi a márka hangját. Csak a poszt szövegét ad
 }
 ```
 
-**Anthropic (Claude) alternatíva:**
+**P1 - Multi-provider (fallback + switching):**
+
 ```typescript
-import Anthropic from '@anthropic-ai/sdk';
+// AI service (multi-provider P1)
+async function generateAICopy(brief: string, brandBrain: BrandBrain, provider: 'openai' | 'anthropic' = 'openai'): Promise<string> {
+  const prompt = constructPrompt(brief, brandBrain);
 
-async function generateAICopyWithClaude(brief: string, brandId: string): Promise<string> {
-  // ... same brand brain fetch ...
-
-  const anthropic = new Anthropic({
-    apiKey: process.env.ANTHROPIC_API_KEY
-  });
-
-  const message = await anthropic.messages.create({
-    model: "claude-3-5-sonnet-20241022",
-    max_tokens: 1024,
-    messages: [
-      {
-        role: "user",
-        content: userPrompt // same as OpenAI
-      }
-    ]
-  });
-
-  return message.content[0].text.trim();
-}
-```
-
-**P0 döntési pont:**
-- **OpenAI (GPT-4o):** Jobb ismert, több példakód, GPT-4o olcsóbb mint GPT-4 Turbo
-- **Anthropic (Claude 3.5 Sonnet):** Jobb hosszú context handling, jobb instruction following
-- **P0: Válassz egyet.** Mindkettő támogatása P1.
-
-**Error handling:**
-- Timeout (30 sec) → retry 1x
-- Rate limit → error message (nincs auto-retry)
-- Invalid API key → fatal error (env setup hiba)
-
----
-
-#### TA4.3: Email Service (SendGrid / Mailgun)
-
-**Transactional emails:**
-
-| Email Típus | Trigger | Template |
-|-------------|---------|----------|
-| **User Invite** | Admin hív meg új user-t | "Csatlakozz a {agency_name} csapatához! Regisztrálj itt: {invite_link}" |
-| **Password Reset** | User elfelejtette jelszavát | "Jelszó visszaállítás: {reset_link} (1 órán belül lejár)" |
-| **Post Publish Failed** (P1) | Meta API hiba | "Publikálás sikertelen: {error_message}. Próbáld újra!" |
-
-**SendGrid példa:**
-```typescript
-import sgMail from '@sendgrid/mail';
-
-sgMail.setApiKey(process.env.SENDGRID_API_KEY);
-
-async function sendUserInvite(email: string, inviteToken: string) {
-  const inviteLink = `https://creaitor.app/register?token=${inviteToken}`;
-
-  await sgMail.send({
-    to: email,
-    from: 'noreply@creaitor.app',
-    subject: 'Csatlakozz a csapatunkhoz!',
-    text: `Regisztrálj itt: ${inviteLink}`,
-    html: `<p>Csatlakozz a csapatunkhoz!</p><p><a href="${inviteLink}">Regisztráció</a></p>`
-  });
-}
-```
-
-**P0 megjegyzés:**
-- Nincs fancy email template (plain HTML elég)
-- Nincs email tracking (open rate, click rate)
-- P1: Email templates (MJML), tracking, unsubscribe management
-
----
-
-#### TA4.4: File Storage (S3 / Cloudinary)
-
-**Image Upload Flow:**
-
-```
-User selects image (< 10MB, JPEG/PNG)
-  ↓
-Frontend uploads to backend endpoint:
-  POST /api/upload
-  Content-Type: multipart/form-data
-  ↓
-Backend validates (size, format)
-  ↓
-Backend uploads to S3 (vagy Cloudinary):
-  - S3: Pre-signed URL generálás (public read)
-  - Cloudinary: Direct upload API
-  ↓
-Backend returns image URL:
-  { "url": "https://creaitor-uploads.s3.amazonaws.com/abc123.jpg" }
-  ↓
-Frontend stores URL in Post.imageUrl
-```
-
-**S3 példa:**
-```typescript
-import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
-import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
-
-const s3 = new S3Client({
-  region: 'us-east-1',
-  credentials: {
-    accessKeyId: process.env.S3_ACCESS_KEY,
-    secretAccessKey: process.env.S3_SECRET_KEY
-  }
-});
-
-async function uploadImageToS3(file: Buffer, fileName: string): Promise<string> {
-  const command = new PutObjectCommand({
-    Bucket: process.env.S3_BUCKET,
-    Key: `uploads/${Date.now()}-${fileName}`,
-    Body: file,
-    ContentType: 'image/jpeg', // vagy image/png
-    ACL: 'public-read'
-  });
-
-  await s3.send(command);
-
-  return `https://${process.env.S3_BUCKET}.s3.amazonaws.com/uploads/${fileName}`;
-}
-```
-
-**Cloudinary példa (egyszerűbb):**
-```typescript
-import cloudinary from 'cloudinary';
-
-cloudinary.v2.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET
-});
-
-async function uploadImageToCloudinary(file: Buffer): Promise<string> {
-  const result = await cloudinary.v2.uploader.upload_stream(
-    {
-      folder: 'creaitor-uploads',
-      transformation: [
-        { width: 1200, height: 630, crop: 'limit' } // auto resize
-      ]
+  try {
+    if (provider === 'openai') {
+      return await callOpenAI(prompt);
+    } else {
+      return await callAnthropic(prompt);
     }
-  );
-
-  return result.secure_url;
-}
-```
-
-**P0 döntési pont:**
-- **S3:** Olcsóbb nagy volumen esetén, de setup bonyolultabb
-- **Cloudinary:** Auto-resize, CDN beépített, egyszerűbb setup → **ajánlott P0-hoz**
-
----
-
-### TA5: API Design (P0)
-
-**REST API Endpoints (példák):**
-
-```
-# Authentication
-POST   /api/auth/register          - Ügynökség regisztráció
-POST   /api/auth/login             - User login
-POST   /api/auth/logout            - User logout
-POST   /api/auth/password-reset    - Password reset request
-POST   /api/auth/password-reset/:token - Password reset confirm
-
-# Brands
-GET    /api/brands                 - List brands (agency-filtered)
-POST   /api/brands                 - Create brand
-GET    /api/brands/:id             - Get brand details
-PUT    /api/brands/:id             - Update brand (Brand Brain)
-DELETE /api/brands/:id             - Delete brand
-POST   /api/brands/:id/connect-meta - Meta OAuth callback handler
-
-# Posts
-GET    /api/brands/:brandId/posts  - List posts for brand
-POST   /api/brands/:brandId/posts  - Create post
-GET    /api/posts/:id              - Get post details
-PUT    /api/posts/:id              - Update post (edit, status change)
-DELETE /api/posts/:id              - Delete post
-POST   /api/posts/:id/generate     - AI copy generation
-POST   /api/posts/:id/publish      - Publish post (instant)
-POST   /api/posts/:id/schedule     - Schedule post
-
-# Upload
-POST   /api/upload                 - Image upload
-
-# Users (P1 - multi-user management)
-GET    /api/users                  - List agency users
-POST   /api/users/invite           - Invite new user
-DELETE /api/users/:id              - Remove user
-```
-
-**API Response format (standardizált):**
-
-```typescript
-// Success response
-{
-  "data": {
-    "id": "abc123",
-    "name": "Kis Kávézó"
-  }
-}
-
-// Error response
-{
-  "error": {
-    "code": "BRAND_NOT_FOUND",
-    "message": "Márka nem található",
-    "details": {}
+  } catch (error) {
+    // Fallback to other provider
+    if (provider === 'openai') {
+      console.warn('[AI] OpenAI failed, falling back to Anthropic');
+      return await callAnthropic(prompt);
+    } else {
+      console.warn('[AI] Anthropic failed, falling back to OpenAI');
+      return await callOpenAI(prompt);
+    }
   }
 }
 ```
 
-**Error code convention:**
-- `400` - Bad Request (validation error)
-- `401` - Unauthorized (nincs session)
-- `403` - Forbidden (agency access denied)
-- `404` - Not Found
-- `500` - Internal Server Error
-
-**P0 megjegyzés:**
-- Nincs GraphQL (REST elég)
-- Nincs API versioning (`/v1/`, `/v2/`) - pilot során felesleges
-- Nincs rate limiting (P1)
+**P0: Single provider elég** → Gyorsabb fejlesztés, kevesebb edge case.
 
 ---
 
-### TA6: Data Flow Examples (P0)
+## TA6: Integration Complexity Management (P0)
 
-#### Flow 1: AI Copy Generation
+> **Cél:** Csökkenteni az integrációk komplexitását → fókusz a core value-ra (H1/H2/H3 validálás).
 
-```
-User inputs brief: "Új kávé érkezett - Guatemalai single origin"
-  ↓
-Frontend: POST /api/posts/:id/generate
-  { "brief": "Új kávé érkezett..." }
-  ↓
-Backend:
-  1. Fetch Brand Brain (brand_id)
-  2. Construct AI prompt (TOV + Key Messages + Examples + Brief)
-  3. Call OpenAI API (GPT-4o)
-  4. Receive AI-generated copy
-  5. Create Post (status: draft, ai_generated: true)
-  6. Log event (event_type: ai_generation, generation_time_ms)
-  ↓
-Frontend receives:
-  { "data": { "id": "post123", "text": "☕️ Friss érkező!..." } }
-  ↓
-User reviews, edits, rates usability
-  ↓
-Frontend: PUT /api/posts/:id
-  { "text": "...", "usability_rating": "usable" }
-  ↓
-Backend updates Post
-```
+### TA6.1: Provider Choices (P0 - Egyszerűsített)
 
-#### Flow 2: Scheduled Publishing
+| Integration | P0 Choice | Alternatíva (OUT P0) | Indok |
+|-------------|-----------|----------------------|-------|
+| **AI API** | OpenAI GPT-4o | Anthropic Claude (P1) | Szélesebb support, több példakód |
+| **File Storage** | Cloudinary | S3 (P1) | Auto-resize, CDN, egyszerű API |
+| **Email** | SendGrid | Mailgun (P1) | Free tier, egyszerű setup |
+| **Hosting** | Render | Railway, Fly.io (P1) | Managed PostgreSQL, SSL auto |
 
-```
-User schedules post for "2025-01-25 10:00"
-  ↓
-Frontend: POST /api/posts/:id/schedule
-  { "scheduled_at": "2025-01-25T10:00:00Z" }
-  ↓
-Backend updates Post (status: scheduled)
-  ↓
-Cron job runs every 5 minutes:
-  SELECT * FROM posts WHERE status = 'scheduled' AND scheduled_at <= NOW()
-  ↓
-For each post:
-  1. Decrypt access_token
-  2. Call Meta Graph API (POST /feed or /media)
-  3. If success → status: published, fb_post_id/ig_media_id saved
-  4. If error → status: failed, error_message saved
-  5. Log event (event_type: post_published / post_failed)
-```
-
-#### Flow 3: Multi-Brand Calendar View
-
-```
-User opens Calendar page
-  ↓
-Frontend: GET /api/brands?include=posts
-  ↓
-Backend:
-  1. Get user session (userId)
-  2. Fetch user's agency_id
-  3. Fetch all brands (where agency_id = user.agency_id)
-  4. For each brand, fetch posts (where brand_id, filter by date range)
-  5. Return aggregated data
-  ↓
-Frontend receives:
-  {
-    "data": [
-      {
-        "brand": { "id": "brand1", "name": "Kis Kávézó" },
-        "posts": [
-          { "id": "post1", "scheduled_at": "2025-01-20T10:00", "status": "scheduled" },
-          { "id": "post2", "scheduled_at": "2025-01-22T14:00", "status": "draft" }
-        ]
-      }
-    ]
-  }
-  ↓
-Frontend renders weekly calendar (slots by date, grouped by brand)
-```
+**Miért fontos ez:**
+- Kevesebb provider → kevesebb credential management
+- Kevesebb API-szokás tanulás → gyorsabb fejlesztés
+- **Cél:** 4-6 hét alatt pilot launch, **nem** technológiai exploration
 
 ---
 
-### Technical Architecture Összefoglalás
+### TA6.2: Integration Priority (P0)
 
-| Komponens | P0 (MVP Pilot) | P1 (Post-PMF) |
-|-----------|----------------|---------------|
-| **Architecture** | Monolitikus (Frontend + Backend egyetlen deployment) | Microservices (AI Service, Publishing Service külön) |
-| **Frontend** | React 18 + TypeScript + Tailwind + Vite | Next.js (SSR), React Query (caching) |
-| **Backend** | Node.js + Express + TypeScript + Prisma | Fastify (performance), NestJS (modularity) |
-| **Database** | PostgreSQL (Render managed, single instance) | PostgreSQL (read replicas, connection pooling) |
-| **Cache** | - | Redis (session, API cache) |
-| **File Storage** | Cloudinary (auto-resize, CDN) | S3 + CloudFront CDN |
-| **Email** | SendGrid (transactional) | SendGrid + email templates (MJML) |
-| **AI API** | OpenAI (GPT-4o) VAGY Anthropic (Claude 3.5) | Mindkettő támogatása, model switching |
-| **Scheduling** | node-cron (5 perc interval) | BullMQ queue (background jobs, retry logic) |
-| **Monitoring** | Console logs | Datadog/New Relic (APM), Sentry (error tracking) |
-| **Deployment** | Render/Railway (git push → auto-deploy) | CI/CD (GitHub Actions), Docker, staging env |
-| **Multi-tenancy** | Row-level isolation (agency_id filter) | Schema-level isolation, fine-grained permissions |
+**Core integrations (mandatory P0):**
+1. **Meta Graph API** (nincs alternatíva - core dependency)
+2. **AI API** (1 provider - OpenAI VAGY Anthropic)
+3. **PostgreSQL** (Render managed DB)
+4. **Cloudinary** (file storage)
+
+**Secondary integrations (P0-nice - elhagyható időhiány esetén):**
+5. **SendGrid** (email - password reset, user invite)
+6. **Session store** (DB-backed - **mandatory stability-ért**, de egyszerű setup)
+
+**Out of scope P0:**
+- ❌ Monitoring (Datadog, New Relic) → P1
+- ❌ Error tracking (Sentry) → P1
+- ❌ Analytics (Mixpanel, Amplitude) → P1
+- ❌ CDN (CloudFront, Cloudflare) → P1
+
+**Ha idő szűk:**
+- Fókusz: Meta API + AI API + PostgreSQL + Cloudinary
+- Email: Lehet manuális (admin küld email-t kézzel pilot alatt)
+
+---
+
+## Technical Architecture Összefoglalás
+
+| Komponens | P0-Core (mandatory) | P0-Nice (opcionális) | P1 (post-PMF) |
+|-----------|---------------------|----------------------|---------------|
+| **Architecture** | Monolitikus (FE + BE egyetlen deployment) | - | Microservices, event-driven |
+| **Frontend** | React + TS + Tailwind + Router + Context/Zustand | React Query | Next.js (SSR), React Query |
+| **Backend** | Express + TS + Prisma + cron | Winston/Pino | Fastify (performance), NestJS |
+| **Database** | PostgreSQL (Render managed) | - | Read replicas, connection pooling |
+| **Session** | **DB-backed (PostgreSQL)** | Redis | Redis (gyorsabb) |
+| **File Storage** | **Cloudinary ONLY** | - | S3 + CloudFront CDN |
+| **AI API** | **OpenAI GPT-4o VAGY Anthropic (válassz egyet)** | - | Mindkettő (dual-provider, fallback) |
+| **Email** | **SendGrid VAGY Mailgun (válassz egyet)** | - | Mindkettő (fallback) |
+| **Scheduling** | node-cron + **idempotencia** (lock, timestamp) | - | BullMQ queue, retry logic |
+| **Multi-tenancy** | App-layer RLS (agencyId filter minden query) | - | DB-level RLS (PostgreSQL policy) |
+| **Monitoring** | console.log | - | Datadog/New Relic APM, Sentry |
+| **Deployment** | Render/Railway (git push → auto-build) | Docker | CI/CD, staging env, Docker |
+
+**Kritikus TA Döntések:**
+- ✅ **Session: DB-backed P0** (nem MemoryStore!) → stabil UX, restart-proof
+- ✅ **Cron idempotencia P0** (publishing_lock, last_attempt_at) → duplikált poszt védelem
+- ✅ **1 AI provider P0** (OpenAI VAGY Anthropic, nem mindkettő) → gyorsabb fejlesztés
+- ✅ **Cloudinary P0, S3 OUT** → auto-resize, CDN, egyszerű API
+- ✅ **Multi-tenancy: app-layer P0, DB RLS P1** → egyszerűbb start, later hardening
+- ✅ **FB/IG token külön mezők** (nem egyetlen accessToken) → konzisztens FR-rel
 
 **P0 filozófia ismétlés:**
-> Egyszerű tech stack, gyors fejlesztés, monolitikus architektúra. Ha a pilot sikeres (H1, H2, H3 validálódnak) → akkor P1 refactoring (microservices, caching, monitoring). Ha nem → akkor nem vesztettünk időt over-engineering-re.
+> Egyszerű monolit, minimális stack complexity. **P0-core:** Mandatory tech (Meta API, 1 AI provider, Cloudinary, DB-backed session). **P0-nice:** Opcionális polish (Winston, Passport, stb.) - időhiány esetén elhagyható. **Cél:** Gyors pilot launch (4-6 hét), H1/H2/H3 validálás, **nem** technológiai felfedezés. Ha sikeres → P1 refactoring (queue, monitoring, dual-provider). Ha nem → nem vesztettünk időt over-engineering-re.
 
 ---
 
