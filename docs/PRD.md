@@ -1437,3 +1437,629 @@ A socialos több márkát kezel párhuzamosan (jellemzően 3-10 márka). Váltan
 **Fontos:** Ezek a protokollok **párhuzamosan futnak** a pilot során, nem szekvenciálisan. A socialosok használják a terméket (Product Journeys 1-4), miközben mi mérjük őket (Research Protocols 1-4).
 
 ---
+
+## Functional Requirements (Részletes)
+
+**Cél:** Ez a szekció részletesen leírja a Creaitor MVP funkcióit, feature-enként strukturálva. Minden feature tartalmazza:
+- Input/Output specifikációt
+- Üzleti szabályokat
+- Validációs követelményeket
+- Státuszgépeket (ahol releváns)
+- P0/P1 határok pontos megjelölését
+
+**Megjegyzés:** Ez NEM technikai implementációs spec (az a Tech Spec-be tartozik), hanem funkcionális követelmények - **mit csináljon a rendszer**, nem **hogyan**.
+
+---
+
+### FR1: Multi-Tenant Alaprendszer
+
+#### FR1.1: Ügynökség Regisztráció és Profil
+
+**P0 - Alapvető funkciók:**
+
+| Input | Output | Üzleti szabály |
+|-------|--------|----------------|
+| Email, jelszó (regisztráció) | Ügynökség létrehozva, user session | Email unique, jelszó min. 8 karakter |
+| Ügynökség név, opcionális leírás | Ügynökség profil mentve | Ügynökség név kötelező, max. 100 karakter |
+
+**Validációs szabályok (P0):**
+- Email formátum ellenőrzés (alapvető regex)
+- Jelszó minimális hossz (8 karakter)
+- Ügynökség név kötelező
+
+**P1 - Bővített validáció:**
+- Jelszó erősség ellenőrzés (kis/nagy betű, szám, speciális karakter)
+- Email domain blacklist (disposable email címek kiszűrése)
+- Ügynökség profil további mezők (cím, telefonszám, VAT szám)
+
+---
+
+#### FR1.2: User Management (Ügynökségen belüli userek)
+
+**P0 - Alapvető funkciók:**
+
+| Input | Output | Üzleti szabály |
+|-------|--------|----------------|
+| Email cím (meghívás) | Meghívó email elküldve, pending user created | User max. 1 ügynökséghez tartozhat (MVP-ben) |
+| Meghívó link kattintás + jelszó beállítás | User aktiválva, hozzáadva ügynökséghez | Link 7 napig érvényes |
+
+**User hierarchy (P0):**
+```
+Ügynökség (Agency)
+  └─ User 1 (Admin - owner)
+  └─ User 2 (Socialos - meghívott)
+  └─ User 3 (Socialos - meghívott)
+```
+
+**Jogosultságok (P0 - egyszerű):**
+- **Admin (owner):** Minden funkció elérhető (user meghívás, márka CRUD, poszt CRUD, publishing)
+- **Socialos (meghívott):** Minden funkció elérhető (MVP-ben nincs megkülönböztetés)
+
+**P0 megjegyzés:** MVP-ben nincs finomhangolt jogosultság-kezelés. Ha user ugyanabban az ügynökségben van, mindent lát és csinálhat. Ez elég 5-10 pilot ügynökséghez (kis csapatok, magas bizalmi szint).
+
+**P1 - Fine-grained permissions:**
+- **Szerepkörök:** Admin, Editor, Viewer
+- **Brand-specifikus jogosultságok:** User csak egyes márkákat láthat/szerkeszthet
+- **Approval chain szintek:** Ki küldhet review-ra, ki approve-olhat
+
+---
+
+#### FR1.3: Márka (Brand) Management
+
+**P0 - Alapvető funkciók:**
+
+| Input | Output | Üzleti szabály |
+|-------|--------|----------------|
+| Márka név, opcionális leírás | Márka létrehozva | Márka név kötelező, max. 100 karakter |
+| FB Page OAuth flow | FB Page ID, name, access token tárolva | Token refresh logic |
+| IG Account OAuth flow | IG Account ID, username, access token tárolva | IG Business Account kötelező (nem personal) |
+
+**Márka adatmodell (P0):**
+```
+Brand {
+  id: UUID
+  agency_id: UUID (foreign key)
+  name: String (kötelező)
+  description: String (opcionális)
+  fb_page_id: String (opcionális - Meta OAuth után)
+  fb_page_name: String
+  fb_access_token: String (encrypted)
+  ig_account_id: String (opcionális)
+  ig_username: String
+  ig_access_token: String (encrypted)
+  brand_brain: JSON (Brand Brain v1 adatok)
+  created_at: Timestamp
+  updated_at: Timestamp
+  archived_at: Timestamp (null = aktív)
+}
+```
+
+**Üzleti szabályok (P0):**
+- Márka csak akkor publisholhat, ha FB Page ID VAGY IG Account ID csatolva van
+- Token lejárat: Ha Meta API 401/403 hibát ad → user újra csatolja a profilt (OAuth flow újra)
+- Márka archiválás: Logikai törlés (archived_at timestamp), de adat megmarad (nem hard delete)
+
+**P1 - Bővített funkciók:**
+- Meta token auto-refresh (long-lived token kezelés)
+- Márka státuszok (Active / Paused / Archived)
+- Márka csoportosítás / tagging (pl. "Horeca", "E-commerce")
+
+---
+
+### FR2: Brand Brain v1 - Márka Tudásbázis
+
+**Cél:** Strukturált márka-specifikus kontextus tárolása, amit az AI Copy Studio használ a generáláshoz.
+
+#### FR2.1: Brand Brain Adatmodell (P0)
+
+**Brand Brain JSON struktúra:**
+```json
+{
+  "tone_of_voice": {
+    "description": "Barátságos, közvetlen, nem túl formális...",
+    "character_count": 450
+  },
+  "key_messages": [
+    "Helyi, frissen pörkölt kávé",
+    "Cozy, otthonos légkör",
+    "Támogatjuk a fenntartható beszerzést"
+  ],
+  "reference_posts": [
+    {
+      "text": "☕️ Friss pörkölés! Guatemalai single origin...",
+      "source": "manual_input",
+      "created_at": "2025-01-15T10:00:00Z"
+    },
+    {
+      "text": "🌿 Fenntarthatóság nálunk nem buzzword...",
+      "source": "manual_input",
+      "created_at": "2025-01-15T10:05:00Z"
+    }
+  ],
+  "visual_direction": {
+    "description": "Meleg, földközeli színek. Otthonos, nem túl steril...",
+    "character_count": 120
+  },
+  "brand_assets": {
+    "logo_url": null,
+    "primary_colors": [],
+    "font_family": null
+  }
+}
+```
+
+**Validációs szabályok (P0):**
+- TOV description: Max. 1000 karakter (ajánlott 200-500)
+- Key Messages: Min. 1, max. 10 darab, minden max. 200 karakter
+- Reference Posts: Min. 0, max. 5 darab, minden max. 5000 karakter
+- Visual Direction: Max. 1000 karakter (ajánlott 100-300)
+
+**P0 megjegyzés:** Nincs kötelező mező validáció. Ha user üres Brand Brain-t ment, az elmentődik - ennek következménye gyenge AI output (lásd Edge Case 1). Ez szándékos: validáljuk H1 hipotézist (elég-e a Brand Brain v1).
+
+**P1 - Bővített validáció:**
+- Kötelező mezők: TOV + min. 1 Key Message
+- Warning, ha Brand Brain "túl vékony" (pl. TOV < 100 karakter)
+- Brand voice scoring (AI elemzi a példaposztokat és TOV konzisztenciát)
+
+---
+
+#### FR2.2: Brand Brain CRUD Műveletek (P0)
+
+| Művelet | Input | Output | Üzleti szabály |
+|---------|-------|--------|----------------|
+| Create | Brand ID + Brand Brain JSON | Brand Brain mentve | Brand létrehozásakor üres JSON default |
+| Read | Brand ID | Brand Brain JSON | User csak saját ügynökség márkáit látja |
+| Update | Brand ID + módosított Brand Brain JSON | Brand Brain frissítve | Verzió history NEM P0 (P1: verziókezelés) |
+| Delete | N/A | N/A | Brand Brain NEM törölhető, csak üríthető (update üres JSON-nel) |
+
+**Státuszgép:** Nincs (Brand Brain nincs jóváhagyási workflow, user szabadon szerkeszti)
+
+---
+
+### FR3: AI Copy Studio - Szöveggenerálás
+
+**Cél:** AI-alapú poszt szöveg generálás Brand Brain kontextussal.
+
+#### FR3.1: Poszt Generálás Flow (P0)
+
+**Input:**
+```json
+{
+  "brand_id": "uuid",
+  "brief": "Bemutató az új guatemalai single origin kávénkról",
+  "platform": "facebook", // vagy "instagram"
+  "content_type": "product_showcase" // opcionális (P1)
+}
+```
+
+**AI Prompt Construction (P0):**
+```
+System role: "Te egy tapasztalt social media copywriter vagy."
+
+User prompt template:
+"
+Írj egy Facebook posztot a következő márka számára:
+
+**Márka Tone of Voice:**
+{brand_brain.tone_of_voice.description}
+
+**Márka Key Messages:**
+{brand_brain.key_messages[0]}
+{brand_brain.key_messages[1]}
+...
+
+**Példaposztok (referencia):**
+{brand_brain.reference_posts[0].text}
+{brand_brain.reference_posts[1].text}
+
+**Poszt téma / brief:**
+{brief}
+
+**Platform:** {platform} (Facebook: max 500 karakter, Instagram: max 300 karakter ajánlott)
+
+Generálj 1 posztot, ami tükrözi a márka hangját. Ne használj hashtageket (azt a user külön adja hozzá).
+"
+```
+
+**Output:**
+```json
+{
+  "generated_text": "☕️ Friss pörkölés! Guatemalai single origin érkezett...",
+  "character_count": 180,
+  "generation_metadata": {
+    "model": "gpt-4o",
+    "tokens_used": 450,
+    "generation_time_ms": 1200,
+    "timestamp": "2025-01-18T14:30:00Z"
+  }
+}
+```
+
+**Üzleti szabályok (P0):**
+- Brief min. 10 karakter, max. 1000 karakter
+- Platform választás kötelező (facebook VAGY instagram)
+- AI timeout: 30 másodperc (ha tovább tart → error, retry lehetőség)
+- Ha Brand Brain üres → AI generálás megtörténik, de warning log (analytics célra)
+
+**P1 - Bővített funkciók:**
+- Multi-variáns generálás (2-3 szöveg egyszerre)
+- Content type automatikus javaslat (AI elemzi a brief-et)
+- Hashtag automatikus javaslat
+- Regenerálás gomb (új variáns ugyanazzal a brief-fel)
+- AI modell választás (GPT-4o, Claude Sonnet, stb.)
+
+---
+
+#### FR3.2: Poszt Szerkesztés és Mentés (P0)
+
+**Inline szerkesztés:**
+- User szerkesztheti az AI-generált szöveget (contenteditable div vagy textarea)
+- Character count real-time frissítés (P1 - P0-ban nincs)
+- Mentés draft-ba gomb
+
+**Használhatósági Rating (P0 - KÖTELEZŐ):**
+
+Amikor user menti a posztot (draft-ba vagy publishra), kötelező jelölés:
+
+| Rating | Jelentés | Backend érték |
+|--------|----------|---------------|
+| "Rendben, kisebb módosítással" | Használható, apró szerkesztés | `usable` |
+| "Nagy átdolgozás kellett" | Részben használható, jelentős szerkesztés | `heavy_edit` |
+| "Nem használható, újat írtam" | Nem használható, user újraírta | `not_usable` |
+
+**Mentés:**
+```json
+{
+  "post_id": "uuid",
+  "brand_id": "uuid",
+  "text": "Szerkesztett poszt szöveg...",
+  "platform": "facebook",
+  "ai_generated": true,
+  "usability_rating": "usable", // kötelező, ha ai_generated = true
+  "image_url": null, // P0: feltöltött kép URL
+  "scheduled_at": null,
+  "status": "draft"
+}
+```
+
+**Validációs szabályok (P0):**
+- Poszt szöveg max. 10,000 karakter (Facebook API limit)
+- Usability rating kötelező, ha `ai_generated = true`
+- Platform kötelező
+
+---
+
+### FR4: Image Management (Kép kezelés)
+
+#### FR4.1: Saját Kép Feltöltés (P0)
+
+**Input:**
+- Kép fájl (JPEG, PNG, max. 10MB)
+- Post ID (melyik poszthoz tartozik)
+
+**Output:**
+- Image URL (tárolva cloud storage-ben, pl. S3)
+- Automatikus optimalizálás: resize 1200x630 (FB) vagy 1080x1080 (IG) aspect ratio-ra
+
+**Üzleti szabályok (P0):**
+- Max. 1 kép / poszt (P1: carousel support - multi-image)
+- Támogatott formátumok: JPEG, PNG (P1: GIF, WebP)
+- Max. fájlméret: 10MB
+- Kép törlés: Ha poszt törlődik, kép is törlődik (cascade delete)
+
+**P1 - AI Visual Studio:**
+- Képgenerálás AI-val (DALL-E, Midjourney API)
+- Brand Visual Direction kontextussal
+- 2-3 képvariáns generálás
+
+---
+
+### FR5: Content Calendar - Tartalomnaptár
+
+#### FR5.1: Naptár Nézetek (P0)
+
+**Heti nézet (P0):**
+- Input: Brand ID, week start date (default: current week)
+- Output: 7 nap (Mon-Sun), minden napra FB/IG slotok listája
+
+**Adatmodell:**
+```json
+{
+  "week": "2025-01-20", // week start (Monday)
+  "brand_id": "uuid",
+  "posts": [
+    {
+      "post_id": "uuid",
+      "date": "2025-01-20",
+      "time": "10:00",
+      "platform": "facebook",
+      "status": "draft",
+      "text_preview": "Friss pörkölés! Guatemalai..."
+    },
+    {
+      "post_id": "uuid",
+      "date": "2025-01-21",
+      "time": "14:00",
+      "platform": "instagram",
+      "status": "scheduled",
+      "text_preview": "☕️ Hétvégi relax..."
+    }
+  ]
+}
+```
+
+**P1 - Havi nézet:**
+- 30-31 nap grid nézet
+- Összesített poszt count naponta
+
+---
+
+#### FR5.2: Poszt Slotok és Státuszok (P0)
+
+**Poszt státuszgép (P0):**
+
+```
+Draft → Approved → Scheduled → Published
+  ↓                    ↓
+Failed ←──────────────┘
+  ↓
+Draft (retry után)
+```
+
+| Státusz | Jelentés | Átmenet | Ki indíthatja? |
+|---------|----------|---------|----------------|
+| `draft` | Szerkesztés alatt | → `approved` (Approve gomb) | User (socialos) |
+| `approved` | Jóváhagyva, ütemezésre kész | → `scheduled` (Schedule gomb) | User |
+| `scheduled` | Ütemezve, várja a publikálást | → `published` (auto, időben) / → `failed` (hiba) | System (cron job) |
+| `published` | Sikeresen publikálva | (végállapot) | System |
+| `failed` | Publikálás sikertelen | → `draft` (Retry gomb) / → `scheduled` (Retry + reschedule) | User |
+
+**P0 megjegyzés:** Nincs `review` státusz (multi-user approval P1). P0-ban `draft` → `approved` az ugyanaz a user.
+
+**P1 - Multi-user approval:**
+```
+Draft → Review → Approved → Scheduled → Published
+  ↑       ↓
+  └──── Rejected
+```
+
+---
+
+#### FR5.3: Drag & Drop vs. Manuális Dátum Választás (P0)
+
+**P0 - Elég az egyik:**
+- **Opció A:** Drag & drop (poszt húzása naptár slotokra)
+- **Opció B:** Manuális dátum/időpont választás (datetime picker)
+
+**Döntési pont:** UX design során eldöntjük, melyik egyszerűbb implementálni. Mindkettő validálja a hipotézist (H2 - workflow adoption).
+
+**P1:** Mindkettő támogatása (drag&drop + manuális override is)
+
+---
+
+### FR6: Approval Workflow
+
+#### FR6.1: Pseudo-Approval (P0)
+
+**Self-approval flow:**
+1. User létrehoz egy posztot → `draft`
+2. User kattint "Approve" gombra → `approved`
+3. User kattint "Schedule" / "Publish" gombra → `scheduled` vagy `published`
+
+**Üzleti szabály (P0):**
+- Nincs ellenőrzés, hogy ki approve-olja (ugyanaz a user is teheti)
+- Cél: Workflow átmenet tesztelése (draft → approved → scheduled), nem robusztus approval chain
+
+**P1 - Multi-user approval:**
+- User A (socialos): Draft → "Send to review" → `review`
+- User B (account manager): Review → "Approve" / "Reject" → `approved` / `draft`
+- Comment thread (feedback poszt-szinten)
+- Notification (in-app + email)
+
+---
+
+### FR7: Publishing & Scheduling
+
+#### FR7.1: Meta Graph API Integráció (P0)
+
+**FB Page Publishing:**
+- Endpoint: `POST /{page-id}/feed`
+- Params: `message`, `published` (true/false), `scheduled_publish_time` (unix timestamp)
+- Response: `post_id`, `permalink_url`
+
+**IG Account Publishing:**
+- Endpoint: `POST /{ig-user-id}/media` (create container) → `POST /{ig-user-id}/media_publish` (publish)
+- Params: `caption`, `image_url`
+- Response: `media_id`, `permalink`
+
+**Token Management (P0):**
+- Access token tárolása (encrypted)
+- Ha API 401/403 → user újra OAuth flow-t futtat (token refresh P1)
+
+**Rate Limiting (P0 alapvető):**
+- Facebook: 200 calls / hour (platform level)
+- Ha rate limit elérve → error message: "Túl sok kérés. Próbáld újra 10 perc múlva."
+- P1: Queue kezelés, auto rate limit detection
+
+---
+
+#### FR7.2: Scheduling Mechanizmus (P0)
+
+**Két opció (elég az egyik P0-ban):**
+
+**Opció A: Instant Publish**
+- User kattint "Publish Now" → azonnal Meta API hívás
+- Státusz: `approved` → `published` vagy `failed`
+
+**Opció B: Manual Schedule**
+- User választ dátum/időpontot → `scheduled`
+- Cron job (5 percenként futtatva):
+  ```
+  SELECT * FROM posts
+  WHERE status = 'scheduled'
+  AND scheduled_at <= NOW()
+  ```
+- Meta API hívás minden ilyen posztra
+- Státusz: `scheduled` → `published` vagy `failed`
+
+**P0 Retry Logic (manual):**
+- Ha `failed` → user kattint "Retry" gomb
+- Poszt újra `scheduled` (vagy instant publish újrapróbálás)
+
+**P1 - Background Job Queue:**
+- Sidekiq / Bull / BullMQ
+- Automatikus retry (3x, exponential backoff)
+- Job monitoring dashboard
+
+---
+
+#### FR7.3: Publikálás Eredménye (P0)
+
+**Sikeres publikálás:**
+```json
+{
+  "status": "published",
+  "published_at": "2025-01-20T10:05:30Z",
+  "fb_post_id": "123456789_987654321",
+  "permalink": "https://facebook.com/..."
+}
+```
+
+**Sikertelen publikálás:**
+```json
+{
+  "status": "failed",
+  "error_code": "OAuthException",
+  "error_message": "Meta API hiba: token lejárt. Csatold újra a profilt!",
+  "failed_at": "2025-01-20T10:05:30Z"
+}
+```
+
+**Error handling (P0):**
+- Token expire → error message + user újra OAuth
+- Rate limit → error message + retry guidance
+- Invalid content (Meta policy violation) → error message (user módosítja a szöveget/képet)
+
+---
+
+### FR8: Instrumentation & Usage Tracking
+
+#### FR8.1: Backend Event Logging (P0)
+
+**Tracked Events:**
+
+| Event | Params | Cél |
+|-------|--------|-----|
+| `user_login` | user_id, timestamp | Session tracking |
+| `page_view` | user_id, page_name, timestamp | Usage pattern |
+| `brand_created` | user_id, brand_id, timestamp | Adoption metrics |
+| `ai_generation` | user_id, brand_id, post_id, generation_time_ms, timestamp | AI usage count |
+| `post_saved` | user_id, brand_id, post_id, status, usability_rating, timestamp | Content creation metrics |
+| `post_published` | user_id, brand_id, post_id, platform, timestamp | Publishing metrics |
+| `post_failed` | user_id, brand_id, post_id, error_code, timestamp | Error tracking |
+
+**Adattárolás (P0):**
+- Events table (relational DB vagy analytics DB)
+- Retention: 12 hónap (pilot után döntés)
+
+**P1 - Real-time dashboard:**
+- Socialos-facing insights
+- Grafikonok, trend vizualizációk
+
+---
+
+#### FR8.2: Használhatósági Rating Aggregáció (P0)
+
+**Admin Dashboard (P0 - backend only, nincs szép UI):**
+
+```sql
+SELECT
+  brand_id,
+  COUNT(*) as total_ai_posts,
+  SUM(CASE WHEN usability_rating = 'usable' THEN 1 ELSE 0 END) as usable_count,
+  SUM(CASE WHEN usability_rating = 'heavy_edit' THEN 1 ELSE 0 END) as heavy_edit_count,
+  SUM(CASE WHEN usability_rating = 'not_usable' THEN 1 ELSE 0 END) as not_usable_count
+FROM posts
+WHERE ai_generated = true
+GROUP BY brand_id
+```
+
+**Output (CSV export vagy egyszerű táblázat):**
+| Brand | Total AI Posts | Usable % | Heavy Edit % | Not Usable % |
+|-------|----------------|----------|--------------|--------------|
+| Kis Kávézó | 24 | 70% (16) | 25% (6) | 5% (1) |
+| Fitness XY | 18 | 60% (11) | 30% (5) | 10% (2) |
+
+**P1:** Szép UI socialosoknak, márka-szintű insights
+
+---
+
+### FR9: Data Model Summary (P0 Core Entities)
+
+**Entitások és kapcsolatok:**
+
+```
+Agency (Ügynökség)
+  ├─ id: UUID (PK)
+  ├─ name: String
+  ├─ owner_email: String
+  └─ created_at: Timestamp
+
+User
+  ├─ id: UUID (PK)
+  ├─ agency_id: UUID (FK → Agency)
+  ├─ email: String (unique)
+  ├─ role: Enum (admin, socialos) - P1
+  └─ created_at: Timestamp
+
+Brand
+  ├─ id: UUID (PK)
+  ├─ agency_id: UUID (FK → Agency)
+  ├─ name: String
+  ├─ fb_page_id: String
+  ├─ ig_account_id: String
+  ├─ brand_brain: JSON
+  └─ created_at: Timestamp
+
+Post
+  ├─ id: UUID (PK)
+  ├─ brand_id: UUID (FK → Brand)
+  ├─ user_id: UUID (FK → User) - creator
+  ├─ text: Text
+  ├─ platform: Enum (facebook, instagram)
+  ├─ status: Enum (draft, approved, scheduled, published, failed)
+  ├─ ai_generated: Boolean
+  ├─ usability_rating: Enum (usable, heavy_edit, not_usable)
+  ├─ image_url: String
+  ├─ scheduled_at: Timestamp
+  ├─ published_at: Timestamp
+  ├─ fb_post_id: String
+  ├─ ig_media_id: String
+  └─ created_at: Timestamp
+
+Event (Analytics)
+  ├─ id: UUID (PK)
+  ├─ user_id: UUID (FK → User)
+  ├─ event_type: String
+  ├─ event_data: JSON
+  └─ timestamp: Timestamp
+```
+
+**P0 megjegyzés:** Nincs `Comment`, `Approval`, `Campaign` entitás (ezek P1).
+
+---
+
+### Functional Requirements Összefoglalás
+
+| Feature Area | P0 Core Funkciók | P1 Bővítés |
+|--------------|------------------|------------|
+| **Multi-Tenant** | Ügynökség reg, user meghívás, márka CRUD, egyszerű jogosultságok | Fine-grained permissions, szerepkörök, audit log |
+| **Brand Brain** | TOV, Key Messages, Példaposztok, Vizuális irány (JSON tárolás) | Brand asset upload, RAG, brand voice scoring |
+| **AI Copy Studio** | Brief input, 1 variáns generálás, inline szerkesztés, usability rating | Multi-variáns, hashtag javaslat, regenerálás |
+| **Image** | Saját kép feltöltés, resize | AI Visual Studio (képgenerálás) |
+| **Calendar** | Heti nézet, poszt slotok, státuszok | Havi nézet, drag&drop (ha P0-ban nincs), campaign management |
+| **Approval** | Pseudo-approval (self-approval) | Multi-user review, comment thread, notifications |
+| **Publishing** | Meta API, instant VAGY scheduling, manual retry | Background job queue, auto retry, job monitoring |
+| **Instrumentation** | Backend event logging, usability rating aggregáció (admin-only) | Socialos-facing dashboard, vizualizációk |
+
+---
