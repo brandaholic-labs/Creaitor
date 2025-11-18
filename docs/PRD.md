@@ -141,3 +141,176 @@ Bár nem "specialized domain" szabályozási értelemben, **magas domain-szenzit
 - **Brainstorming Session:** docs/brainstorming-session-results-2025-11-16.md
 
 ---
+
+## Siker Kritériumok
+
+### Mit jelent a siker ennél a terméknél?
+
+A Creaitor sikere **nem generikus növekedési metrikákban mérhető**, hanem abban, hogy az ügynökségi socialosok számára valóban **működő, napi szintű eszközzé** válik, amely:
+
+1. **Mérhető időt spórol** - Nem csak "hatékonyabb", hanem konkrétan 30-40%-kal kevesebb idő ugyanannyi minőségi tartalom előállítására
+2. **Márkahűséget tart** - Az AI-generált tartalom nem generikus, hanem a márka hangjában szól
+3. **Workflow-t cserél** - A socialos nem "kipróbálja", hanem **átáll rá** a napi munkában
+
+### Termék Siker Metrikák (MVP - 6 hónap)
+
+#### 1. Adoption & Usage - "Használják-e ténylegesen?"
+
+**Kritikus metrika:** A Creaitor legyen a **fő gyártási hely** a socialos fejében.
+
+**Mérés:**
+
+- **5-10 aktív pilot ügynökség** - Legalább 4-6 héten át folyamatos használat
+- **Ügynökségenként min. 5 aktív márka** - Nem "csak egyet kipróbálunk", hanem komolyan használják
+- **Heti átlag 3+ FB/IG poszt / márka** - Creaitorban megtervezve és (részben) generálva
+- **60%+ ütemezési arány** - A generált posztok legalább 60%-át a Creaitoron keresztül ütemezik (nem máshol)
+
+**Session usage mintázat:**
+- Socialosonként **heti 2-3 érdemi session** (nem csak belépés, hanem generálás + szerkesztés + ütemezés)
+- A Creaitorban generált tartalmak aránya: **70%+** (nem ChatGPT-ben írják, majd csak bemásolják)
+
+**Miért fontos:** Ha csak "szép demo" marad, de nem épül be a workflow-ba, akkor nem valós Product-Market Fit.
+
+#### 2. Outcome - "Időt spórol és jó a minőség?"
+
+**Kritikus metrika:** Az ügynökségek **objektíven is** időt takarítanak meg, és a minőség nem romlik.
+
+**Időmegtakarítás:**
+
+- **30-40% időmegtakarítás** átlagosan márkánként a heti tartalomgyártásra
+  - Pl. 3 óra → 1,8-2 óra / márka / hét
+- **Mérés:**
+  - Pilot elején baseline mérés (self-report + konkrét időmérés 1-2 héten)
+  - 4-6 hét Creaitor használat után újramérés ugyanazon márkáknál
+- **Cél:** Legalább a pilot ügynökségek **70%-ánál** legalább 30%+ időmegtakarítás igazoltan jelentkezzen
+
+**Minőség / Márkahűség:**
+
+- **70%+ használható posztarány** - A generált posztok legalább 70%-a csak kisebb szerkesztést igényel (nem nagyon átírás)
+- **8/10+ márkahűség rating** - Átlagosan minimum 8/10 rating a socialosoknál (és ahol lehet, az ügyfeleknél is)
+
+**Mérés:**
+- **Posztszintű jelölés:** "AI szöveg rendben, kisebb módosítással" / "nagy átdolgozás" / "nem használható"
+- **Havi rövid rating-survey:** "Mennyire érzed márkahűnek a Creaitor által generált posztokat?" (1-10 skála)
+
+**Miért fontos:** Ha gyorsabb, de a minőség romlik → hosszú távon nem tartható. Ha jó a minőség, de nem spórol időt → nincs ROI.
+
+#### 3. Product Love - "Ajánlanák-e?"
+
+**Kritikus metrika:** A socialosok **valóban szeretik** használni, nem csak "tűrik".
+
+**Net Promoter Score (NPS):**
+- Cél: **NPS 40+** (6 hónap után a pilot csoportban)
+- "Mennyire valószínű, hogy ajánlanád a Creaitor-t más ügynökségeknek?" (0-10)
+
+**Session visszatérési arány:**
+- **Weekly Active Users (WAU):** A regisztrált socialosok legalább 70%-a heti szinten aktív
+- **Retention (4 hét):** Legalább 60% retention 4 hét után
+
+**Miért fontos:** Viralitás és referral csak akkor működik, ha a felhasználók tényleg szeretik. Az NPS előrejelzi a hosszú távú sikert.
+
+### Üzleti Metrikák (MVP - 6 hónap)
+
+**Cél:** Bizonyítani, hogy fenntartható MRR-modell építhető rá.
+
+#### Pilot → Fizető Konverzió
+
+- **10-20 fizető ügynökség** a pilot végére (6 hónap)
+- **Átlagos díj:** 100-300 EUR / hó / ügynökség (csomagtól függően)
+- **MRR cél:** 1-4k EUR körüli havi visszatérő bevétel
+
+**Miért fontos:** Ez még nem "nagy üzlet", de jelzi:
+- Hajlandóak fizetni
+- Validáltad az ártartományt
+- Van feedback, mit kell fejleszteni a skálázáshoz
+
+#### Churn & Retention
+
+- **Churn cél:** Max. 15% havi churn a fizető ügynökségeknél (első 6 hónapban)
+- **3+ hónapos retention:** Legalább 60% az első batch-ből 3 hónap után is aktív
+
+**Miért fontos:** Magas korai churn = rossz fit vagy hiányos termék.
+
+#### Unit Economics (előzetes)
+
+- **CAC (Customer Acquisition Cost):**
+  - Pilot fázis: <200 EUR / ügynökség (mivel direkt outreach, referral)
+- **LTV/CAC arány:**
+  - Cél: Min. 3:1 arány (ha átlag 6 hónap lifetime és 150 EUR/hó ARPU → 900 EUR LTV, CAC max 300 EUR)
+
+**Miért fontos:** Ez mutatja meg, hogy a későbbi skálázás gazdaságos lesz-e.
+
+### Learning Goals (Hipotézis-validálás)
+
+Az MVP célja nem csak termék építése, hanem **kritikus hipotézisek tesztelése**.
+
+#### Hipotézis 1: Brand Brain v1 elég a 8/10-es márkahűséghez
+
+**Feltételezés:** 1-3 példapost + tömör TOV + 2-3 key message + alap vizuál-irány **már elég** a jó AI-alaphoz.
+
+**Mit tanuljunk meg:**
+- Mely iparágaknál / márkatípusoknál elég ez?
+- Hol kell **sokkal több** input (pl. 10-20 példapost, részletesebb guideline, RAG)?
+
+**Learning KPI:**
+- Márkatípusonként (iparág, tónus, komplexitás) nézve:
+  - Hol érjük el a 8/10-es ratinget csak Brand Brain v1-gyel?
+  - Hol bukunk el? → Ezek jelölik a v1.5-v2 igényt
+
+#### Hipotézis 2: A socialos hajlandó a Creaitorban kezdeni, ha a flow gyors
+
+**Feltételezés:** Ha a Creaitor egy helyen ad naptár + copy + vizuál + ütemezés flow-t, akkor a socialos hajlandó **"go-to toolként"** használni.
+
+**Mit tanuljunk meg:**
+- Milyen UI/UX friction pontok tartják vissza?
+- Mennyi AI-latency "fér bele" (másodpercek / lépés)?
+- Mennyire fontos neki a testreszabhatóság vs. "plug & play" kényelem?
+
+**Learning KPI:**
+- Hány ügynökségnél válik a Creaitor ténylegesen fő "gyártó hellyé" (self-report + usage)?
+- Hol marad meg "AI-sandbox" és "extra tool" státuszban?
+
+#### Hipotézis 3: Magyar/CEE piacon van hely egy agency-first, AI-first social OS-nek
+
+**Feltételezés:** A magyar/régiós ügynökségeknek elég nagy a fájdalma és elég magas a digitális érettsége ahhoz, hogy:
+- Fizessenek is egy ilyen eszközért
+- Ne csak kipróbálják, hanem komolyan használják
+
+**Mit tanuljunk meg:**
+- Milyen árszintnél érzik úgy, hogy "megéri"?
+- Mekkora költség-időmegtakarítás arány kell a döntéshez?
+
+**Learning KPI:**
+- **Pilot konverzió fizetős státuszra:** Hány ügynökség hajlandó fizetni már az MVP-közeli verzióért is (pl. kedvezményes early adopter csomagban)?
+- **Elfogadható ártartomány** (kvali interjúk, willingness-to-pay)
+
+### Összefoglaló: Siker Definíció (6 hónap után)
+
+**A Creaitor MVP sikeres, ha:**
+
+✅ **5-10 ügynökség aktívan használja** (heti 2-3 session / socialos, 5+ márka / ügynökség)
+
+✅ **30-40% időmegtakarítás** igazoltan, legalább 70%-uk
+
+✅ **8/10+ márkahűség rating** átlagban
+
+✅ **70%+ használható posztarány** (kisebb szerkesztéssel publikálható)
+
+✅ **10-20 fizető ügynökség**, 1-4k EUR MRR
+
+✅ **NPS 40+**, jelezve, hogy a socialosok szeretik és ajánlanák
+
+✅ **Brand Brain v1 hatékonyságát validáltuk** - tudjuk, hol elég, hol kell mélyebb
+
+**Ez NEM jelent:**
+- Profitabilitást (még nem)
+- Késztermék-érettséget (még MVP)
+- Skálázható growth machine-t (még nem)
+
+**DE jelzi:**
+- Van Product-Market Fit mag az ügynökségi szegmensben
+- Az eszköz tényleg beépül a workflow-ba
+- Van fizetési hajlandóság
+- Tiszta irány a következő iterációhoz (v1.5, v2)
+
+---
