@@ -2,7 +2,7 @@
 
 **Projekt:** Creaitor - Ügynökségi Multi-Brand Social Media Platform
 **Szerző:** Winston (BMAD Architect Agent)
-**Dátum:** 2025-01-18
+**Dátum:** 2025-11-18
 **Verzió:** 1.0
 
 ---
@@ -15,7 +15,7 @@ A Creaitor egy **SaaS B2B web alkalmazás** magyar social media ügynökségek s
 - **Framework:** Next.js 15 (App Router) + TypeScript
 - **Database:** Supabase PostgreSQL (multi-tenant RLS)
 - **AI Providers:** Dual provider (OpenAI + Anthropic, Nano Banana + Seedream)
-- **Deployment:** Self-hosted Hetzner VPS (Docker + Nginx)
+- **Deployment:** Self-hosted Hetzner VPS (Docker + Caddy - automatic HTTPS)
 - **Background Jobs:** BullMQ + Redis
 - **Bővíthetőség:** Moduláris service layer, könnyen hozzáadható új AI funkciók
 
@@ -70,7 +70,7 @@ Ez az inicializálási parancs beállítja a base architektúrát a következő 
 | **Image Gen** | Nano Banana + Seedream | Gemini 2.5 Flash + Seedream 4.0 | AI Image Studio | Dual provider, character consistency (Nano) + 4K (Seedream) |
 | **Background Jobs** | BullMQ + Redis | Latest | Publishing, AI processing | Heavy task queue, retry logic, scheduled jobs |
 | **Deployment** | Hetzner VPS | Docker | Összes | Self-hosted, cost-effective, full control |
-| **Reverse Proxy** | Nginx | Latest | Deployment | SSL termination, routing, static assets |
+| **Reverse Proxy** | Caddy | Latest | Deployment | Automatic HTTPS, SSL termination, routing, static assets |
 | **CI/CD** | GitHub Actions | - | Deployment | Auto-deploy on push to main |
 | **Logging** | Winston | Latest | Összes | Structured logging, file + console outputs |
 | **Testing** | Jest + Playwright | Latest | Összes | Unit tests (mocked AI), E2E critical flows |
@@ -1349,8 +1349,8 @@ export async function GET(request: NextRequest) {
 └────────────┬────────────────────────────┘
              │
      ┌───────▼────────┐
-     │  Nginx (80/443) │  SSL termination, reverse proxy
-     └───────┬────────┘
+     │  Caddy (80/443) │  Automatic HTTPS, reverse proxy
+     └───────┬────────┘  (Let's Encrypt built-in)
              │
      ┌───────▼────────┐
      │  Next.js App    │  Docker container (port 3000)
@@ -1434,32 +1434,39 @@ volumes:
   redis-data:
 ```
 
-### Nginx Configuration
+### Caddy Configuration
 
-```nginx
-server {
-    listen 80;
-    server_name creaitor.hu www.creaitor.hu;
-    return 301 https://$host$request_uri;
-}
+**Caddyfile:**
+```caddy
+creaitor.hu, www.creaitor.hu {
+    # Automatic HTTPS (Let's Encrypt) - zero config!
 
-server {
-    listen 443 ssl http2;
-    server_name creaitor.hu www.creaitor.hu;
+    # Reverse proxy to Next.js app
+    reverse_proxy localhost:3000
 
-    ssl_certificate /etc/letsencrypt/live/creaitor.hu/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/creaitor.hu/privkey.pem;
+    # Optional: Custom headers
+    header {
+        # Security headers
+        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "SAMEORIGIN"
+        Referrer-Policy "strict-origin-when-cross-origin"
+    }
 
-    location / {
-        proxy_pass http://localhost:3000;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host $host;
-        proxy_cache_bypass $http_upgrade;
+    # Optional: Access logs
+    log {
+        output file /var/log/caddy/access.log
+        format json
     }
 }
 ```
+
+**Miért egyszerűbb mint Nginx:**
+- ✅ Automatikus HTTPS (Let's Encrypt) - nem kell manuálisan certbot-ot futtatni
+- ✅ Automatikus cert renewal - nincs szükség cron job-ra
+- ✅ HTTP/2 és HTTP/3 support built-in
+- ✅ Egyszerű konfig syntax (vs. Nginx complex directives)
+- ✅ Zero downtime cert renewal
 
 ### CI/CD Pipeline (GitHub Actions)
 
@@ -1637,6 +1644,7 @@ LOG_LEVEL=debug
 - Cost: €12/month vs $100+/month on Vercel Pro
 - Control: BullMQ + Redis for long-running jobs
 - No serverless timeouts (video processing 5-10 min)
+- Caddy for automatic HTTPS (simpler than Nginx + Let's Encrypt)
 - Learning opportunity (DevOps skills)
 
 ---
@@ -1676,12 +1684,69 @@ LOG_LEVEL=debug
 
 ---
 
+### ADR-007: Caddy over Nginx for Reverse Proxy
+
+**Decision:** Use Caddy as reverse proxy instead of Nginx
+
+**Context:** Need reverse proxy for SSL termination, routing to Next.js app on Hetzner VPS.
+
+**Alternatives:**
+- Nginx: Industry standard, powerful, but complex SSL setup
+- Traefik: Good for Docker, but more complex than needed
+
+**Rationale:**
+- **Automatic HTTPS:** Caddy automatically provisions and renews Let's Encrypt certificates (zero config)
+- **Simpler config:** Caddyfile syntax is much simpler than Nginx directives
+- **Zero maintenance:** No need for certbot cron jobs or manual cert renewal
+- **HTTP/3 support:** Built-in, future-proof
+- **Perfect for single-app deployment:** We're not running 50 microservices, just one Next.js app
+- **Security headers:** Easy to add security headers with simple config
+
+**Trade-off:**
+- Slightly less battle-tested than Nginx (but mature enough for production)
+- Smaller community (but excellent docs)
+
+**Example simplicity comparison:**
+
+Nginx (manual Let's Encrypt):
+```nginx
+# Need to run certbot separately, manage renewals, complex SSL config
+server {
+    listen 80;
+    server_name creaitor.hu;
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    server_name creaitor.hu;
+    ssl_certificate /etc/letsencrypt/live/creaitor.hu/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/creaitor.hu/privkey.pem;
+    # ... more SSL config
+    location / {
+        proxy_pass http://localhost:3000;
+        # ... many proxy headers
+    }
+}
+```
+
+Caddy (automatic HTTPS):
+```caddy
+creaitor.hu {
+    reverse_proxy localhost:3000
+}
+```
+
+That's it! SSL is automatic.
+
+---
+
 ## Összefoglalás
 
 A Creaitor architektúrája egy **moduláris, bővíthető SaaS platform**, amely az alábbi kulcs döntésekre épül:
 
 ✅ **Technológia:** Next.js 15 + TypeScript + Supabase + Dual AI providers
-✅ **Deployment:** Self-hosted Hetzner VPS (Docker + Nginx + BullMQ)
+✅ **Deployment:** Self-hosted Hetzner VPS (Docker + Caddy + BullMQ)
 ✅ **Bővíthetőség:** Moduláris service layer, könnyen hozzáadható videógenerálás, feliratozás
 ✅ **Megbízhatóság:** Dual provider fallback, retry logic, structured logging
 ✅ **Multi-tenancy:** Supabase RLS policies, explicit brand context isolation
