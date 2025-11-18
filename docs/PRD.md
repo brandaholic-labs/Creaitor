@@ -307,3 +307,402 @@ Az MVP **nem csak termék**, hanem **kísérletsorozat** kritikus hipotézisek t
 - **Tiszta irány a következő iterációhoz** (v1.5, v2) - tudjuk, mit kell javítani/bővíteni
 
 ---
+
+## Scope Definition
+
+### MVP Időkeret és Fókusz
+
+**Időkeret:** 6 hónap (2025 Q2-Q3)
+
+**Core Scope:** A Creaitor MVP egy **ügynökségi multi-brand social media tartalomgyártó és ütemező eszköz**, amely kifejezetten **Facebook és Instagram** tartalomnaptár készítésére fókuszál, **Brand Brain-alapú AI támogatással**.
+
+**Nem egy:** Általános marketing automation platform, nem enterprise CRM integráció, nem haladó analitika rendszer. Az MVP célja a **core workflow** validálása: Brand Brain → AI-generálás → Naptár → Jóváhagyás → Ütemezés.
+
+---
+
+### In Scope - MVP Features (6 hónap)
+
+#### 1. Multi-Tenant Alaprendszer
+
+**Tenant Hierarchy:**
+```
+Ügynökség (Agency)
+  └─ User (Socialos/Account Manager)
+       └─ Brand (Ügyfélmárka)
+            └─ Social Profiles (FB Page, IG Account)
+```
+
+**Funkciók:**
+- Ügynökség regisztráció és profil
+- User management (meghívás, jogosultságok)
+- Márka létrehozása, szerkesztése, archiválása
+- Social profile csatolása (Meta OAuth)
+- Egyszerű szerepkörök: Admin (ügynökség owner) vs. Editor (socialos)
+
+**Out of scope v1:**
+- Komplex szerepkör-mátrix (pl. brand-specifikus jogok, approval chain szintek)
+- Ügyfél meghívása a platformra (csak ügynökségen belüli userek)
+
+---
+
+#### 2. Brand Brain v1 - Márka Tudásbázis
+
+**Mi van benne:**
+
+Minden márkához strukturált "márka-agy" hozzuk létre és tároljuk:
+
+1. **Példaposztok (Reference Posts)**
+   - 1-3 korábbi sikeres poszt feltöltése (szöveg + opcionálisan kép)
+   - Socialos jelöli: "Ez tükrözi a márka hangját"
+   - Ezek lesznek az AI példái a generáláskor
+
+2. **Tone of Voice (TOV) Leírás**
+   - Szöveges mező: 200-500 karakter
+   - Pl. "Barátságos, közvetlen, nem túl formális. Emojik megengedettek, de mértékkel."
+   - Opcionális promptok: "Milyen a márka személyisége?" / "Mit kerülj?"
+
+3. **Key Messages (2-5 darab)**
+   - Bullet list: Mi a márka lényege? Mit hangsúlyoz?
+   - Pl. "Helyi, friss alapanyagok", "Family-friendly", "Prémium minőség elérhető áron"
+
+4. **Vizuális Irány (Visual Direction)**
+   - Szöveges leírás (100-300 karakter): milyen vizuális világ? (színek, hangulat, stílus)
+   - Opcionális: 1-2 referenciakép feltöltése
+   - Pl. "Meleg, természetes színek. Földközeli, otthonos hangulat. Kerüljük a túl steril, corporate képeket."
+
+5. **Brand Assets (opcionális v1-ben)**
+   - Logó feltöltése (PNG/SVG)
+   - Elsődleges színek (hex kódok)
+   - Betűtípus említése (csak szövegesen, nem rendszer font)
+
+**Hogyan épül be az AI-ba:**
+- AI Copy Studio: Brand Brain kontextusa (példaposztok + TOV + key messages) bekerül a prompt-ba
+- AI Visual Studio: Vizuális irány szövege bekerül az image generation prompt-ba
+
+**Out of scope v1:**
+- RAG (Retrieval-Augmented Generation) - nincs automatikus "tanulás" újabb posztokból
+- Brand voice automatikus detektálása (AI elemzi a múltbéli posztokat)
+- Márka guideline PDF feltöltés és parsing
+- Brand voice scoring (mennyire "on-brand" ez a poszt?)
+
+---
+
+#### 3. AI Copy Studio - Szöveggenerálás
+
+**Funkciók:**
+
+1. **Poszt Ötlet / Téma Megadása**
+   - Socialos beír 1-2 mondatos briefet: "Húsvéti akció a desszertekre"
+   - Választhat tartalomtípust: Termékbemutató / Akció / Tipp / Insight / Entertaining stb.
+
+2. **AI Szöveggenerálás Brand Brain Kontextussal**
+   - LLM API hívás (OpenAI / Anthropic / nyílt modell)
+   - Prompt tartalmazza:
+     - Márka TOV leírását
+     - Key messages-t
+     - 1-3 példaposzt szövegét
+     - Socialos brief-jét
+     - Platformot (FB vs IG - eltérő stílus/hossz)
+   - AI generál 2-3 szövegvariánst
+
+3. **Szöveg Szerkesztése**
+   - Inline szerkesztő (rich text: bold, emoji picker)
+   - Karakter számláló (FB/IG optimális hossz jelzés)
+   - Regenerálás gomb (új variánsok)
+   - "Mentés draft-ba" gomb
+
+4. **Használhatósági Jelölés (Instrumentációhoz)**
+   - Amikor socialos véglegesít egy szöveget, jelöli:
+     - "Rendben, kisebb módosítással"
+     - "Nagy átdolgozás kellett"
+     - "Nem használható, újat írtam"
+
+**Out of scope v1:**
+- Multi-language generálás (csak magyar v1-ben)
+- Hashtag automatikus javaslat (socialos manuálisan írja)
+- A/B teszt szövegvariánsok
+- Sentiment analysis
+- Automatikus compliance check (pl. "ne mondd ezt a szót")
+
+---
+
+#### 4. AI Visual Studio - Képgenerálás
+
+**Funkciók:**
+
+1. **Vizuális Koncepció Megadása**
+   - Socialos beír rövid leírást: "Húsvéti nyuszi cukrászda asztalon"
+   - Választhat stílust: Fotó / Illusztráció / Grafika
+
+2. **AI Képgenerálás Brand Vizuális Irány Alapján**
+   - Image generation API hívás (DALL-E, Midjourney API, Stable Diffusion)
+   - Prompt tartalmazza:
+     - Brand vizuális irány szövegét
+     - Socialos koncepció leírását
+     - Platform aspect ratio (FB: 1200x630, IG: 1080x1080)
+   - AI generál 2-3 képvariánst
+
+3. **Kép Kiválasztása és Finomítás**
+   - Kép kiválasztása (checkbox)
+   - Regenerálás gomb (új variánsok)
+   - Crop/resize tool (egyszerű)
+   - "Feltöltöm saját képet" opció (ha AI nem jó)
+
+4. **Saját Kép Feltöltése**
+   - Upload (drag & drop)
+   - Egyszerű crop/resize
+   - Automatikus optimalizálás (file size, aspect ratio)
+
+**Out of scope v1:**
+- Advanced image editing (szöveg ráírása, filter, rétegek)
+- Brand asset automatikus beillesztése (logó watermark)
+- Image library / stock photo integráció
+- AI background removal
+- Video generálás/szerkesztés
+
+---
+
+#### 5. Content Calendar - Tartalomnaptár
+
+**Funkciók:**
+
+1. **Naptár Nézetek**
+   - Heti nézet (default)
+   - Havi nézet
+   - Márka-szintű szűrés (1 márka vagy összes)
+
+2. **Poszt Slotok**
+   - Drag & drop: poszt húzása időpontra
+   - Egy slot = 1 platform (FB vagy IG)
+   - Kettő slot = FB + IG (ugyan az a tartalom vagy eltérő)
+
+3. **AI-javasolt Tartalomtípus Mix (opcionális v1)**
+   - Heti "javasolt mix" megjelenítése: pl. "2 termékbemutató, 1 tipp, 1 entertaining"
+   - Nem kötelező, csak segítség
+
+4. **Poszt Draft Állapotok**
+   - Draft (szerkesztés alatt)
+   - Review (belső ellenőrzésre vár)
+   - Approved (jóváhagyva, ütemezésre kész)
+   - Scheduled (ütemezve)
+   - Published (kikerült)
+
+5. **Gyors Poszt Előnézet**
+   - Click → popup: szöveg + kép + platform
+   - Szerkesztés gomb
+
+**Out of scope v1:**
+- Campaign csoportosítás (több poszt 1 kampányban)
+- Bulk műveletek (10 poszt egy kattintással approved)
+- Naptár exportálás (PDF, Google Calendar)
+- Tartalomtípus automatikus javaslat AI-vel (csak statikus mix)
+
+---
+
+#### 6. Approval Workflow - Jóváhagyási Folyamat
+
+**Funkciók:**
+
+1. **Belső Approval Flow (Egyszerű)**
+   - Socialos: Draft → "Küldés review-ra" gomb
+   - Másik user (vagy ugyanaz): Review → "Approve" vagy "Visszautasítás (comment)" gomb
+   - Approved → Ütemezésre kész
+
+2. **Kommentek / Feedback**
+   - Poszt-szintű comment thread
+   - User neve + időbélyeg
+   - Egyszerű szöveges komment (nincs attachment)
+
+3. **Notification (Egyszerű)**
+   - In-app notification badge ("2 poszt vár review-ra")
+   - Email notification (opcionális, user beállítja)
+
+**Out of scope v1:**
+- Külső ügyfél approval (ügyfél meghívása a platformra)
+- Multi-szintű approval chain (pl. Socialos → Manager → Client)
+- Approval SLA / deadline (mennyi idő alatt kell reagálni)
+- Approval history részletes audit log
+
+---
+
+#### 7. Publishing & Scheduling - Ütemezés és Publikálás
+
+**Funkciók:**
+
+1. **Meta Graph API Integráció**
+   - FB Page és IG Business Account csatolása (OAuth)
+   - Token management (refresh token, scope kezelés)
+
+2. **Poszt Ütemezése**
+   - Dátum + időpont kiválasztása (naptárból húzással vagy manuálisan)
+   - Platform választás: FB / IG / Mindkettő
+   - "Ütemezés" gomb → scheduled státusz
+
+3. **Background Job Queue**
+   - Scheduled posztok queue-ba kerülnek
+   - Időben publikálás Meta API-n keresztül
+   - Retry logic (ha API hiba)
+
+4. **Publikálási Státusz**
+   - Published (sikeres)
+   - Failed (hiba történt - error message megjelenítése)
+   - Retry gomb (ha failed)
+
+5. **Egyszerű Post Insights**
+   - Publikált poszt linkje (redirect to FB/IG)
+   - Alapmetrikák fetch (reach, engagement) - későbbi refresh-szel
+
+**Out of scope v1:**
+- Közvetlen publikálás (instant post) - csak scheduling
+- First comment automatikus hozzáfűzése
+- Carousel post support (csak single image/text)
+- Story publishing
+- TikTok, LinkedIn, Twitter/X, YouTube integráció
+
+---
+
+#### 8. Basic Insights & Usage Tracking
+
+**Funkciók:**
+
+1. **Ügynökség Szintű Dashboard**
+   - Hány márka aktív
+   - Hány poszt scheduled/published (heti/havi)
+   - Aktivitási trend (heti szinten)
+
+2. **Márka Szintű Metrikák**
+   - Hány poszt készült AI-val (copy + visual)
+   - Hány poszt scheduled vs. published
+   - Használhatósági rating átlaga (ha socialos jelöli)
+
+3. **Instrumentáció Backend-en**
+   - Session tracking (login, page views)
+   - Feature usage tracking:
+     - AI Copy Studio használat (generálások száma)
+     - AI Visual Studio használat
+     - Creaitorban generált tartalom aránya
+   - Időmérés support (ha user kitölti baseline/follow-up időt)
+
+**Out of scope v1:**
+- Haladó social media analytics (FB/IG deep insights, trend elemzés)
+- Versenyképességi analitika (hogyan teljesítünk vs. versenytársak)
+- Custom dashboard builder
+- Exportálható riportok
+
+---
+
+### Out of Scope - Explicitly NOT in MVP
+
+**Platformok:**
+- ❌ TikTok
+- ❌ LinkedIn
+- ❌ Twitter/X
+- ❌ YouTube / YouTube Shorts
+- ❌ Pinterest, Snapchat
+
+**AI Features:**
+- ❌ Brand Brain v2 (RAG-alapú, automatikus tanulás)
+- ❌ Multi-language AI (csak magyar v1)
+- ❌ AI video generálás/szerkesztés
+- ❌ Sentiment analysis
+- ❌ Hashtag automatikus javaslat
+- ❌ Automatikus compliance check
+
+**Workflow & Collaboration:**
+- ❌ Külső ügyfél approval (client meghívása platformra)
+- ❌ Multi-szintű approval chain
+- ❌ Campaign management (több poszt csoportosítása)
+- ❌ Task/project management layer
+
+**Analytics & Reporting:**
+- ❌ Haladó social media analytics
+- ❌ Competitive intelligence
+- ❌ Custom reporting builder
+- ❌ Exportálható riportok (PDF, Excel)
+
+**Enterprise Features:**
+- ❌ White-label megoldás
+- ❌ SSO (Single Sign-On)
+- ❌ Custom SLA, dedicated support
+- ❌ On-premise deployment
+- ❌ API access (partnerek számára)
+
+**Advanced Content Features:**
+- ❌ Carousel post (multi-image)
+- ❌ Story publishing
+- ❌ Video upload/scheduling
+- ❌ First comment auto-add
+- ❌ Link shortening + tracking
+- ❌ User-generated content (UGC) curation
+
+---
+
+### Post-MVP Roadmap (Jövőbeli Fejlesztések)
+
+#### v1.5 - Finomhangolás (6-9 hónap)
+
+**Feltétel:** MVP Target success elérése (8-10 ügynökség, 30-40% időmegtakarítás, 8/10 rating)
+
+**Fókusz:** Learning goals alapján azonosított hiányosságok pótlása
+
+- Brand Brain v1.5: További példaposztok, részletesebb TOV (ha kell)
+- UX friction pontok javítása (usage adatok alapján)
+- Performance optimalizáció (AI latency csökkentése, ha probléma)
+- További magyar nyelvi finomhangolás
+
+#### v2.0 - Skálázási Fázis (9-15 hónap)
+
+**Feltétel:** v1.5 stabil, 20-30 ügynökség, 3-5k EUR MRR
+
+**Fókusz:** Horizontális és vertikális bővítés
+
+**Horizontális (több platform):**
+- TikTok integráció (ha pilot feedback alapján fontos)
+- LinkedIn integráció (B2B ügynökségek esetén)
+
+**Vertikális (mélyebb funkciók):**
+- Brand Brain v2 (RAG-alapú, automatikus tanulás múltbeli posztokból)
+- Haladó analitika (performance insights, best time to post)
+- Campaign management (több poszt összekapcsolása)
+- Carousel post support
+
+**Üzleti modell:**
+- Pricing optimalizáció (tier-ek finomhangolása)
+- Self-serve onboarding (automata demo, tutorial)
+
+#### v3.0 - Enterprise & Internationalization (15-24 hónap)
+
+**Feltétel:** v2.0 stabil, 50-100 ügynökség, 10-20k EUR MRR
+
+**Fókusz:** Enterprise funkciók és nemzetközi expanzió
+
+- White-label megoldás (nagyobb ügynökségek saját brandje alatt)
+- SSO, custom SLA, dedikált support
+- Multi-language support (angol, német, lengyel, román)
+- Ügynökségi operációs réteg (tasking, approval chain, dashboard client-eknek)
+- API access (partner integráció)
+
+---
+
+### MVP Feature Prioritás (ha idő szűk)
+
+**Must Have (P0) - Ezek nélkül nincs MVP:**
+1. Multi-tenant alaprendszer
+2. Brand Brain v1 (legalább TOV + key messages + 1 példaposzt)
+3. AI Copy Studio (szöveggenerálás)
+4. Content Calendar (naptár + drag&drop)
+5. Approval workflow (legalább Draft → Approved flow)
+6. Publishing & Scheduling (Meta API, queue)
+
+**Should Have (P1) - Fontos, de kivehető ha nagyon kell:**
+7. AI Visual Studio (képgenerálás) - **alternatíva:** socialos feltölt saját képet
+8. Saját kép feltöltés és crop
+9. Basic insights dashboard
+
+**Nice to Have (P2) - Jó lenne, de v1.5-be tolható:**
+10. AI-javasolt tartalomtípus mix
+11. In-app notifications
+12. Email notifications
+13. Használhatósági rating jelölés (instrumentáció)
+
+---
