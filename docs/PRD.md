@@ -639,70 +639,366 @@ Minden márkához strukturált "márka-agy" hozzuk létre és tároljuk:
 
 ### Post-MVP Roadmap (Jövőbeli Fejlesztések)
 
+**Fontos:** Az alábbi roadmap **nem rigid gate-ekkel működik** ("csak akkor v1.5, ha pontosan 8 ügynökség van"). Ehelyett **learning-alapú döntési pontok** - a pilot feedback és hipotézis-eredmények határozzák meg az irányt.
+
+---
+
 #### v1.5 - Finomhangolás (6-9 hónap)
 
-**Feltétel:** MVP Target success elérése (8-10 ügynökség, 30-40% időmegtakarítás, 8/10 rating)
+**Döntési szabály:** Ha az MVP pilot **Minimum Success Threshold-ot elérte** (5+ ügynökség, van mag, de hiányosságok azonosítottak), folytatjuk v1.5-tel.
 
-**Fókusz:** Learning goals alapján azonosított hiányosságok pótlása
+**Fókusz:** Learning Goals alapján azonosított hiányosságok pótlása + P1 feature-k selectív integrálása
 
-- Brand Brain v1.5: További példaposztok, részletesebb TOV (ha kell)
-- UX friction pontok javítása (usage adatok alapján)
-- Performance optimalizáció (AI latency csökkentése, ha probléma)
-- További magyar nyelvi finomhangolás
+**Három lehetséges irány (pilot feedback szerint):**
+
+1. **Ha H1 (Brand Brain) probléma:** Brand Brain v1.5
+   - További példaposztok (5-10 poszt / márka)
+   - Részletesebb TOV (több prompt kérdés)
+   - Opcionálisan: RAG lite (korábbi Creaitor posztok indexelése)
+
+2. **Ha H2 (Workflow adoption) probléma:** UX & Workflow javítások
+   - UX friction pontok javítása (usage adatok + kvali interjúk alapján)
+   - P1 feature-k: Multi-user approval, notifications, dashboard socialosoknak
+   - Performance optimalizáció (AI latency csökkentése)
+
+3. **Ha H1 és H2 működik, de korlátozott:** Horizontális bővítés
+   - AI Visual Studio (ha P1-ben maradt)
+   - További magyar nyelvi finomhangolás
+   - 1-2 P1 feature (pl. background job queue, full approval workflow)
+
+**Nem metrika-gated:** Nem várjuk meg a "pontosan 8 ügynökség, 30% időmegtakarítás"-t. Ha van 6 ügynökség és tiszta irány a javításhoz → v1.5.
+
+---
 
 #### v2.0 - Skálázási Fázis (9-15 hónap)
 
-**Feltétel:** v1.5 stabil, 20-30 ügynökség, 3-5k EUR MRR
+**Döntési szabály:** Ha v1.5 után **Target Success elérése** (8-10 ügynökség, erős PMF mag) VAGY **elértük Minimum-ot, de világos skálázási út van**.
 
-**Fókusz:** Horizontális és vertikális bővítés
+**Fókusz:** Horizontális (több platform) és vertikális (mélyebb funkciók) bővítés - **pilot feedback szerint prioritizálva**.
 
 **Horizontális (több platform):**
-- TikTok integráció (ha pilot feedback alapján fontos)
-- LinkedIn integráció (B2B ügynökségek esetén)
+- **TikTok integráció** - ha pilot során gyakori kérés ("mi TikTok-ot is csinálunk, de külön eszköz")
+- **LinkedIn integráció** - ha B2B ügynökségek belépnek pilot-ba
+- **Döntés:** Pilot során kérdezzük: "Milyen platformokat kezelnél még szívesen egy helyen?"
 
 **Vertikális (mélyebb funkciók):**
-- Brand Brain v2 (RAG-alapú, automatikus tanulás múltbeli posztokból)
-- Haladó analitika (performance insights, best time to post)
-- Campaign management (több poszt összekapcsolása)
-- Carousel post support
+- **Brand Brain v2** (RAG-alapú, automatikus tanulás múltbeli posztokból)
+- **Haladó analitika** (performance insights, best time to post, engagement prediction)
+- **Campaign management** (több poszt összekapcsolása, campaign-szintű tervezés)
+- **Carousel post support** (multi-image posts)
+- **Story publishing** (FB/IG Stories)
 
-**Üzleti modell:**
-- Pricing optimalizáció (tier-ek finomhangolása)
-- Self-serve onboarding (automata demo, tutorial)
+**Üzleti modell & Growth:**
+- **Pricing optimalizáció** (tier-ek finomhangolása, usage-based pricing tesztelése)
+- **Self-serve onboarding** (automata demo, tutorial, csökkentett CAC)
+- **Referral program** (pilot ügynökségek hoznak újakat)
+
+**Döntési logika:**
+- Ha pilot feedback → "több platform kell" → Horizontális prioritás
+- Ha pilot feedback → "egy platform elég, de mélyebb funkciók kellenek" → Vertikális prioritás
+- Ha pilot feedback → "fizetési hajlandóság alacsony" → Pricing + value prop újragondolás
+
+---
 
 #### v3.0 - Enterprise & Internationalization (15-24 hónap)
 
-**Feltétel:** v2.0 stabil, 50-100 ügynökség, 10-20k EUR MRR
+**Döntési szabály:** Ha v2.0 után **50+ ügynökség** VAGY **enterprise demand jelzések** (nagyobb ügynökségek érdeklődnek).
 
 **Fókusz:** Enterprise funkciók és nemzetközi expanzió
 
-- White-label megoldás (nagyobb ügynökségek saját brandje alatt)
-- SSO, custom SLA, dedikált support
-- Multi-language support (angol, német, lengyel, román)
-- Ügynökségi operációs réteg (tasking, approval chain, dashboard client-eknek)
-- API access (partner integráció)
+**Enterprise:**
+- **White-label megoldás** (nagyobb ügynökségek saját brandje alatt)
+- **SSO** (Single Sign-On)
+- **Custom SLA, dedikált support**
+- **Ügynökségi operációs réteg** (tasking, multi-szintű approval chain, client-facing dashboard)
+- **API access** (partner integráció, Zapier/Make.com)
+
+**Internationalization:**
+- **Multi-language support** (angol, német, lengyel, román)
+- **Régiós expanzió** (Németország, Lengyelország, Románia)
+- **Lokális pricing** (EUR vs. PLN vs. RON)
+
+**Döntési logika:**
+- Ha magyar/CEE piac telített vagy lassú → Nemzetközi expanzió prioritás
+- Ha enterprise demand erős (nagy ügynökségek kérik white-label-t) → Enterprise funkciók prioritás
+- Ha mindkettő mérsékelt → Maradunk kis-közepes ügynökségek optimalizálásánál (v2.x iterációk)
+
+---
+
+### Hipotézis → Feature Mapping
+
+Az MVP P0 feature-jeit **explicit módon kötjük a Learning Goals hipotézisekhez**. Minden P0 feature egy vagy több hipotézis validálásához szükséges.
+
+| Hipotézis | Szükséges P0 Feature-k | Miért szükséges? |
+|-----------|------------------------|------------------|
+| **H1: Brand Brain v1 elég a 8/10-es márkahűséghez** | - Brand Brain v1 (minimal)<br>- AI Copy Studio (minimal)<br>- Használhatósági rating (instrumentáció) | H1 teszteléséhez kell Brand Brain input + AI generálás + márkahűség mérése |
+| **H2: Socialos hajlandó Creaitorban kezdeni (go-to tool)** | - Content Calendar (basic)<br>- Pseudo-approval (egyszerű)<br>- Publishing (instant + manual)<br>- Usage tracking (session, feature) | H2 teszteléséhez kell működő workflow (naptár → jóváhagyás → publikálás) + használat mérése |
+| **H3: Magyar/CEE piacon van hely agency-first AI social OS-nek** | - Multi-tenant basic (hierarchy)<br>- Functional workflow (P0-k együtt)<br>- Usage tracking | H3 teszteléséhez kell használható termék (P0 együtt) + pilot-to-paid konverzió mérése |
+
+**Lényeg:** P0 nem "production-ready termék", hanem **hipotézis-validáló minimum**. Ha H1 vagy H2 megbukik, a felesleges production polish nem segít.
 
 ---
 
 ### MVP Feature Prioritás (ha idő szűk)
 
-**Must Have (P0) - Ezek nélkül nincs MVP:**
-1. Multi-tenant alaprendszer
-2. Brand Brain v1 (legalább TOV + key messages + 1 példaposzt)
-3. AI Copy Studio (szöveggenerálás)
-4. Content Calendar (naptár + drag&drop)
-5. Approval workflow (legalább Draft → Approved flow)
-6. Publishing & Scheduling (Meta API, queue)
+#### Must Have (P0) - Hipotézis-validáláshoz szükséges minimum
 
-**Should Have (P1) - Fontos, de kivehető ha nagyon kell:**
-7. AI Visual Studio (képgenerálás) - **alternatíva:** socialos feltölt saját képet
-8. Saját kép feltöltés és crop
-9. Basic insights dashboard
+**Ezek nélkül nem tudjuk tesztelni a kritikus hipotéziseket (H1, H2, H3):**
 
-**Nice to Have (P2) - Jó lenne, de v1.5-be tolható:**
-10. AI-javasolt tartalomtípus mix
-11. In-app notifications
-12. Email notifications
-13. Használhatósági rating jelölés (instrumentáció)
+1. **Brand Brain v1 - minimal** (H1)
+   - TOV szöveges leírás (200-500 karakter)
+   - Key Messages (2-5 bullet)
+   - 1-3 példaposzt szövege
+   - Vizuális irány leírás (100-300 karakter)
+   - **P0 minimum:** Egyszerű form, nincs feltétlenül szép UI, csak működő input és tárolás
+
+2. **AI Copy Studio - minimal** (H1, H2)
+   - Brief input (1-2 mondat)
+   - AI generálás Brand Brain kontextussal (1 variáns elég v1-ben, nem kell 2-3)
+   - Inline szerkesztés (plain text elég, emoji picker opcionális)
+   - Mentés draft-ba
+   - **P0 minimum:** Működő AI hívás + szerkesztés, nincs feltétlenül karakter számláló vagy fancy editor
+
+3. **Content Calendar - basic** (H2)
+   - Heti nézet
+   - Poszt slotok (dátum + platform)
+   - Drag&drop VAGY manuális dátum választás (elég az egyik)
+   - Poszt státuszok: Draft / Approved / Scheduled / Published
+   - **P0 minimum:** Működő naptár lista/grid nézet, drag&drop opcionális (lehet egyszerűbb UI)
+
+4. **Pseudo-approval - egyszerű** (H2)
+   - Draft → "Ready to publish" gomb (self-approval is elég v1-ben)
+   - Approved státusz
+   - **P0 minimum:** Nincs feltétlenül multi-user review flow, lehet hogy ugyanaz a user "approve"-olja. Cél: workflow átmenet tesztelése, nem robusztus approval chain.
+
+5. **Publishing - instant + manual schedule** (H2)
+   - Meta Graph API integráció (FB/IG OAuth)
+   - Instant publish gomb (azonnal kiküldés)
+   - VAGY Manual schedule (dátum/időpont választás)
+   - Retry logic **egyszerű** (ha hiba, user kattint "retry" - nincs auto queue+retry)
+   - **P0 minimum:** Működő publikálás, lehet hogy először csak instant, scheduling később jön (vagy fordítva). Nincs feltétlenül background job queue v1-ben, lehet simpler cron check.
+
+6. **Instrumentation & Rating - core** (H1, H2, H3)
+   - **Használhatósági rating jelölés (most P0!)** - poszt véglegesítéskor mandatory jelölés: "rendben, kisebb módosítással" / "nagy átdolgozás" / "nem használható"
+   - Session tracking (login, feature usage)
+   - AI Copy Studio usage count
+   - Creaitorban generált tartalom aránya
+   - **P0 minimum:** Backend logging + egyszerű admin dashboard (nem kell szép UI socialosoknak, elég ha mi látjuk az adatokat)
+
+7. **Multi-tenant basic - hierarchy only** (H2, H3)
+   - Ügynökség → User → Brand → Social Profile hierarchy
+   - Ügynökség regisztráció
+   - User meghívás (email + link)
+   - Márka létrehozása
+   - Social profile csatolása (Meta OAuth)
+   - **P0 minimum:** Nincs fine-grained permission (ki mit láthat), nincs role-based access control részletesen. Elég: "ha ugyanabban az ügynökségben vagy, látod az összes márkát". Permissions finomhangolás → P1.
+
+---
+
+#### Should Have (P1) - Fontos, de hipotézis-teszteléshez NEM kritikus
+
+**Ezek production-érettséghez kellenek, de H1/H2/H3 tesztelése nélkülük is működik:**
+
+8. **Multi-tenant fine-grained permissions** (P0 → P1)
+   - Szerepkörök: Admin vs. Editor
+   - Brand-specifikus jogosultságok
+   - Approval chain szintek
+   - **Indok:** Kis pilot csapatban (5-10 ügynökség, 1-3 user/ügynökség) nincs komplex permission igény. V1.5-ben kell, ha skálázunk.
+
+9. **Background job queue + auto retry** (P0 → P1)
+   - Queue-alapú scheduled posting
+   - Automatikus retry (3x próbálkozás)
+   - Job status dashboard
+   - **Indok:** P0-ban elég manual retry vagy egyszerű cron. Auto queue production polish, nem hipotézis-validáció.
+
+10. **Full approval workflow - multi-user** (P0 → P1)
+    - Draft → Review → Approved chain
+    - Másik user review-olja
+    - Comment thread
+    - Notification
+    - **Indok:** P0-ban elég self-approval vagy pseudo-approval. Multi-user review workflow production feature, nem hipotézis-kritikus.
+
+11. **AI Visual Studio (képgenerálás)** (P1 marad)
+    - **Alternatíva P0-ban:** Socialos feltölt saját képet
+    - **Indok:** H1/H2 teszteléséhez kell AI copy, de képgenerálás opcionális. Ha nincs idő, v1.5-be.
+
+12. **Saját kép feltöltés + crop/resize**
+    - Upload, drag&drop
+    - Crop tool
+    - **Indok:** Fontos, de H1/H2-höz nem kritikus. Ha AI Visual nem készül el, ez megy P0-ba.
+
+13. **Basic insights dashboard (socialosoknak)**
+    - Ügynökség szintű metrikák
+    - Márka szintű metrikák
+    - Vizuális dashboard
+    - **Indok:** Instrumentáció backend (P0) elég, szép dashboard (P1). Pilot alatt mi nézzük az adatokat admin panel-en, socialosoknak nem kell feltétlenül látni.
+
+---
+
+#### Nice to Have (P2) - V1.5-be tolható
+
+14. **AI-javasolt tartalomtípus mix**
+    - Heti "javasolt mix" megjelenítés
+
+15. **In-app + Email notifications**
+    - Notification badge
+    - Email alerts
+
+16. **Advanced calendar features**
+    - Havi nézet (ha heti elég P0-ban)
+    - Campaign csoportosítás
+    - Bulk műveletek
+
+**P2 indok:** Ezek UX nice-to-have-ek, de nem befolyásolják H1/H2/H3 hipotézis-tesztelést.
+
+---
+
+### P0 Implementation Minimum - Feature-enkénti Részletezés
+
+Az alábbi lista minden MVP feature-nél megmutatja: **mi az abszolút P0 minimum implementáció**, és mi tolható P1-be.
+
+---
+
+#### 1. Multi-Tenant Alaprendszer
+
+**P0 Implementation Minimum:**
+- Ügynökség regisztráció (email + jelszó)
+- User meghívás egyszerű linkkel (email cím, link generálás)
+- Márka létrehozása (név, leírás)
+- Social profile csatolása Meta OAuth-tal (FB Page, IG Account ID tárolása)
+- **Nincs:** Fine-grained permissions. Minden user minden márkát lát az ügynökségen belül. Admin vs. Editor megkülönböztetés opcionális.
+
+**P1 Enhancement:**
+- Szerepkörök (Admin, Editor, Viewer)
+- Brand-specifikus jogosultságok
+- User audit log
+
+---
+
+#### 2. Brand Brain v1
+
+**P0 Implementation Minimum:**
+- Form: TOV (textarea, 200-500 karakter), Key Messages (5x input field), Példaposztok (3x textarea), Vizuális irány (textarea, 100-300 karakter)
+- Mentés gomb
+- Adatok tárolása márka-szinten
+- **Nincs:** Szép UI, validáció (lehet, hogy user 0 karaktert ír - nem gond pilot alatt), brand voice preview, guideline PDF upload.
+
+**P1 Enhancement:**
+- Polished UI (drag&drop példaposztok, rich text editor)
+- Brand asset upload (logó, színek)
+- Brand voice preview (hogyan néz ki az AI output)
+- Validáció és error handling
+
+---
+
+#### 3. AI Copy Studio
+
+**P0 Implementation Minimum:**
+- Brief input (textarea, 1-2 mondat)
+- Platform választás (FB / IG - radio button)
+- "Generate" gomb → AI hívás (1 variáns)
+- Szöveg megjelenítése (plain text)
+- Inline szerkesztés (contenteditable div VAGY textarea)
+- "Save as draft" gomb
+- **Használhatósági rating jelölés (MOST P0!):** Mandatory dropdown publish előtt: "Rendben, kisebb módosítással" / "Nagy átdolgozás kellett" / "Nem használható"
+- **Nincs:** 2-3 variáns generálás, emoji picker, karakter számláló, regenerálás gomb (lehet manuálisan újra kattintani).
+
+**P1 Enhancement:**
+- Rich text editor (bold, emoji)
+- Karakter számláló
+- 2-3 variáns generálás
+- Regenerálás gomb
+- Hashtag javaslat
+
+---
+
+#### 4. AI Visual Studio
+
+**P1 Feature (nem P0):**
+- Ha nincs idő, P1-be. P0-ban elég, ha socialos feltölt saját képet.
+
+**P0 Alternative (ha AI Visual nincs):**
+- Saját kép feltöltés (upload button)
+- Egyszerű crop (ha van idő) VAGY nincs crop (user külsőleg croppolja)
+
+---
+
+#### 5. Content Calendar
+
+**P0 Implementation Minimum:**
+- Heti lista/grid nézet (7 nap, FB/IG slotok)
+- Poszt hozzáadása dátumhoz (manuális dátum választás ÉS/VAGY drag&drop)
+- Poszt státuszok: Draft / Approved / Scheduled / Published (színkódolás)
+- Kattintás → poszt edit popup
+- Márka-szintű szűrés (dropdown: "Összes márka" / "Márka XY")
+- **Nincs:** Havi nézet (ha heti elég), AI-javasolt mix, campaign csoportosítás, bulk műveletek.
+
+**P1 Enhancement:**
+- Havi nézet
+- Drag&drop (ha P0-ban nem készült el)
+- AI-javasolt tartalomtípus mix
+- Campaign csoportosítás
+
+---
+
+#### 6. Approval Workflow
+
+**P0 Implementation Minimum (Pseudo-approval):**
+- Draft státusz (default, ha poszt létrejön)
+- "Approve" gomb (self-approval is elég P0-ban - ugyanaz a user jóváhagyja)
+- Approved státusz
+- **Nincs:** Multi-user review flow, másik user jóváhagyása, comment thread, notification.
+
+**P1 Enhancement:**
+- Draft → Review → Approved chain
+- Másik user review-olja
+- Comment thread (poszt-szintű feedback)
+- In-app + email notification
+
+**Döntési pont:** Ha pilot feedback azt mondja "külső ügyfél approval kritikus", akkor P1-be kerül:
+- Ügyfél meghívása platformra (email link)
+- Külső approval flow
+
+---
+
+#### 7. Publishing & Scheduling
+
+**P0 Implementation Minimum:**
+- Meta Graph API integráció (OAuth, token tárolás, FB/IG publish endpoint hívás)
+- **Instant publish** VAGY **Manual schedule** (elég az egyik P0-ban!)
+  - **Instant publish:** "Publish now" gomb → azonnal Meta API hívás
+  - **Manual schedule:** Dátum/időpont választás + "Schedule" gomb → scheduled státusz. Egyszerű cron job (5 percenként ellenőrzi: van-e scheduled poszt, ideje van-e → publish).
+- Retry logic egyszerű: ha hiba, "Failed" státusz + "Retry" gomb (user kattint)
+- **Nincs:** Background job queue (Sidekiq/Bull), auto retry (3x próbálkozás), job monitoring dashboard.
+
+**P1 Enhancement:**
+- Background job queue (Sidekiq/Bull/BullMQ)
+- Automatikus retry (3x próbálkozás exponential backoff-fal)
+- Job status dashboard
+- Instant + scheduled együtt (ha P0-ban csak az egyik)
+
+**Döntési pont:** Pilot feedback után eldöntjük: instant publish elég, vagy scheduling kritikus? Ha scheduling kritikus → P0, ha nem → P1.
+
+---
+
+#### 8. Basic Insights & Usage Tracking
+
+**P0 Implementation Minimum (Backend + Admin Dashboard):**
+- Backend event logging:
+  - Session tracking (user login, page views)
+  - AI Copy Studio használat (generálások száma, brand)
+  - Használhatósági rating (poszt-szintű jelölés tárolása)
+  - Creaitorban generált tartalom aránya
+- **Admin-only dashboard** (nem kell socialosoknak látniuk):
+  - Ügynökség szintű aggregált metrikák
+  - Márka szintű metrikák
+  - CSV export (ha kell)
+- **Nincs:** Szép UI socialosoknak, real-time dashboard, vizualizációk.
+
+**P1 Enhancement:**
+- Socialos-facing dashboard (szép UI)
+- Vizualizációk (grafikonok)
+- Márka szintű insights megjelenítése socialosoknak
+- Exportálható riportok
 
 ---
