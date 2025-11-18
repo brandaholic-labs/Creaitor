@@ -1003,6 +1003,202 @@ Az alábbi lista minden MVP feature-nél megmutatja: **mi az abszolút P0 minimu
 
 ---
 
+
+## Assumptions & Constraints (Feltételezések és Korlátok)
+
+> **Filozófia:** A sikeres projekt nem az, amelyik minden kockázatot kiküszöböl, hanem amely **tisztában van a feltételezéseivel és korlátaival**, és explicit döntéseket hoz ezek mentén.
+
+**Miért fontos ez a szekció:**
+- **Transzparencia:** Explicit lista arról, mit feltételezünk igaznak (de lehet, hogy nem az)
+- **Döntési keret:** Ha egy assumption bukik, azonnal tudod, mi a következő lépés
+- **Scope védelem:** Világos, mi NEM része a projektnek (out of scope)
+- **Kommunikáció:** Stakeholderek értik a korlátokat
+
+---
+
+## A0: Project-Level Assumptions (Projekt Szintű Feltételezések)
+
+> **Ezek a legmagasabb szintű feltételezések. Ha 1-2 bukik közülük, az major pivot vagy project stop.**
+
+| ID | Assumption | Ha invalid, mi történik? | Validálási mód (pilot alatt) |
+|----|------------|-------------------------|------------------------------|
+| **A0.1** | **4-6 hét elég a core hipotézisek (H1/H2/H3) validálására** | Pilot hosszabbítás szükséges (8-10 hét) VAGY scope csökkentés | 2. hét végén interim mérés: hány feature kész? Van baseline mérés? |
+| **A0.2** | **Solo dev (1 fő) elegendő a P0 MVP fejlesztésére** | Második dev bevonás VAGY timeline csúszás | Weekly velocity tracking: hány story point/hét? Burndown chart |
+| **A0.3** | **Pilot user base (3-5 ügynökség, 8-10 socialos) elég reprezentatív a PMF-validáláshoz** | Szélesebb user base szükséges VAGY kvalitatív pivot (mélyebb interjúk) | 4. hét: hány aktív user? Vannak-e divergens use case-ek? |
+| **A0.4** | **Desktop-first UI elfogadható P0-ban (mobil basic support elég)** | Mobil UX prioritás emelkedik → redesign szükséges | User interjúk: eszköz-használat tracking (desktop vs. mobil arány) |
+| **A0.5** | **Magyar piac először (lokalizáció, support) versenyképes pozíciót ad** | International launch szükséges korábban VAGY feature-pivot lokális igényekre | Pilot feedback: mennyire értékelik a magyar nyelvű support-ot? |
+
+---
+
+## A1: Business & Market Assumptions (Üzleti/Piaci Feltételezések)
+
+| ID | Assumption | Impact ha invalid | Validation |
+|----|------------|-------------------|------------|
+| **A1.1** | **Socialosok nyitottak AI használatára, nem fenyegetésként látják** | Adoption fail → AI feature deprioritizálás, fókusz calendar/workflow-ra | Onboarding interjúk, NPS nyílt kérdések, valós AI usage rate (H3) |
+| **A1.2** | **Ügynökségek hajlandóak fizetni egy olyan tool-ért, ami időt spórol a socialosoknak** | Monetizáció nehéz → pivot freemium/ads VAGY alacsonyabb pricing | Pilot után WTP (Willingness to Pay) survey, min. 2-3 ügynökség "fizetnénk érte" jelzés |
+| **A1.3** | **Brand Brain v1 (TOV + key messages + példaposztok) elég információ jó AI output-hoz** | AI output gyenge → bővebb Brand Brain (P1) VAGY más AI approach | H3 validálás: usable AI output >60% (ha <40%, akkor A1.3 invalid) |
+| **A1.4** | **6 poszt/hét/márka a releváns usage tartomány (nem 1-2, nem 20-30)** | Ha <<6: ROI kicsi, ha >>6: scalability issue | Pilot alatt poszt-szám mérése márkánként, átlag kalkulálás |
+| **A1.5** | **Buffer/Hootsuite incumbensek NEM hoznak Brand Brain-szerű AI feature-t a pilot alatt** | Versenyhelyzet éleződik → gyorsabb launch VAGY erősebb differenciálás szükséges | Competitor monitoring: changelog, feature release tracking |
+
+---
+
+## A2: Technical Assumptions (Technikai Feltételezések)
+
+| ID | Assumption | Impact ha invalid | Validation |
+|----|------------|-------------------|------------|
+| **A2.1** | **Meta Graph API stabil marad, nincs major breaking change v18 → v19 a pilot alatt** | Publishing feature blokkol → workaround VAGY manual publishing fallback | Meta Developer changelog követés, staging app tesztelés |
+| **A2.2** | **OpenAI GPT-4o VAGY Anthropic Claude 3.5 elég jó AI output minőséget ad (P0: 1 provider)** | AI output gyenge → model switch, prompt tuning, dual-provider (P1) | H3 validálás: usable AI output rate |
+| **A2.3** | **PostgreSQL + Prisma + egyszerű app-layer multi-tenancy elég 8-10 ügynökség skálához** | Performance issue → DB optimization VAGY korai P1 scaling | Load testing 10 ügynökség szimulációval, query performance monitoring |
+| **A2.4** | **Cloudinary (P0) elég file storage-hoz, S3 nem szükséges** | Cloudinary limit/cost issue → S3 migráció | Havi Cloudinary usage tracking, cost monitoring |
+| **A2.5** | **Node.js + Express + React stack (egyszerű monolit) elegendő a pilot-hoz** | Scalability/performance issue →架构 refactor (P1 microservices) | Response time monitoring (NFR1.1 targets) |
+| **A2.6** | **DB-backed session (PostgreSQL) stabil elég, Redis nem kell P0-ban** | Session performance issue → Redis switch | Session latency monitoring, user login/logout experience feedback |
+
+---
+
+## A3: User & Behavior Assumptions (User Viselkedési Feltételezések)
+
+| ID | Assumption | Impact ha invalid | Validation |
+|----|------------|-------------------|------------|
+| **A3.1** | **Socialosok hajlandóak 20-30 percet tölteni Brand Brain setup-pal márkánként (első alkalommal)** | Onboarding friction → Brand Brain egyszerűsítés, wizard, lite mode | Pilot: mért setup idő, completion rate |
+| **A3.2** | **Socialosok használják az AI-generált copy-t kiindulópontként (nem elvetik azonnal)** | AI feature adoption fail → UX javítás VAGY AI deprioritizálás | Usability rating: heavy_edit vs. not_usable arány |
+| **A3.3** | **Socialosok hozzáférnek Meta OAuth-hoz (FB Page/IG account admin jogok)** | OAuth onboarding blokkol → IT/admin bevonás, onboarding friction | Pilot onboarding sikeres arány, blocker tracking |
+| **A3.4** | **Socialosok elfogadják az "approval flow" pseudo-approval-ként (1 user self-approve)** | Multi-user approval szükséges → P1 feature VAGY adoption issue | Pilot feedback: mennyire hiányzik a valódi approval flow? |
+| **A3.5** | **Socialosok használják a desktop/laptop-ot a munka nagy részében (nem mobil)** | Mobil UX priorizálás → UI redesign (responsive) | Device usage tracking, user interjúk |
+
+---
+
+## C0: Time & Resource Constraints (Idő és Erőforrás Korlátok)
+
+| ID | Constraint | Consequence | Mitigation |
+|----|-----------|-------------|------------|
+| **C0.1** | **Pilot timeline: 4-6 hét** (dev + user onboarding + mérés) | Hard deadline → scope ruthless prioritization, P0-nice elhagyható | Weekly scope review, P0-core vs. P0-nice döntések |
+| **C0.2** | **Solo developer (1 fő full-time)** | Bottleneck, nincs backup → velocity limit | Clean code (TS, comments), dokumentáció (README, env setup) |
+| **C0.3** | **Pilot user base: 3-5 ügynökség, 8-10 socialos** (nem több) | Limitált sample size → statistical significance kicsi | Kvalitatív mélység kompenzál (mélyebb interjúk, baseline mérés) |
+| **C0.4** | **Support bandwidth: ~5-10 óra/hét** (office hours, Slack) | Nem lehet 24/7 support → user expectations management | Office hours scheduling, FAQ doksi, közösségi Slack csatorna |
+| **C0.5** | **Feature freeze 3. hét végén** (4-6. hét csak tuning/bugfix/measurement) | Új feature P0-ba nem kerülhet be → scope lock | Explicit communication: "P0 scope locked, P1 backlog nyílik" |
+
+---
+
+## C1: Technical Constraints (Technikai Korlátok)
+
+| ID | Constraint | Consequence | Mitigation |
+|----|-----------|-------------|------------|
+| **C1.1** | **Meta Graph API dependency** (nincs alternatíva FB/IG publishing-hoz) | Meta policy change/API change → publishing blokkol | Version pinning (v18), Meta Developer Newsletter, staging app |
+| **C1.2** | **Desktop-first UI (mobil: basic support only, nem full UX)** | Mobil user experience gyenge → mobile adoption alacsony | Explicit kommunikáció: "P0 desktop-first, P1 mobile UX" |
+| **C1.3** | **Single AI provider P0 (OpenAI VAGY Anthropic, nem dual)** | Provider downtime/pricing → AI feature blokkol | Fallback: manual copy workflow mérhető (calendar adoption) |
+| **C1.4** | **Cloudinary only (S3 out of scope P0)** | Cloudinary limit → file storage blokkol | Cost monitoring, fallback: text-only pilot phase |
+| **C1.5** | **No CI/CD automation P0 (manual testing/deploy)** | Deploy slower, manual QA → deploy risky | Smoke test checklist, staging env (optional), rollback plan |
+| **C1.6** | **No production monitoring/alerting (Datadog, Sentry out P0)** | Bug/downtime detection delayed → user experience | Pilot user Slack csatorna (real-time feedback), manual health check |
+
+---
+
+## C2: Budget & Cost Constraints (Költség Korlátok)
+
+| ID | Constraint | Consequence | Mitigation |
+|----|-----------|-------------|------------|
+| **C2.1** | **API cost cap: ~$100-200/hó pilot alatt** (OpenAI/Anthropic) | Cost overrun → generation limit VAGY model downgrade | Monthly cost tracking, budget alert ($150 threshold) |
+| **C2.2** | **Infrastructure: Render/Railway free tier VAGY basic plan (~$20-50/hó)** | Scale limit → performance degradation | Pilot scale (8-10 user) alatt free tier elég, monitoring |
+| **C2.3** | **Cloudinary free tier (25 GB storage, 25 GB bandwidth/month)** | Limit túllépés → extra cost VAGY storage blokkol | Image optimization (resize), usage tracking |
+| **C2.4** | **SendGrid/Mailgun free tier (100-300 email/month)** | Email limit → manual email fallback | Email only kritikus flow-knál (password reset, invite) |
+| **C2.5** | **No paid tooling (Datadog, Sentry, etc.) P0** | Limited visibility → reactive debugging | Free alternatives (console.log, PostgreSQL logs), user feedback loop |
+
+---
+
+## C3: Legal & Compliance Constraints (Jogi és Compliance Korlátok)
+
+| ID | Constraint | Consequence | Mitigation |
+|----|-----------|-------------|------------|
+| **C3.1** | **GDPR compliance minimál szint (P0: manual "right to be forgotten")** | Automatizált GDPR (P1) nélkül compliance risk | ToS: user data deletion request manual handling (7 napon belül) |
+| **C3.2** | **No automated AI content moderation (P0)** | Inappropriate AI output risk → user felelősség | ToS: user felelős a content-ért, manual review opció |
+| **C3.3** | **Meta Developer Policy compliance kötelező** | Policy violation → app suspend/ban | Policy monitoring, ToS alignment (AI-generated flag tárolva) |
+| **C3.4** | **No third-party data sharing (pilot adatok nem kerülnek ki)** | Privacy breach risk → user trust loss | Explicit kommunikáció: "pilot data confidential, no sharing" |
+| **C3.5** | **Magyar adatvédelmi törvény (InfoTV) alapszintű compliance** | Legal risk ha nem compliant | Minimal compliance: tájékoztatás, hozzájárulás, törlési jog |
+
+---
+
+## Out of Scope (Explicit - Mi NEM lesz P0-ban)
+
+> **Fontos:** Ezek a feature-ök/funkciók **NEM részei a P0 MVP-nek**. P1-ben vizsgálhatók, ha a pilot sikeres.
+
+### Feature Out of Scope (P0)
+
+| Feature/Funkció | Miért OUT | Mikor jöhet (P1/P2) |
+|-----------------|-----------|---------------------|
+| **Instant publish** (azonnal publikál, nem schedule) | H1/H2/H3 validáláshoz scheduling elég | P1 - ha user igény erős |
+| **Multi-user approval flow** (több socialos review-olja) | Pilot skála (1-2 socialos/ügynökség) → pseudo-approval elég | P1 - nagyobb team-ek esetén |
+| **Analytics/Insights** (poszt performance, engagement metrics) | Nem core value prop, Meta Business Suite megteszi | P2 - native analytics integration |
+| **Instagram Stories/Reels** (csak feed poszt P0) | Complexity magas, feed poszt validálja core workflow-t | P1 - ha feed workflow sikeres |
+| **TikTok/LinkedIn/Twitter integráció** | Meta (FB/IG) elég P0 validáláshoz | P1/P2 - platform expansion |
+| **AI image generation** (DALL-E, Midjourney) | Komplexitás magas, user upload + Cloudinary elég | P2 - ha core AI copy sikeres |
+| **AI video generation** | Complexity very high, out of scope pilot-hoz | P2+ - jövőbeli feature |
+| **Team management** (role-based access, permissions) | Pilot: 1-2 user/ügynökség → admin/socialos elég | P1 - multi-user team-ek esetén |
+| **White-label / agency branding** | Nem core value prop pilot-hoz | P2 - enterprise feature |
+| **API access / webhooks** | Developer feature, nem pilot célcsoport | P2+ - developer ecosystem |
+
+---
+
+### Platform/Technology Out of Scope (P0)
+
+| Platform/Tech | Miért OUT | Mikor jöhet (P1/P2) |
+|---------------|-----------|---------------------|
+| **Mobile app (iOS/Android native)** | Desktop-first, web app elég pilot-hoz | P2 - ha web adoption magas |
+| **Mobile-optimized responsive design (full UX)** | Basic mobile support elég P0 (emergency access) | P1 - mobile usage data alapján |
+| **CI/CD automation** (GitHub Actions, automated tests) | Manual testing elég pilot-hoz | P1 - production hardening |
+| **Microservices architecture** | Monolit egyszerűbb, gyorsabb dev | P1 - ha scalability issue |
+| **Redis caching** | PostgreSQL elég 8-10 user skálához | P1 - ha performance issue |
+| **S3 file storage** | Cloudinary egyszerűbb, P0 elég | P1 - ha cost optimization szükséges |
+| **Dual AI provider (OpenAI + Anthropic)** | 1 provider elég P0 validáláshoz | P1 - fallback/redundancy |
+| **Advanced monitoring** (Datadog, New Relic, Sentry) | console.log + user feedback elég pilot-hoz | P1 - production monitoring |
+| **Kubernetes / Docker containerization** | Render/Railway natívan futtat Node.js-t | P1 - infrastructure as code |
+| **Multi-region deployment** | Single region (EU/US) elég pilot-hoz | P2 - global expansion |
+
+---
+
+### Business/Process Out of Scope (P0)
+
+| Business Feature | Miért OUT | Mikor jöhet (P1/P2) |
+|------------------|-----------|---------------------|
+| **Pricing/billing implementation** | Pilot ingyenes (freemium validálás) | P1 - monetization phase |
+| **Invoicing/payment processing** | Nincs fizető user P0-ban | P1 - Stripe integration |
+| **Customer support ticketing system** | Slack/Discord elég pilot-hoz | P1 - customer support scaling |
+| **Onboarding video/tutorial (automated)** | Manual onboarding elég 3-5 ügynökséghez | P1 - self-serve onboarding |
+| **Marketing website (landing page, blog)** | Pilot: direkt outreach, nincs inbound | P1 - marketing/growth phase |
+| **Email marketing automation** | Pilot: manual communication elég | P1 - user lifecycle emails |
+| **User referral program** | Nincs elég user P0-ban referral-hoz | P2 - growth hacking |
+| **SLA guarantees** (99.9% uptime, support SLA) | Pilot: best-effort elég | P1 - production SLA |
+
+---
+
+## Assumptions & Constraints Összefoglalás
+
+**Critical Assumptions (ha ezek buknak → major pivot/stop):**
+1. **A0.1:** 4-6 hét elég H1/H2/H3 validálásához
+2. **A1.1:** Socialosok nyitottak AI-ra
+3. **A1.3:** Brand Brain v1 elég jó AI output-hoz
+4. **A2.1:** Meta Graph API stabil marad
+
+**Hard Constraints (ezek nem változtathatók P0-ban):**
+1. **C0.1:** 4-6 hetes timeline
+2. **C0.2:** Solo dev (1 fő)
+3. **C1.1:** Meta Graph API dependency
+4. **C2.1:** API cost cap $100-200/hó
+
+**Validation Strategy:**
+- Minden assumption-höz explicit validálási mód a pilot alatt
+- 2. hét végén interim check: melyik assumption sérül?
+- 4. hét végén döntési pont: folytatás/iteráció/pivot/stop
+
+**Out of Scope Philosophy:**
+> „Ha nem validálja H1/H2/H3-at, akkor OUT of scope P0-ból."
+
+**P0 → P1 Transition Criteria:**
+- Critical assumptions validated (vagy mitigálva)
+- H1/H2/H3 legalább részben sikeres
+- ≥2-3 ügynökség "fizetnénk érte" jelzés
+- Nincs active killer risk trigger (R0)
+
+---
+
 ## User Stories & Use Cases
 
 ### Primary Actors (Ki használja a rendszert?)
