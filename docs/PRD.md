@@ -3713,167 +3713,199 @@ async function generateAICopy(brief: string, brandBrain: BrandBrain, provider: '
 
 ## Risks & Dependencies (Kockázatok és Függőségek)
 
-> **Risk Management filozófia:** Azonosítsuk a kritikus kockázatokat és dependency-ket, de ne paralízáljon minket. A pilot cél: **tanulás**, nem tökéletes termék szállítása.
+**Risk management filozófia (P0):**
+
+Cél nem a kockázatok „kinullázása", hanem az, hogy:
+- **tudd, mi ölheti meg a projektet;**
+- **legyenek konkrét triggerek, amiknél dönteni kell;**
+- **minden kritikus dependency-re legyen learning-first fallback** – akkor is tanulj, ha a technika megdől.
+
+A pilot célja: **hipotézis-validálás**, nem egy „mindenre felkészített" production rendszer.
 
 ---
 
-### R1: Technical Risks (Technikai Kockázatok)
+## R0: Top 5 Killer Risks & Decision Triggers
 
-#### R1.1: Third-Party API Dependency Risks
+> Ezek azok a kockázatok, amelyeknél tudatos **pivot/stop döntést** kell hozni, ha a trigger bekövetkezik.
+
+| ID | Kockázat | Trigger (konkrét jel) | Azonnali lépések (Action) | Owner |
+|----|----------|----------------------|---------------------------|--------|
+| **KR1** | **Meta Graph API dependency** – publishing leáll | 7+ egymást követő nap, amikor a scheduled publishing >50%-a fail Meta-hiba miatt | - Felfüggesztett scheduling-validáció<br>- Pilot fókusz átmenetileg: Brand Brain + AI Copy + Calendar workflow<br>- Socialos manuálisan publikál Meta Business Suite-ből | Tech/Product |
+| **KR2** | **H2/H3 fail** – nincs időmegtakarítás / AI output gyenge | 4–6. hét után: átlagos időmegtakarítás <20% ÉS usable AI output <40% | - Feature-fejlesztés befagyasztása<br>- Dedikált 1–2 hetes AI/UX tuning sprint (prompt, Brand Brain UX)<br>- Újramérés tuning után, mielőtt P1-ről döntés születik | Product |
+| **KR3** | **Pilot user recruitment fail** | 4. hétig <3 aktív ügynökség VAGY <3 aktív socialos | - Célt újradefiniálni (kevesebb, de mélyebb pilot)<br>- Célzott recruitment kampány (networking, direkt outreach)<br>- Döntés: halasztott pilot vs. projekt parkoltatása | Founder/BD |
+| **KR4** | **Pilot design / measurement hibás** – fals PMF jel | Inkonzisztens jelek: magas NPS, de alacsony WAU/retention; időmérés hiányos / zajos | - Measurement audit (folyamatok, sheetek revíziója)<br>- Min. 2 hétig strukturált időmérés újraindítása<br>- Kozmetikázott metrikák kizárása döntéshozatalból | Product/Analytics |
+| **KR5** | **Brand Brain overhead** + UX friction miatt nincs adoption | Pilot 3–4. hét: Brand Brain completion rate <50% ÉS socialosok nem itt kezdik a munkát | - Brand Brain egyszerűsítés (kevesebb mező, wizard)<br>- „Lite setup" mód bevezetése<br>- Validáció: v1.5 Brand Brain előtt nincs P1-es skálázás | Product/UX |
+
+---
+
+## R1: Technical Risks (Technikai Kockázatok)
+
+### R1.1. Third-Party API Dependency Risks
+
+**Meta / AI / egyéb külső szolgáltatók**
+
+| Kockázat | Impact | Valószínűség | Mitigation (P0) | P1 bővítés | Learning-first fallback |
+|----------|--------|--------------|-----------------|------------|------------------------|
+| **Meta Graph API verzióváltás** (v18 → v19, breaking change) | 🔴 Magas – publishing leáll | 🟡 Közepes | - API version pinning (v18 fixálás)<br>- Meta Developer Newsletter, changelog követés | Migráció staging app-pal, automata smoke tesztek | Ha 1–2 hétig instabil: pilot fókusz AI + Calendar validációra, publishing workflow manuális (Meta Business Suite) |
+| **Meta token expire** (60 nap, auto-refresh nélkül) | 🟡 Közepes – usernek újra OAuth | 🔴 Magas | - Egyértelmű hibaüzenet: „Token lejárt, csatold újra a profilt"<br>- Token lejárat naplózása | Auto-refresh mechanizmus, lejárat előtti email | Token issue esetén: a pilotban a publikálás min. 1 márkán manuálisan, hogy usage ne álljon le teljesen |
+| **Meta rate limit** (200 call/h fölött) | 🟡 Közepes – késő publikálás | 🟢 Alacsony (5–10 user alatt) | - Hibaüzenet + manual retry útmutatás | Queue + call counting, backoff | Ha limitet eléritek: átmeneti „publishing window"-ok definiálása, pilot tanulási fókusz: AI + Calendar |
+| **OpenAI/Anthropic downtime** | 🟡 Közepes – AI nem generál | 🟢 Alacsony | - 30s timeout, 1x retry, tiszta hibaüzenet | Dual-provider fallback (OpenAI ↔ Anthropic) | AI nélkül is mérni: hány user használja csak a naptár + szerkesztő flow-t, manuális copyval |
+| **OpenAI/Anthropic pricing spike** | 🟡 Közepes – Opex nő | 🟡 Közepes | - Havi API-költség monitor<br>- Budget cap (pl. 100–200 USD/hó pilot) | Modell-váltás, tokencsökkentés, finomabban targetelt promptok | Ha cost elszalad: modell downgrade (olcsóbb modellek), de továbbra is mérni kell a usability-ratinget |
+
+**Összefoglalás:**
+Meta a fő technikai single point of failure. A P0 stratégia:
+– **nem a teljes technikai kockázat kiiktatása**, hanem
+– **biztosítani, hogy publishing nélküli hetekben is tudj PMF-et tanulni** (AI + Calendar + workflow adoption).
+
+---
+
+### R1.2. Infrastructure & Deployment Risks
+
+| Kockázat | Impact | Valószínűség | Mitigation (P0) | P1 bővítés |
+|----------|--------|--------------|-----------------|------------|
+| **Render/Railway downtime** | 🔴 Magas – app nem elérhető | 🟢 Alacsony | - Elfogadott 95% uptime<br>- Downtime esetén kommunikáció pilottal (Slack/Email)<br>- Kritikus demo időpontok előtt manuális health check | Multi-region deployment, status page |
+| **PostgreSQL data loss / backup hiba** | 🔴 Magas – adatvesztés | 🟢 Alacsony | - Managed DB daily backup<br>- Heti 1 manuális restore-teszt (pl. külön DB-be) | Hourly backup, PITR, multi-region |
+| **Env leak** (.env commit) | 🔴 Magas – API key szivárgás | 🟡 Közepes | - .env gitignore, .env.example<br>- Dev folyamat része: commit előtti ellenőrzés | Secret scanning (GitHub), secrets manager |
+| **Deploy failure** (build error, crash) | 🟡 Közepes | 🟡 Közepes | - Minden deploy után manuális smoke test (login, AI generálás, 1 test publish) | CI/CD + automatizált E2E smoke tesztek, rollback |
+
+---
+
+### R1.3. Data Security & Privacy Risks
+
+| Kockázat | Impact | Valószínűség | Mitigation (P0) | P1 bővítés |
+|----------|--------|--------------|-----------------|------------|
+| **Meta access token kompromittálódása** | 🔴 Magas – spam poszt publikálható | 🟢 Alacsony | - Column-level encryption (AES-256)<br>- Token scope minimalizálása | Secrets manager, token rotation, audit log |
+| **Password brute-force** | 🟡 Közepes | 🟢 Alacsony | - Bcrypt (cost 12), erős jelszó policy | Login rate limiting, CAPTCHA, 2FA |
+| **SQL injection** | 🔴 Magas | 🟢 Alacsony | - Prisma ORM, prepared statements<br>- Zod validation minden inputra | Extra security review, penetration test |
+| **XSS** (poszt szöveg, TOV, brand név) | 🟡 Közepes | 🟢 Alacsony | - React auto-escape<br>- HTML tag-ek strip TOV/brand mezőkben | Szigorúbb sanitization, security header hardening |
+
+**P0 konklúzió:** security „elég jó" egy kis létszámú, ismert pilot user-csapatnak. P1-ben jön a hardening (2FA, audit log, security audit).
+
+---
+
+## R2: Business & Product Risks (Üzleti Kockázatok)
+
+### R2.1. Hypothesis Invalidation Risks (H1–H3)
+
+| Hipotézis kockázat | Impact | Valószínűség | Detect | Mitigation |
+|--------------------|--------|--------------|--------|------------|
+| **H1 fail:** Brand Brain v1 túl bonyolult / nem töltik ki | 🔴 Magas | 🟡 Közepes | Brand Brain completion rate márkánként, setup idő mérése | Mezők számának csökkentése, wizard flow, „lite setup" mód; P1-ben AI-assisted Brand Brain (példaposzt → TOV kivonat) |
+| **H2 fail:** Időmegtakarítás <20% | 🔴 Magas | 🟡 Közepes | Baseline vs. 4–6. hét időmérés (per márka) | AI output javítás (prompt/model), UX friction csökkentése a naptárban, felesleges lépések elhagyása |
+| **H3 fail:** AI output nem használható (heavy_edit + not_usable >60%) | 🔴 Magas | 🟡 Közepes | Usability rating dashboard per brand | Prompt tuning, Brand Brain finomítás, modell csere (GPT ↔ Claude), P1-ben multi-variáns generálás és best-of selection |
+
+**Döntési szabály:**
+- Ha **2 hipotézis bukik egyszerre** (pl. H1 + H3), akkor **pivot/stop kérdést kell napirendre tűzni**.
+- Ha csak 1 bukik, akkor először **dedikált iterációs sprint**, és csak utána döntés.
+
+---
+
+### R2.2. Pilot Recruitment & Execution Risks
+
+| Kockázat | Impact | Valószínűség | Detect | Mitigation |
+|----------|--------|--------------|--------|------------|
+| **Nem sikerül 3–5 releváns pilot usert bevonni** | 🔴 Magas | 🟡 Közepes | 4. hétig aktív socialosok száma | Célzott outreach (network, szakmai csoportok), ösztönzők (ingyen használat, esettanulmány, workshop), threshold rugalmasítása (3 user is elég, de mélyen) |
+| **Pilot user churn** (1–2 hét után abbahagyják) | 🟡 Közepes | 🟡 Közepes | WAU/MAU, poszt-szám brandenként | Weekly check-in hívások, gyors UX-fixek a blokkoló bugokra, világos onboarding (tutorial, guided tour) |
+| **Pilot user túl „nice"** (pozitív szóban, de alacsony használat) | 🟡 Közepes | 🟡 Közepes | Magas NPS, alacsony WAU/poszt-szám | Anonim survey, objektív metrikák (usability rating, időmérés, retention) nagyobb súllyal esnek latba, mint „kedves szavak" |
+
+---
+
+### R2.3. Market & Competition Risks
 
 | Kockázat | Impact | Valószínűség | Mitigation |
 |----------|--------|--------------|------------|
-| **Meta Graph API változás** (v18.0 → v19.0, breaking change) | 🔴 MAGAS - Publishing megszűnik | 🟡 KÖZEPES (évente 1-2x van major change) | - Docs követése (Meta Developer Newsletter feliratkozás)<br>- API version pinning (v18.0 fix)<br>- Ha breaking change jön: 1-2 napos migráció budget |
-| **Meta token expire** (60 napos lejárat, nincs auto-refresh P0-ban) | 🟡 KÖZEPES - User újra OAuth kell | 🔴 MAGAS (60 naponta biztosan) | - **P0:** User manuális újracsatlakoztatás (error message: "Token lejárt")<br>- **P1:** Token refresh automatizálás<br>- Email notifikáció 7 nappal lejárat előtt (P1) |
-| **Meta rate limiting** (200 calls/hour túllépése) | 🟡 KÖZEPES - Publishing késik, user frustrált | 🟢 ALACSONY (5-10 user < 200 call/h) | - P0: Error message + manual retry<br>- P1: Queue management, call counting, user warning |
-| **OpenAI/Anthropic API downtime** (service outage) | 🟡 KÖZEPES - AI generálás nem megy | 🟢 ALACSONY (99.9% uptime) | - P0: Timeout (30 sec), retry 1x, error message<br>- P1: Fallback model (ha OpenAI down → Claude, vice versa) |
-| **OpenAI/Anthropic pricing change** (cost spike) | 🟡 KÖZEPES - Opex növekedés | 🟡 KÖZEPES (API árak változnak) | - **Monitor:** Monthly cost tracking (OpenAI dashboard)<br>- **Budget cap:** $100-200/hó pilot során (5-10 user, ~1000 generation/hó)<br>- Ha $200 fölé megy → investígálás |
-
-**Összefoglalás:** Meta API a legnagyobb dependency. Ha Meta blokkol / API változás → **project blocker**. Mitigation: Következetes Meta Developer Policy követése, tesztelés staging app-pal.
+| **Nagy incumbensek** (Buffer, Hootsuite) erősebb AI-feature-rel érkeznek | 🟡 Közepes | 🟡 Közepes | Fókusz: Agency-first, Brand Brain-first pozicionálás, magyar nyelv és lokális support; gyors reakció, ha releváns feature-t hoznak |
+| **Meta policy változik** (AI jelölés kötelező) | 🟡 Közepes | 🟢 Alacsony | Már most tárolod az ai_generated flaget; ha policy jön, disclaimer / jelölés hozzáadása a posztokhoz |
+| **AI/IP jogi bizonytalanság** | 🟢 Alacsony | 🟢 Alacsony | ToS-ben rögzíted: a tartalomért a user felel; P1-ben vizsgálható extra compliance, ha piaci igény lesz |
 
 ---
 
-#### R1.2: Infrastructure & Deployment Risks
+### R2.4. Pilot Design & Measurement Risk (ÚJ, kritikus)
+
+**Kockázat:**
+A pilot mérésének és designjának hibái miatt fals következtetést vonsz le:
+- „úgy tűnik, működik" → scale, miközben a jel zajos;
+- vagy „úgy tűnik, nem működik" → stop, miközben a termék jó lenne, csak a kísérlet volt rossz.
+
+| Elem | Leírás |
+|------|--------|
+| **Jelek, hogy gond van** | - Időmérés sheet-ek hiányosak / össze-visszák<br>- NPS magas, de WAU/retention alacsony<br>- Usability rating „minden használható", de alig van valós poszt |
+| **Detect** | 2–3. héten audit: időmérő sheet-ek, ratingek, WAU-k összevetése egymással és kvali interjúkkal |
+| **Mitigation** | - Standardizált baseline és follow-up sheet<br>- Minimum minta: márkánként X db mért poszt<br>- Triangulation: NPS + usability + időmérés + retention együtt, nem külön-külön<br>- Ha az adatok ellentmondanak, előbb measurement fix, csak aztán stratégiai döntés |
+
+---
+
+## R3: Operational & Team Risks (Működési Kockázatok)
+
+### R3.1. Development & Timeline Risks
 
 | Kockázat | Impact | Valószínűség | Mitigation |
 |----------|--------|--------------|------------|
-| **Render/Railway downtime** | 🔴 MAGAS - App elérhetetlenség | 🟢 ALACSONY (99.5% uptime Render) | - **P0:** Kommunikáció user-eknek (downtime elfogadható pilot során)<br>- **P1:** Multi-region deployment, status page |
-| **PostgreSQL data loss** (backup fail) | 🔴 MAGAS - Összes adat elvész | 🟢 ALACSONY (managed DB auto backup) | - **P0:** Daily backup (Render/Railway default), manual verification hetente<br>- **P1:** Hourly backup, PITR (point-in-time recovery) |
-| **Environment variable leak** (.env commit to git) | 🔴 MAGAS - Security breach (API keys exposed) | 🟡 KÖZEPES (emberi hiba) | - `.env` git-ignored (ellenőrzés PR-ban)<br>- `.env.example` template<br>- Secret scanning (GitHub Advanced Security - P1) |
-| **Deploy failure** (build error, runtime crash) | 🟡 KÖZEPES - App nem elérhető | 🟡 KÖZEPES (TypeScript strict mode csökkenti) | - **P0:** Manual smoke test deploy után (login, AI generation, publish)<br>- **P1:** Automated E2E tests CI-ben, rollback strategy |
+| **Scope creep** (P1 featurek becsúsznak P0-ba) | 🟡 Közepes | 🔴 Magas | P0 scope lock; minden új ötletnél kontrollkérdés: „validálja-e H1/H2/H3-at?" Ha nem, P1 backlog; heti scope review |
+| **Solo dev bottleneck** | 🔴 Magas | 🟡 Közepes | Tiszta kód (TS, kommentek), README + env dokumentáció; későbbi dev-onboarding felkészítése (minimális tudás-transzfer doksi) |
+| **Technical debt felhalmozódás** | 🟡 Közepes | 🔴 Magas | Tudatos elfogadás P0-ban; TODO-k jelölése, P1 indulásakor 1–2 hét dedikált refactor-sprint beütemezése |
 
 ---
 
-#### R1.3: Data Security & Privacy Risks
+### R3.2. Support & Maintenance
 
 | Kockázat | Impact | Valószínűség | Mitigation |
 |----------|--------|--------------|------------|
-| **Meta access token kompromittálódás** (DB breach) | 🔴 MAGAS - Attacker publish spam posztokat | 🟢 ALACSONY (database encryption) | - **P0:** Column-level encryption (AES-256)<br>- **P1:** Secrets manager (AWS Secrets Manager, Vault)<br>- Token rotation (60 naponta auto refresh - P1) |
-| **Password brute force attack** | 🟡 KÖZEPES - Unauthorized account access | 🟢 ALACSONY (bcrypt + session) | - **P0:** bcrypt (cost 12), strong password policy<br>- **P1:** Rate limiting (login attempts), CAPTCHA, 2FA |
-| **SQL injection** | 🔴 MAGAS - DB manipuláció | 🟢 ALACSONY (ORM használat) | - **P0:** Prisma ORM (prepared statements automatic)<br>- Input validation (Zod schema) |
-| **XSS attack** (post text injection) | 🟡 KÖZEPES - User session steal | 🟢 ALACSONY (React auto-escape) | - **P0:** React JSX auto-escape<br>- Input sanitization (strip HTML tags brand name, TOV fields) |
-
-**Összefoglalás:** P0 security "elég jó" pilot-hoz (5-10 trusted user). P1: Production hardening (2FA, audit log, penetration test).
+| **Pilot user support overload** | 🟡 Közepes | 🟡 Közepes | Közös Slack/Discord csatorna; heti „office hours" slot(ok); FAQ/GYIK doksi folyamatos bővítése a visszatérő kérdésekből |
+| **Bug-prioritás káosz** | 🟡 Közepes | 🟡 Közepes | Bug severity szintek: P0 (login, publish, data loss), P1 (UX irritáció), P2 (kozmetika); SLA: P0 24h, P1 3–5 nap, P2 backlog |
 
 ---
 
-### R2: Business & Product Risks (Üzleti Kockázatok)
+## R4: Key Dependencies (Kritikus Függőségek)
 
-#### R2.1: Hypothesis Invalidation Risks
+### R4.1. External Services
 
-| Kockázat | Impact | Valószínűség | Mitigation |
-|----------|--------|--------------|------------|
-| **H1 fail: Brand Brain v1 túl bonyolult** (socialosok nem töltik ki) | 🔴 MAGAS - AI output rossz, feature elvetés | 🟡 KÖZEPES | - **Detect:** Brand Brain completion rate tracking<br>- **Mitigation:** Egyszerűsítés (kevesebb mező), wizard flow (P1), AI-assisted Brand Brain setup (feed példaposztokat → AI kivonja TOV-t - P1) |
-| **H2 fail: Nem spórolnak időt** (20-40% alatt maradnak) | 🔴 MAGAS - Core value prop invalid | 🟡 KÖZEPES | - **Detect:** Pilot 2. hét után interim mérés<br>- **Mitigation:** UX javítás (gyorsabb flow), AI prompt tuning (jobb output → kevesebb edit), features csökkentése (ha túl komplex) |
-| **H3 fail: AI output nem használható** (heavy_edit > 60%) | 🔴 MAGAS - AI feature elvetés | 🟡 KÖZEPES | - **Detect:** Usability rating real-time dashboard<br>- **Mitigation:** Prompt engineering (több példaposzt, jobb TOV leírás), model switch (GPT-4o → Claude vagy vice versa), multi-variant generation (P1) |
-
-**P0 döntési pont:** Ha **2 hipotézis fail** (pl. H1 + H3) → **pivot vagy stop**. Ha 1 fail → iterálás (pl. H3 fail → prompt engineering, model csere).
-
----
-
-#### R2.2: Pilot Recruitment & Execution Risks
-
-| Kockázat | Impact | Valószínűség | Mitigation |
-|----------|--------|--------------|------------|
-| **Pilot user toborzás nehéz** (nincs 5-10 socialos) | 🔴 MAGAS - Nem tudjuk validálni hipotéziseket | 🟡 KÖZEPES | - **Mitigation:** Early outreach (LinkedIn, ügynökség networking)<br>- Incentive (ingyenes használat, ajándékutalvány, esettanulmány feature)<br>- Alacsonyabb threshold (3-5 user is elég) |
-| **Pilot user churn** (1. hét után abbahagyják) | 🟡 KÖZEPES - Kevesebb adat → weak signal | 🟡 KÖZEPES | - **Detect:** Usage tracking (login frequency, post creation count)<br>- **Mitigation:** Weekly check-in (feedback session), UX quick-fix (ha blocker van), clear onboarding (tutorial video - P1) |
-| **Pilot user túl "nice"** (nem őszinték a feedback-ben) | 🟡 KÖZEPES - False positive PMF signal | 🟡 KÖZEPES | - **Mitigation:** Anonymous NPS survey (nem csak face-to-face interview)<br>- Objektív metrikák (usability rating, time tracking) priorizálása a verbális feedback fölött |
+| Dependency | Criticality | Fallback / Mitigation | Learning-first fallback |
+|------------|-------------|----------------------|------------------------|
+| **Meta Graph API** | 🔴 Kritikus – publishing nélkül a fő value prop sérül | Version pinning, policy monitoring, staging app | Ha tartósan instabil: pilot cél átmenetileg AI + naptár + workflow tesztelése, publikálás a user oldalán (Meta Business Suite), miközben tovább méred az időmegtakarítást |
+| **OpenAI / Anthropic** | 🔴 Kritikus – AI nélkül a fő differenciálás gyengül | Egy provider választása P0-ban, explicit költségkeret | Ha bármelyik provider kiesik: átmenetileg kevesebb generálás, nagyobb hangsúly a Calendar/Workflow-adoption mérésén; később dual-provider support |
+| **Render / Railway** | 🔴 Kritikus – app elérhetőség | Managed hosting, backup, providerváltás dokumentálása | Ha hosszan down: lokális/dev környezetből Figma demo + UX-interjúk továbbvihetők, legalább kvali tanulás nem áll le |
+| **SendGrid / Mailgun** | 🟡 Közepes | Switch egyik szolgáltatóról a másikra 1–2 óra configgal | Ha email down: ideiglenesen manuális jelszóreset / kézi invite pilot user-eknek |
+| **Cloudinary / S3** | 🟡 Közepes | Storage provider váltás script-tel, csak URL-ek migrációja | Ha storage limit / outage: AI + text-only pilot-szakasz, a vizuál-dolgot később validálod, de a core flow (szöveg, naptár, approval) mérhető marad |
 
 ---
 
-#### R2.3: Market & Competition Risks
-
-| Kockázat | Impact | Valószínűség | Mitigation |
-|----------|--------|--------------|------------|
-| **Incumbent (Buffer, Hootsuite) AI feature launch** | 🟡 KÖZEPES - Market positioning nehezebb | 🟡 KÖZEPES (már van AI feature-jük) | - **Differentiation:** Brand Brain (márka-specifikus AI, nem generic prompt)<br>- **Speed:** MVP launch 4-6 hét → early adopter advantage<br>- **Focus:** Hungarian market (local go-to-market, magyar nyelvű support) |
-| **Meta policy change** (AI-generated content labeling kötelező) | 🟡 KÖZEPES - Feature compliance kell | 🟢 ALACSONY (egyelőre nincs ilyen) | - Monitor: Meta Developer Policy updates<br>- **Prepare:** AI-generated flag tárolása (már van: `ai_generated: boolean`), ha policy jön → disclaimer hozzáadása |
-| **Copyright/IP kockázat** (AI-generated content) | 🟢 ALACSONY - Legal claim user ellen | 🟢 ALACSONY (social media poszt, nem kommerciális) | - **P0:** Terms of Service (user felelős a content-ért)<br>- **P1:** AI output review (explicit copyright violation detection - P1) |
-
----
-
-### R3: Operational & Team Risks (Működési Kockázatok)
-
-#### R3.1: Development & Timeline Risks
-
-| Kockázat | Impact | Valószínűség | Mitigation |
-|----------|--------|--------------|------------|
-| **Scope creep** (P1 features becsúsznak P0-ba) | 🟡 KÖZEPES - Timeline csúszás (4-6 hét → 8-10 hét) | 🔴 MAGAS (természetes tendencia) | - **P0 scope lock:** Review meeting hetente (mi maradt ki? mi került be?)<br>- **Decision framework:** Minden új feature kérés → "validálja-e H1/H2/H3?" Ha nem → P1.<br>- **Stakeholder management:** Clear kommunikáció (P0 = hypothesis validation, NEM production product) |
-| **Solo developer bottleneck** (1 dev, betegség / burnout) | 🔴 MAGAS - Project stall | 🟡 KÖZEPES | - **P0:** Code clarity (TypeScript, comments), dokumentáció (README, .env.example)<br>- **P1:** Pair programming (2. dev onboarding), knowledge transfer session |
-| **Technical debt accumulation** (gyors MVP → spaghetti code) | 🟡 KÖZEPES - P1 refactoring drága | 🔴 MAGAS (természetes trade-off) | - **Accept:** P0 code nem production-ready → OK<br>- **Track:** TODO comments (// TODO P1: refactor this)<br>- **Budget:** P1 fázis elején 1-2 hét refactoring budget |
-
----
-
-#### R3.2: Support & Maintenance Risks
-
-| Kockázat | Impact | Valószínűség | Mitigation |
-|----------|--------|--------------|------------|
-| **Pilot user support overload** (5-10 user, de sok kérdés) | 🟡 KÖZEPES - Dev time elvész support-ra | 🟡 KÖZEPES | - **P0:** Slack/Discord channel (közös support, user egymásnak is segít)<br>- **Office hours:** 2×/hét 1 órás slot (Q&A session)<br>- **FAQ doc:** Gyakori kérdések gyűjtése (Google Doc) |
-| **Bug fix prioritás** (mi számít blocker vs. elfogadható bug?) | 🟡 KÖZEPES - User frustráció | 🟡 KÖZEPES | - **Bug severity:** P0 (blocker - login nem megy, publish crash), P1 (usability issue), P2 (nice-to-have)<br>- **SLA:** P0 bug → 24 órán belül fix (vagy workaround), P1 → 3-5 nap, P2 → backlog |
-
----
-
-### R4: Key Dependencies (Kritikus Függőségek)
-
-#### R4.1: External Services
-
-| Dependency | Criticality | Fallback | Risk mitigation |
-|------------|-------------|----------|-----------------|
-| **Meta Graph API** | 🔴 KRITIKUS (nincs publishing nélküle) | Nincs alternatíva (Buffer API nincs multi-user support pilot szinten) | - **Monitor:** Meta Developer Dashboard (status page)<br>- **Communication:** Ha Meta down → user email (known issue) |
-| **OpenAI / Anthropic** | 🔴 KRITIKUS (nincs AI copy nélküle) | **Fallback:** OpenAI ↔ Anthropic switch (P1 feature) | - **P0:** Timeout handling (30 sec), retry 1x<br>- **P1:** Dual-provider support |
-| **Render / Railway (hosting)** | 🔴 KRITIKUS (nincs app nélküle) | **Fallback:** Migration másik providerre (Fly.io, Vercel) - 1-2 napos work | - **P0:** Hetente backup export (PostgreSQL dump)<br>- **Disaster recovery plan:** Railway → Fly.io migration documented |
-| **SendGrid / Mailgun (email)** | 🟡 KÖZEPES (password reset, user invite) | **Fallback:** Mailgun ↔ SendGrid switch (< 1 óra config change) | - **P0:** Email kritikus műveletek minimalizálása (login nem email-based, hanem email/password)<br>- **P1:** Email queue (retry logic) |
-| **Cloudinary / S3 (file storage)** | 🟡 KÖZEPES (image upload) | **Fallback:** S3 ↔ Cloudinary switch (1-2 napos migration) | - **P0:** Image URL tárolása (nem file binary), migration script preparation<br>- **Monitor:** Storage quota (Cloudinary free tier: 25 GB) |
-
----
-
-#### R4.2: Internal Dependencies
+### R4.2. Internal Dependencies
 
 | Dependency | Criticality | Mitigation |
 |------------|-------------|------------|
-| **Brand Brain data quality** (user által kitöltött TOV, Key Messages) | 🔴 KRITIKUS (rossz Brand Brain → rossz AI output) | - **Onboarding:** Tutorial (példa Brand Brain - Kis Kávézó)<br>- **Validation:** Minimum character count (TOV: 100 char, Key Messages: 2 item minimum)<br>- **P1:** AI-assisted Brand Brain (feed példaposztokat → AI generál TOV-t) |
-| **Pilot user honesty** (usability rating, time tracking) | 🟡 KÖZEPES (nem megbízható adat → weak signal) | - **Incentive:** Transparent kommunikáció (őszinte feedback → jobb termék → nekik is jó)<br>- **Triangulation:** Usability rating + time tracking + NPS + interview → több adatpont |
+| **Brand Brain data quality** | 🔴 Kritikus – rossz input → rossz AI output | Onboarding példákkal (mintakávézó), min. TOV karakterszám, min. key message szám, P1-ben AI-assisted setup |
+| **Pilot user őszinteség** (rating, time tracking) | 🟡 Közepes | Transzparens kommunikáció a célokról; anonim survey; időmérés + rating + usage + NPS együtt értelmezve, nem különállóan |
 
 ---
 
-### R5: Key Assumptions (Kulcs Feltételezések)
+## R5: Key Assumptions (Kulcs Feltételezések)
 
-> Ezek a feltételezések, amikre a PRD épül. Ha **bármelyik invalid** → **major pivot** szükséges.
+> **Ha ezek közül 1–2 nagyot bukik, az nem kicsi tweak, hanem potenciális major pivot.**
 
-| Assumption | Impact ha invalid | Validation |
-|------------|-------------------|------------|
-| **A1: Socialosok ready AI-t használni** (nem félnek a "gép veszi el a munkám" narratívától) | 🔴 MAGAS - Adoption fail | **Pilot interjúk:** Explicit kérdés (AI attitűd, félelmek) + NPS open-ended feedback |
-| **A2: Brand Brain kitöltése < 30 perc** | 🟡 KÖZEPES - Onboarding friction, H1 invalidation | **Pilot timing:** Measure Brand Brain setup time (első session) |
-| **A3: Meta OAuth approval nincs admin approval bottleneck** (socialos self-service tud Page-et csatolni) | 🟡 KÖZEPES - Onboarding blocker | **Pilot pre-call:** Admin rights check (FB Page Admin role) |
-| **A4: Socialosok dolgoznak desktop-ról** (nem mobile-first workflow) | 🟡 KÖZEPES - UX mismatch | **Pilot interjúk:** Work setup (laptop/desktop vs. tablet/mobile) |
-| **A5: 6 poszt / hét az átlag** (nem 2 poszt/hó vagy 20 poszt/hét) | 🟢 ALACSONY - Hypothesis mérhető szélesebb skálán is | **Pilot tracking:** Actual post creation rate |
-
-**Validation timeline:** A1-A4 → **Pilot 1. hét** (onboarding interjúk), A5 → **Pilot 2-3. hét** (usage data).
+| Assumption | Impact ha invalid | Validation mód |
+|------------|-------------------|----------------|
+| **A1:** Socialosok nyitottak AI használatára | 🔴 Magas – adoption fail | Onboarding interjúk, NPS nyílt kérdések, valós usage vs. deklarált attitűd összevetése |
+| **A2:** Brand Brain kitöltése <30 perc / márka | 🟡 Közepes – onboarding friction | Pilotban mért setup-idő márkánként (első alkalommal), completion rate |
+| **A3:** Meta OAuth-hoz hozzáfér az a személy, aki a Creaitort használja | 🟡 Közepes | Előzetes egyeztetés ügynökséggel (admin rights), onboarding checklist |
+| **A4:** Socialos fő eszköze desktop/laptop | 🟡 Közepes | Interjúk a munkakörnyezetről; ha mobil-first lenne, akkor P0 UI-fit gyenge |
+| **A5:** Átlag 6 poszt/hét/márka a releváns tartománya | 🟢 Alacsony | Pilot alatt tényleges poszt-szám mérése márkánként; ha nagyon eltér, a time-saving számításokat korrigálni kell |
 
 ---
 
-### Risks & Dependencies Összefoglalás
+## Risks & Dependencies Összefoglalás
 
-**Top 3 Kritikus Kockázat (Priority):**
+**Kiemelt killer riskek:**
+1. **Meta Graph API instabilitás / policy-változás** → publishing leáll → a validáció fókusza áthelyezendő AI + Calendar irányba.
+2. **H1–H3 hipotézisek bukása** → tudatos döntés: iterációs sprint vagy pivot/stop.
+3. **Pilot recruitment / pilot design hibák** → fals PMF jel, ami rossz stratégiai döntéshez vezethet.
 
-1. **Meta Graph API dependency** 🔴
-   - **Impact:** Publishing megszűnik → core feature fail
-   - **Mitigation:** API version pinning, Meta policy monitoring, staging app tesztelés
+**Elfogadott P0 kompromisszumok:**
+- 95% uptime, manual retry, monolit architektúra, desktop-only UI, limited security hardening – mindez pilot célú validációért cserébe.
+- Technical debt tudatosan gyűlik, P1 elején refactor-sprinttel kezelendő.
 
-2. **Hypothesis invalidation (H1/H2/H3)** 🔴
-   - **Impact:** Product pivot vagy stop
-   - **Mitigation:** Real-time metrics dashboard, weekly pilot check-in, gyors iteráció (prompt tuning, UX fix)
-
-3. **Pilot user recruitment fail** 🔴
-   - **Impact:** Nem tudjuk validálni hipotéziseket
-   - **Mitigation:** Early outreach, incentive, alacsonyabb user threshold (3-5 user elég)
-
-**Elfogadott Kockázatok (Pilot fázis):**
-- 95% uptime (nem 99.9%) → downtime elfogadható
-- Manual retry (nincs auto background job queue) → user friction elfogadható
-- Technical debt → P1 refactoring budget
-- Desktop-only UI (no mobile) → pilot során OK
-
-**P0 → P1 Transition Trigger:**
-> Ha **H1 + H2 + H3 validálódnak** (60%+ usable AI output, 20-40% time savings, 8+ NPS) ÉS **2-3 pilot user mondja: "ezt fizetném"** → akkor P1 fázis (production hardening, P1 features, scale-up).
+**P0 → P1 átmenet feltétele:**
+- H1–H3 legalább részben validált (usable AI output, mérhető időmegtakarítás, használati gyakoriság),
+- ≥2–3 ügynökségi pilot user, akik nem csak szeretik, de **fizetnének is érte**,
+- és a fenti killer-risk triggerek közül egyik sem aktív (vagy már kezelt állapotban van).
 
 ---
