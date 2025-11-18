@@ -23,13 +23,13 @@ field_type: "greenfield"
 workflow_path: "method-greenfield.yaml"
 workflow_status:
   # Phase 0: Discovery (Optional)
-  brainstorm-project: docs/brainstorming-session-results-2025-11-16.md  # agent: analyst (completed)
+  brainstorm-project: docs/brainstorming-creaitor-2025-11-16.md  # agent: analyst (completed)
   market-research: docs/market-research.md  # agent: analyst (completed)
   competitive-analysis: docs/competitive-analysis.md  # agent: analyst (completed)
   product-brief: docs/product-brief-creaitor-2025-11-17.md  # agent: analyst (completed)
 
   # Phase 1: Planning
-  prd: required  # agent: pm
+  prd: docs/prd-creaitor-2025-11-18.md  # agent: pm (completed)
   validate-prd: optional  # agent: pm
   create-design: conditional  # agent: ux-designer
 
