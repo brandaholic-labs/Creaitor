@@ -1002,3 +1002,371 @@ Az alábbi lista minden MVP feature-nél megmutatja: **mi az abszolút P0 minimu
 - Exportálható riportok
 
 ---
+
+## User Stories & Use Cases
+
+### Primary Actors (Ki használja a rendszert?)
+
+1. **Ügynökségi Owner / Admin**
+   - 3-10 fős social/marketing ügynökség tulajdonosa
+   - Felelős: team setup, márka onboarding, usage monitoring
+   - Fő gond: skálázhatóság (5-30 ügyfél kezelése kis csapattal)
+
+2. **Socialos / Content Manager**
+   - Az ügynökség munkatársa, aki heti FB/IG naptárakat készít
+   - 3-10 márkát kezel párhuzamosan
+   - Fő gond: időhiány, ismétlődő munka, márkahűség fenntartása generáláskor
+
+3. **Account Manager / Stratéga (másodlagos)**
+   - Ügyfélkapcsolat, stratégia, approval
+   - Kevésbé használja a rendszert, inkább review/approval fázisban
+
+---
+
+### Core User Journeys
+
+Az alábbi user journey-k a **kritikus hipotézisek (H1, H2, H3) teszteléséhez** szükségesek.
+
+---
+
+#### Journey 1: Új Márka Onboarding + Brand Brain Setup
+
+**Actor:** Socialos (Éva, 3 éve social media manager egy 5 fős ügynökségnél)
+
+**Context:** Új ügyfél érkezett ("Kis Kávézó" - helyi speciality kávézó Budapesten). Évának fel kell vinnie a márkát a Creaitorba, hogy jövő héttől itt készítse a posztokat.
+
+**User Story:**
+> **As a** socialos
+> **I want to** létrehozni egy új márkát és beállítani a Brand Brain-jét
+> **So that** az AI-generált posztok tükrözzék a márka hangját és stílusát
+
+**Steps:**
+
+1. **Márka létrehozása**
+   - Éva bejelentkezik a Creaitorba
+   - "Új márka hozzáadása" gomb
+   - Kitölti: Márka neve ("Kis Kávézó"), rövid leírás
+   - FB Page és IG Account csatolása (Meta OAuth)
+
+2. **Brand Brain v1 kitöltése**
+   - **Tone of Voice (TOV) leírás:** "Barátságos, közvetlen, nem túl formális. Kávérajongóknak szól, de nem snob. Emojik megengedettek (☕️, ❤️), de mértékkel. Kerüljük a corporate hangnemet."
+   - **Key Messages (3 darab):**
+     - "Helyi, frissen pörkölt kávé"
+     - "Cozy, otthonos légkör"
+     - "Támogatjuk a fenntartható beszerzést"
+   - **Példaposztok (2 darab):** Bemásol 2 korábbi sikeres posztot (szöveg + opcionálisan kép URL)
+   - **Vizuális irány:** "Meleg, földközeli színek. Otthonos, nem túl steril. Kávé close-up-ok, emberek kávézás közben. Kerüljük a túl corporate stock photo-kat."
+
+3. **Mentés és validálás**
+   - "Mentés" gomb
+   - Rendszer tárolja a Brand Brain adatokat
+   - Éva készen áll posztokat generálni
+
+**Success Criteria:**
+- ✅ Márka létrehozva 2-3 perc alatt
+- ✅ Brand Brain kitöltése 5-10 perc (nem tart tovább, mint egy Word dokumentumban leírni)
+- ✅ Adatok mentve, visszatölthetők
+
+**Validálja:** H1 (Brand Brain v1 setup egyszerű és gyors)
+
+---
+
+#### Journey 2: Heti Tartalomnaptár Generálása AI-val
+
+**Actor:** Socialos (Éva)
+
+**Context:** Hétfő reggel, Évának össze kell állítani a Kis Kávézó következő heti FB/IG naptárát (6 poszt: 3 FB, 3 IG).
+
+**User Story:**
+> **As a** socialos
+> **I want to** AI segítségével generálni a heti posztokat Brand Brain kontextussal
+> **So that** 30-40%-kal kevesebb időt töltsek a szövegírással, miközben a posztok márkahűek maradnak
+
+**Steps:**
+
+1. **Naptár megnyitása**
+   - Éva megnyitja a Content Calendar-t
+   - Szűrés: "Kis Kávézó" márka
+   - Heti nézet: jövő hét (5 munkanap + hétvége)
+
+2. **Első poszt (Hétfő, FB): Termékbemutató - Új kávé**
+   - Kattintás: "Új poszt" (hétfői sloton)
+   - **Brief input:** "Bemutató az új guatemalai single origin kávénkról, amit most hoztunk be"
+   - Platform választás: **Facebook**
+   - Tartalomtípus: **Termékbemutató**
+   - "Generate" gomb → AI generál 1 szövegvariánst Brand Brain kontextussal:
+     > "☕️ Friss pörkölés! Guatemalai single origin érkezett hozzánk – gazdag, csokoládés ízekkel. Ha szereted az erős, de harmonikus kávékat, ezt próbáld ki! 🌿 Persze fenntarthatóan beszerzett, ahogy nálunk minden. Gyere, kóstold meg nálunk!"
+   - Éva **apró módosítást** tesz (pl. emoji cseréje)
+   - "Save as draft" gomb
+
+3. **Kép hozzáadása**
+   - **P0-ban:** Saját kép feltöltése (Évának van fotója a guatemalai kávéról)
+   - **P1 (ha AI Visual kész):** AI Visual Studio → "Guatemalai kávé close-up, meleg fény, otthonos háttér" → AI generál 2-3 képvariánst
+
+4. **Használhatósági rating (P0!):**
+   - Rendszer kérdezi (publish előtt): "Mennyire használható volt a generált szöveg?"
+   - Éva jelöli: **"Rendben, kisebb módosítással"**
+
+5. **Ismétlés további 5 posztra**
+   - Keddi IG poszt: "Tipp - Hogyan készíts tökéletes cappuccino-t otthon"
+   - Szerda FB: "Entertaining - Vicces kávés meme (de márkahűen)"
+   - Csütörtök IG: "Akció - 10% kedvezmény hétvégén"
+   - Péntek FB: "Insight - Miért fontos a fenntartható kávébeszerzés?"
+   - Szombat IG: "Weekend vibe - Hétvégi relax a kávézóban"
+
+**Time Tracking (pilot alatt):**
+- **Baseline (Creaitor nélkül):** 2-3 óra (6 poszt manuális írása + képkeresés)
+- **Creaitorral (cél):** 1-1.5 óra (30-40% időmegtakarítás)
+
+**Success Criteria:**
+- ✅ 6 poszt draft-ban 1-1.5 óra alatt
+- ✅ Legalább 4/6 poszt "rendben, kisebb módosítással" jelölés
+- ✅ Márkahűség átlag 8/10 (Éva értékelése)
+
+**Validálja:** H1 (Brand Brain elég a márkahűséghez), H2 (Workflow adoption - AI Studio használata)
+
+---
+
+#### Journey 3: Approval és Ütemezés (Teljes Workflow)
+
+**Actor:** Socialos (Éva) + Account Manager (Péter - opcionális P1-ben)
+
+**Context:** Éva elkészítette a 6 posztot draft-ban. Most jóvá kell hagynia (P0: self-approval) és ütemezni.
+
+**User Story:**
+> **As a** socialos
+> **I want to** jóváhagyni és ütemezni a heti posztokat egy helyen
+> **So that** ne kelljen váltanom külön eszközök között (generálás → Hootsuite → Meta)
+
+**Steps:**
+
+1. **Review draft posztok**
+   - Éva végignézi a 6 posztot a naptárban
+   - Ellenőrzi: szöveg OK? kép OK? platform jó?
+
+2. **Approval (P0: Pseudo-approval)**
+   - Minden posztnál: "Approve" gomb
+   - Státusz: Draft → **Approved**
+   - **P1 (ha multi-user review):** Éva "Küldés review-ra" → Péter (Account Manager) approve-olja
+
+3. **Scheduling**
+   - **P0 (Instant publish VAGY Manual schedule - elég az egyik):**
+     - **Ha instant publish van P0-ban:** "Publish now" gomb → azonnal Meta API-n keresztül kikerül
+     - **Ha manual schedule van P0-ban:** Dátum/időpont választás (pl. Hétfő 10:00) → "Schedule" gomb
+   - Poszt státusz: Approved → **Scheduled**
+
+4. **Queue és publikálás**
+   - Scheduled posztok queue-ban (P0: egyszerű cron job, P1: background job queue)
+   - Időpontban: Meta Graph API hívás → FB/IG poszt kikerül
+   - Státusz: Scheduled → **Published**
+
+5. **Ha hiba (API error)**
+   - Státusz: **Failed**
+   - Error message megjelenik
+   - "Retry" gomb → Éva újrapróbálja
+
+**Success Criteria:**
+- ✅ 6 poszt ütemezése 10-15 perc alatt
+- ✅ Sikeres publikálás 95%+ (5% hiba megengedett - API issue, token expire stb.)
+- ✅ Éva NEM vált külön eszközre (pl. Hootsuite, Meta Business Suite)
+
+**Validálja:** H2 (Workflow adoption - teljes folyamat egy helyen)
+
+---
+
+#### Journey 4: Multi-Brand Kezelés (Ügynökségi Perspektíva)
+
+**Actor:** Socialos (Éva - 8 márkát kezel)
+
+**Context:** Éva nem csak a Kis Kávézónak, hanem további 7 márkának is készít heti posztokat. A Creaitor multi-brand workflow-t támogat.
+
+**User Story:**
+> **As a** socialos több márkával
+> **I want to** váltani a márkák között egyetlen felületen
+> **So that** ne kelljen külön fiókok / tabek között ugrani
+
+**Steps:**
+
+1. **Márka-szintű szűrés a Calendar-ben**
+   - Éva megnyitja a Content Calendar-t
+   - Dropdown: "Összes márka" VAGY konkrét márka ("Kis Kávézó", "Fitness Stúdió XY", "E-commerce Ruhabolt" stb.)
+   - Heti nézet: látja az adott márka posztjait
+
+2. **Márka-váltás**
+   - Kattintás dropdown-ban: "Fitness Stúdió XY"
+   - Naptár frissül → csak Fitness Stúdió posztok látszanak
+   - Éva új posztot generál (Brief: "Új edzésprogram bemutató")
+
+3. **Brand Brain márka-specifikus**
+   - Minden márka saját Brand Brain-nel rendelkezik
+   - AI Copy Studio automatikusan használja az aktív márka Brand Brain-jét
+   - Nem keverednek a márkák (Fitness Stúdió nem kap kávézós hangnemet)
+
+4. **Dashboard - összes márka áttekintése (P1)**
+   - Éva látja: melyik márkánál hány poszt van scheduled/published (heti összesítés)
+   - Gyors áttekintés: van-e valamelyik márkánál hiányzó nap?
+
+**Success Criteria:**
+- ✅ Márka-váltás 1-2 kattintás
+- ✅ Brand Brain-ek nem keverednek (100% accuracy)
+- ✅ 5-10 márka kezelése egy felületen (nem terheli a user-t)
+
+**Validálja:** H2 (Multi-brand workflow adoption), H3 (Ügynökségi fit)
+
+---
+
+#### Journey 5: Időmegtakarítás Mérése (Pilot alatt)
+
+**Actor:** Socialos (Éva - pilot résztvevő)
+
+**Context:** A pilot első hetében Éva baseline időmérést végez (Creaitor nélkül), majd 4-6 hét után újra méri (Creaitorral).
+
+**User Story:**
+> **As a** pilot résztvevő socialos
+> **I want to** követni az időmegtakarítást
+> **So that** validáljuk, hogy a Creaitor tényleg 30-40%-ot spórol
+
+**Steps:**
+
+1. **Baseline mérés (Pilot 1. hét - Creaitor nélkül)**
+   - Éva kitölt egy Google Sheet táblázatot (naponta):
+     - Hány perc: Brief írás
+     - Hány perc: Szövegírás / szerkesztés
+     - Hány perc: Képkeresés / feltöltés
+     - Hány perc: Jóváhagyás / review
+     - Hány perc: Ütemezés külön eszközben (Meta Business Suite)
+   - **Baseline összesen (6 poszt / hét):** 150-180 perc (2.5-3 óra)
+
+2. **Creaitor használat (Pilot 4-6. hét)**
+   - Éva újra méri ugyanazon márkánál (Kis Kávézó):
+     - Hány perc: Brand Brain setup (egyszeri)
+     - Hány perc: AI Copy Studio (brief + generálás + szerkesztés)
+     - Hány perc: Kép (AI Visual VAGY feltöltés)
+     - Hány perc: Approval + scheduling (egy helyen)
+   - **Creaitorral összesen (6 poszt / hét):** 90-110 perc (1.5-1.8 óra)
+
+3. **Időmegtakarítás számítása**
+   - Baseline: 165 perc átlag
+   - Creaitorral: 100 perc átlag
+   - **Megtakarítás: 65 perc (39%)**
+
+4. **Self-report survey**
+   - Havi rövid survey (5 kérdés):
+     - "Mennyivel gyorsabb a heti naptár készítése Creaitorral?" (%)
+     - "Mennyire érzed márkahűnek a generált posztokat?" (1-10)
+     - "Mi a legjobb a Creaitorban?" (kvali)
+     - "Mi fájó pont?" (kvali)
+     - "Ajánlanád kollégádnak?" (NPS)
+
+**Success Criteria:**
+- ✅ Időmegtakarítás igazolva: 20-40% range
+- ✅ Survey kitöltési arány: 80%+ (pilot alatt)
+- ✅ Kvalitatív feedback gyűjtése (UX friction pontok azonosítása)
+
+**Validálja:** H2 (Időmegtakarítás validálása), Success Criteria Primary Metrics
+
+---
+
+#### Journey 6: Pilot-to-Paid Konverzió (Üzleti Perspektíva)
+
+**Actor:** Ügynökségi Owner (Zsolt - tulajdonos, 5 fős ügynökség)
+
+**Context:** Zsolt ügynöksége 4 hétig használta a Creaitor pilot-ot (2 socialos, 12 márka). Most döntenie kell: fizet-e az eszközért?
+
+**User Story:**
+> **As an** ügynökségi owner
+> **I want to** értékelni a Creaitor ROI-ját a pilot után
+> **So that** dönthessek: érdemes-e fizetni érte (150 EUR/hó)
+
+**Steps:**
+
+1. **Pilot tapasztalat összegyűjtése**
+   - Zsolt megkérdezi a 2 socialost:
+     - Mennyit spóroltál időben?
+     - Beépült a workflow-dba (go-to tool)?
+     - Van-e fájó pont (UX, AI minőség)?
+   - Válaszok:
+     - Éva: "35% időmegtakarítás, használom, kis UX friction van a calendar-ben"
+     - Anna: "25% időmegtakarítás, jó az AI, de hiányzik a TikTok"
+
+2. **ROI kalkuláció**
+   - **Költség:** 150 EUR/hó
+   - **Időmegtakarítás:** 2 socialos × 30% × 20 óra/hó (social work) = 12 óra/hó
+   - **Érték:** 12 óra × 15 EUR/óra (internal cost) = 180 EUR/hó
+   - **ROI:** 180 - 150 = +30 EUR/hó (breakeven +)
+
+3. **Döntés**
+   - **Ha ROI pozitív + socialosok elégedettek:** Zsolt fizető lesz
+   - **Ha ROI negatív VAGY socialosok nem használják:** Zsolt kilép
+
+4. **Fizetési hajlandóság (Pricing sensitivity)**
+   - Survey kérdés: "Mennyit fizetnél max havonta ezért az eszközért?"
+     - 50-100 EUR: túl drága
+     - 100-150 EUR: elfogadható
+     - 150-200 EUR: fair
+     - 200+ EUR: cheap
+
+**Success Criteria:**
+- ✅ Pilot-to-paid konverzió: 40-60% (Target: 50%+)
+- ✅ Pricing validation: 80%+ tartja elfogadhatónak a 150 EUR/hó-t
+- ✅ Kvalitatív insight: miért fizetnek / miért nem?
+
+**Validálja:** H3 (Magyar/CEE piacon van fizetési hajlandóság)
+
+---
+
+### Edge Cases & Error Scenarios
+
+#### Edge Case 1: Brand Brain kitöltetlensége
+
+**Scenario:** Socialos létrehoz egy márkát, de NEM tölti ki a Brand Brain-t (üres TOV, nincs példaposzt).
+
+**Expected Behavior:**
+- **P0:** Rendszer engedi generálni AI-t, de minőség gyenge (generic AI output, nem márkahű)
+- **P1:** Warning jelenik meg: "Brand Brain üres - az AI output nem lesz márkahű. Töltsd ki!"
+
+**Validálja:** Brand Brain fontosságát (ha nincs → rossz output)
+
+---
+
+#### Edge Case 2: Meta API hiba (token expire, rate limit)
+
+**Scenario:** Scheduled poszt publikálásakor Meta API hibát ad (token lejárt VAGY rate limit).
+
+**Expected Behavior:**
+- **P0:** Poszt státusz: **Failed**, error message: "Meta API hiba: token lejárt. Csatold újra a profilt!"
+- User kattint "Retry" → újra OAuth flow VAGY kivárja rate limit-et
+- **P1:** Automatikus retry (3x), email notification ha végleg failed
+
+**Success Criteria:**
+- ✅ Error message világos (user érti, mit tegyen)
+- ✅ Recovery lehetséges (retry gomb működik)
+
+---
+
+#### Edge Case 3: Több user egyidejű szerkesztése (Real-time conflict)
+
+**Scenario:** Két socialos (Éva és Anna) ugyanazt a posztot szerkeszti egyszerre.
+
+**Expected Behavior:**
+- **P0:** Nincs real-time conflict resolution. Utolsó mentés nyer (last-write-wins).
+- **P1:** Warning: "Anna is editing this post" + lock mechanizmus
+
+**Mitigation (P0):**
+- Kis pilot csapatban (1-3 user/ügynökség) ez ritka eset
+- V1.5-ben lehet lock/conflict resolution
+
+---
+
+### What These User Stories Do NOT Cover (MVP Scope)
+
+**NEM része az MVP-nek (de lehet v1.5+):**
+
+- ❌ **TikTok/LinkedIn integration:** Journey-k csak FB/IG-ra fókuszálnak
+- ❌ **Külső ügyfél approval:** Journey-kben nincs "ügyfél meghívása platformra"
+- ❌ **Campaign management:** Posztok nincsenek kampányokba csoportosítva
+- ❌ **A/B teszt:** Nincs 2 szövegvariáns tesztelése élőben
+- ❌ **Haladó analitika:** Nincs "best time to post", engagement prediction
+- ❌ **White-label:** Ügynökség nem tudja saját brandje alatt használni
+
+---
