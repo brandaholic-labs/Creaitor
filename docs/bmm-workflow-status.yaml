@@ -29,7 +29,7 @@ workflow_status:
   product-brief: docs/product-brief-creaitor-2025-11-17.md  # agent: analyst (completed)
 
   # Phase 1: Planning
-  prd: required  # agent: pm
+  prd: docs/PRD.md  # agent: pm (completed)
   validate-prd: optional  # agent: pm
   create-design: conditional  # agent: ux-designer
 
