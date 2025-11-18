@@ -2274,220 +2274,372 @@ Event (Analytics)
 ---
 ## Non-Functional Requirements (NFR)
 
-> **NFR filozófia (P0):** "Elég jó" egy 5-10 fős pilothoz, nem "production-ready" milliós skálára. Hipotézis-validálás a cél, nem SLA-k teljesítése.
+> **NFR filozófia (P0):** "Elég jó" egy 5-10 ügynökséges, 4-6 hetes pilothoz - **nem** production-ready milliós skálára. Hipotézis-validálás a cél, de **alapvető megbízhatóság és biztonság nélkülözhetetlen**.
+
+**NFR struktúra:** Minden metrikánál **Minimum / Target / Stretch** logika (ugyanaz, mint a sikerkritériumoknál).
 
 ---
 
-### NFR1: Performance (Teljesítmény)
+## NFR0: Pilot Baseline & Scale Assumptions
 
-#### NFR1.1: Response Time (P0)
+> **Konzisztens skála-definíció** a sikerkritériumokkal és FR-ekkel összhangban.
 
-**User-facing műveletek:**
+### NFR0.1: Pilot Célzott Terhelés (4-6 hetes pilot)
 
-| Művelet | P0 Target | P1 Target | Mérhető? |
-|---------|-----------|-----------|----------|
-| **Page Load** (Calendar, Brand Brain) | < 3 sec (első betöltés) | < 1 sec | ✅ Browser DevTools |
-| **AI Copy Generation** | < 10 sec (90th percentile) | < 5 sec | ✅ Backend timer |
-| **Post Save** (Draft / Edit) | < 2 sec | < 1 sec | ✅ Backend timer |
-| **Meta API Publish** | < 5 sec (sikeres poszt) | < 3 sec | ✅ Backend timer |
+**Ügynökség szám (target):**
+- **Minimum (continue threshold):** 5 aktív ügynökség
+- **Target (sikeres pilot):** 8-10 aktív ügynökség
+- **Stretch:** 12+ ügynökség
 
-**P0 megjegyzés:**
-- Nincs SLA (Service Level Agreement)
-- Ha AI generálás 15-20 sec → elfogadható (LLM latency, nem optimalizálunk)
-- Ha Meta API 10 sec → elfogadható (external dependency)
+**Márka / ügynökség (target):**
+- **Minimum:** 3 márka / ügynökség
+- **Target:** 5+ márka / ügynökség
+- **Stretch:** 8+ márka / ügynökség
+
+**Összes user (target):**
+- **Minimum:** 10-15 aktív user (5 ügynökség × 2-3 user)
+- **Target:** 20-30 aktív user (8-10 ügynökség × 2-3 user)
+- **Stretch:** 40+ user (12 ügynökség × 3-4 user)
+
+**Összes márka (target):**
+- **Minimum:** 15-25 márka (5 ügynökség × 3-5 márka)
+- **Target:** 40-50 márka (8-10 ügynökség × 5 márka)
+- **Stretch:** 80+ márka (12 ügynökség × 8 márka)
+
+**Összes poszt (4-6 hetes pilot):**
+- **Minimum:** 500-800 poszt (5 ügynökség × 3 márka × 6 poszt/hét × 4-6 hét)
+- **Target:** 1500-2000 poszt (8-10 ügynökség × 5 márka × 6 poszt/hét × 4-6 hét)
+- **Stretch:** 3000+ poszt (12 ügynökség × 8 márka × 6 poszt/hét × 6 hét)
+
+**Miért fontos ez:**
+- A sikerkritériumokban 8-10 ügynökség a target → az infra-követelményeknek ezt kell biztonsággal kiszolgálni
+- Ha csak 1-3 ügynökségre tervezünk → alultesztelt PMF, skálázási problémák később
+
+---
+
+### NFR0.2: Multi-Tenant Architektúra Tisztázás
+
+**Logikailag multi-tenant:**
+- ✅ Adatmodell: Agency → User → Brand → Post (lásd FR9)
+- ✅ Agency-level isolation (user csak saját agency adatait látja)
+- ✅ Minden query agency_id filter-rel
+
+**Fizikailag single-server deployment (P0):**
+- ✅ Egyetlen szerver instance (Render / Railway managed deployment)
+- ✅ Egyetlen PostgreSQL instance (Render managed DB)
+- ❌ Nincs load balancer, nincs multi-region, nincs horizontal scaling
+
+**Miért ez az architektúra:**
+- Logikai multi-tenancy → validálja a termékkoncepciót (agency-first modell)
+- Fizikai single-server → gyors MVP fejlesztés, alacsony költség pilot alatt
+- P1 skálázás (100+ user): horizontal scaling, read replicas, stb.
+
+---
+
+### NFR0.3: Security & Privacy Baseline (Nem Alkudozható - P0)
+
+> **Alapvető biztonsági minimum**, amit **pilot alatt sem engedhetünk el**. Ezek nélkül jogi és bizalmi kockázat van.
+
+**Kötelező P0 (pilot alatt is):**
+- ✅ **HTTPS mindenhol** (SSL/TLS certificate: Let's Encrypt)
+- ✅ **Meta access token encryption** (database column-level encryption, AES-256)
+- ✅ **Jelszó hashing** (bcrypt, cost 12)
+- ✅ **Session security** (HTTP-only cookie, secure flag, 7 nap expiry)
+- ✅ **Manuális "right to be forgotten" folyamat** (ha user kéri → 7 napon belül teljes adat törlés DB-ből + backup policy jelzése)
+- ✅ **Minimál GDPR compliance:**
+  - User data csak amennyi feltétlenül kell (email, password hash, poszt tartalom)
+  - Nincs third-party analytics tracking (Google Analytics, Mixpanel) P0-ban
+  - Privacy policy + Terms of Service (egyszerű, lawyer-reviewed)
+
+**P1 - Full GDPR-ready:**
+- Cookie consent banner (Cookiebot, OneTrust)
+- Data export self-service (user letöltheti saját adatait JSON-ban)
+- Data Processing Agreement (DPA) template ügynökségeknek
+- Audit trail (ki, mikor, mit ért el)
+- Automatikus right-to-be-forgotten (user törli magát UI-ból)
+
+**Miért fontos ez már P0-ban:**
+- Éles ügyfélmárkák FB/IG kezelését adják a rendszerre → bizalmi kérdés
+- Bármi security incident (token leak, hibás publikálás) → "Ez nem megbízható" → project fail
+- Magyar/CEE ügynökségek gyakran kérdezik: "GDPR-compliant?"
+
+---
+
+### NFR0.4: Jelszó Policy (Konzisztens FR-rel)
+
+**Egységes policy (FR1.1 és NFR2.1 konzisztens):**
+- Minimum 12 karakter
+- Min. 1 nagybetű
+- Min. 1 szám
+- Speciális karakter: nem kötelező P0-ban (P1: min. 1 speciális karakter)
+
+**Validáció:**
+- Frontend: real-time feedback (jelszó erősség vizualizáció - P1)
+- Backend: validációs szabály (ha nem felel meg → error message)
+
+**Hashing:**
+- bcrypt (cost 12)
+- P1: Argon2id (modern, erősebb)
+
+**Password reset:**
+- Email-based token (1 órás expiry, egyszer használható)
+- Link formátum: `https://creaitor.app/reset-password?token={uuid}`
+
+---
+
+## NFR1: Performance (Teljesítmény)
+
+### NFR1.1: Response Time
+
+**Struktúra:** Minimum (elfogadható pilot alatt) / Target (P0 cél) / Stretch (P1 optimalizálás)
+
+| Művelet | Minimum (elfogadható) | Target (P0) | Stretch (P1) | Mérhető? |
+|---------|----------------------|-------------|--------------|----------|
+| **Page Load** (Calendar, Brand Brain) | < 5 sec (első betöltés) | < 3 sec | < 1 sec | ✅ Browser DevTools (Lighthouse) |
+| **AI Copy Generation** | < 20 sec (90th percentile) | < 10 sec | < 5 sec | ✅ Backend timer (generation_time_ms) |
+| **Post Save** (Draft / Edit) | < 3 sec | < 2 sec | < 1 sec | ✅ Backend timer |
+| **Meta API Publish** | < 10 sec (sikeres poszt) | < 5 sec | < 3 sec | ✅ Backend timer |
+
+**Értelmezés:**
+- **Minimum:** Ha túllépjük → user frustráció, de pilot alatt **elfogadható** (nem blocker)
+- **Target:** Aktívan elérni próbáljuk P0 végére
+- **Stretch:** P1 optimalizálás cél (caching, CDN, background queue)
+
+**P0 tolerancia:**
+- Ha AI generálás 15-20 sec → **minimum szinten van**, elfogadható (LLM latency, nem optimalizálunk P0-ban)
+- Ha Meta API 10 sec → **minimum szinten van**, elfogadható (external dependency)
+- Ha page load 5 sec → **minimum szinten van**, de javítandó (P1: code splitting, lazy loading)
 
 **P1 - Optimalizáció:**
-- Caching (Redis)
-- CDN (static assets)
-- Database indexing
-- Background job queue (publishing offload)
+- Caching (Redis session store, API response cache)
+- CDN (static assets: Cloudflare, AWS CloudFront)
+- Database indexing (query optimization)
+- Background job queue (publishing offload: BullMQ, Sidekiq)
 
 ---
 
-#### NFR1.2: Throughput (P0)
+### NFR1.2: Throughput
 
-**Pilot skála (5-10 user, 3-5 brand):**
-- **Concurrent users:** 5-10 (nem kell load balancing)
-- **AI generálás:** 50-100 poszt / nap (10 user × 5-10 poszt / nap)
-- **Publishing:** 30-50 poszt / hét (6-10 poszt / márka / hét)
+**Pilot skála throughput (target: 8-10 ügynökség, 40-50 márka, 20-30 user):**
 
-**P0 validáció:** Ha pilot során 10 user problémamentesen használja → elég.
+| Metrika | Minimum | Target | Stretch |
+|---------|---------|--------|---------|
+| **Concurrent users** | 10-15 user | 20-30 user | 40+ user |
+| **AI generálás / nap** | 50-100 poszt/nap | 150-200 poszt/nap | 300+ poszt/nap |
+| **Publishing / nap** | 30-50 poszt/nap | 80-100 poszt/nap | 150+ poszt/nap |
+| **Page views / nap** | 200-300 page view | 500-700 page view | 1000+ page view |
+
+**Számítás logika (target szint - 8-10 ügynökség):**
+- 20-30 user × 5-10 AI generálás/user/nap = 100-300 AI call/nap
+- 40-50 márka × 1.5-2 poszt/márka/nap = 60-100 scheduled publish/nap
+- 20-30 user × 20-30 page view/user/nap = 400-900 page view/nap
+
+**P0 validáció:** Ha pilot során target throughput-ot problémamentesen kiszolgálja → elég.
 
 **P1 - Skálázás (100+ user):**
-- Horizontal scaling (multiple app servers)
+- Horizontal scaling (multiple app servers: Kubernetes, Docker Swarm)
 - Database read replicas
 - Queue system (Sidekiq, BullMQ)
 - Rate limiting (per-user API limits)
 
 ---
 
-### NFR2: Security (Biztonság)
+## NFR2: Security (Biztonság)
 
-#### NFR2.1: Authentication & Authorization (P0)
+### NFR2.1: Authentication & Authorization
 
-**Authentication:**
-- Email/password (bcrypt hash, min 12 chars, 1 uppercase, 1 szám)
-- Session-based auth (HTTP-only cookie, 7 nap expiry)
-- Nincs 2FA (P1)
+**Authentication (P0):**
+- Email/password alapú bejelentkezés
+- Jelszó policy: **min. 12 karakter, min. 1 nagybetű, min. 1 szám** (lásd NFR0.4)
+- Hashing: bcrypt (cost 12)
+- Session: HTTP-only cookie, secure flag, SameSite=Lax, 7 nap expiry
+- P1: 2FA (TOTP alapú, Google Authenticator)
 
-**Authorization:**
-- Agency-level isolation (user csak saját agency adatait látja)
-- User-level permission (P0: egyszerű - minden user látja az agency összes márkáját)
-- P1: Fine-grained permissions (márka-szintű hozzáférés korlátozás)
+**Authorization (P0):**
+- Agency-level isolation (user csak saját agency adatait látja - agency_id filter minden query-ben)
+- User-level permission: P0-ban egyszerű (minden user = socialos, minden funkció elérhető)
+- P1: Fine-grained permissions (Admin / Editor / Viewer role, brand-level access control)
 
-**Password Reset:**
+**Password Reset (P0):**
 - Email-based token (1 órás expiry, egyszer használható)
-- SMTP email küldés (SendGrid / Mailgun)
+- Token formátum: UUID v4 (crypto.randomUUID())
+- Email service: SendGrid / Mailgun (transactional email)
+
+**Brute force védelem:**
+- P0: Nincs explicit rate limiting (bcrypt cost 12 lassít)
+- P1: Rate limiting (max. 5 login attempt / 15 perc / IP cím), CAPTCHA
 
 ---
 
-#### NFR2.2: Data Protection (P0)
+### NFR2.2: Data Protection
 
-**Adatbiztonság:**
+**Adatbiztonság (P0 - lásd NFR0.3):**
 
 | Adat Típus | P0 Védelem | P1 Bővítés |
 |------------|------------|------------|
 | **Jelszó** | bcrypt hash (cost 12) | Argon2id |
-| **Meta Access Token** | Database-level encryption (AES-256) | Secrets manager (AWS Secrets Manager, Vault) |
+| **Meta Access Token** | Database column-level encryption (AES-256) | Secrets manager (AWS Secrets Manager, Vault) |
 | **Brand Brain JSON** | Nincs külön titkosítás (nem érzékeny adat) | - |
-| **User Email** | Nincs titkosítás (szükséges login-hez) | - |
+| **User Email** | Nincs titkosítás (szükséges login-hez, unique constraint) | - |
+| **Session Token** | HTTP-only cookie (client nem látja JavaScript-ből) | Redis-based session store (P1) |
 
-**HTTPS (P0):**
-- SSL/TLS certificate (Let's Encrypt)
-- Minden API endpoint HTTPS-only
+**HTTPS (P0 - kötelező):**
+- SSL/TLS certificate (Let's Encrypt auto-renewal)
+- Minden API endpoint HTTPS-only (HTTP request → redirect to HTTPS)
 - Nincs HTTP fallback
 
-**P0 megjegyzés:** Nincs SOC2, ISO27001, GDPR-ready audit trail. Pilot fázisban nem szükséges.
+**P0 megjegyzés:** Nincs SOC2, ISO27001 audit. Pilot fázisban nem szükséges, de **alapvető security mandatory** (HTTPS, token encryption).
 
 ---
 
-#### NFR2.3: API Security (P0)
+### NFR2.3: API Security
 
-**Meta OAuth Token tárolás:**
-- Access token encrypted (database column encryption)
-- Refresh token (P1 - token refresh mechanizmus)
-- Ha token kompromittálódik → user újra OAuth flow
+**Meta OAuth Token tárolás (P0):**
+- Access token encrypted (AES-256, database column encryption)
+- Token expiry tracking (60 nap után lejár)
+- Ha token kompromittálódik / lejár → user újra OAuth flow (Re-connect gomb Brand settings-ben)
+- P1: Token refresh automatizálás, email reminder 7 nappal lejárat előtt
 
-**SQL Injection védelem:**
-- ORM használat (Prisma, TypeORM, Sequelize)
-- Prepared statements (minden query)
+**SQL Injection védelem (P0):**
+- ORM használat (Prisma, TypeORM, Sequelize) → prepared statements automatic
+- Input validation (Zod schema minden API endpoint-nál)
+- Nincs raw SQL query user input-tal (ha mégis → parameterized query)
 
-**XSS védelem:**
-- Input sanitization (post text, brand name, TOV)
-- React auto-escape (JSX)
+**XSS védelem (P0):**
+- Input sanitization (post text, brand name, TOV fields)
+- React JSX auto-escape (default XSS védelem)
+- Content Security Policy (CSP) header (P1)
 
-**CSRF védelem:**
-- CSRF token (form submission)
-- SameSite cookie flag
+**CSRF védelem (P0):**
+- CSRF token (form submission minden POST/PUT/DELETE request-nél)
+- SameSite cookie flag (SameSite=Lax)
 
 **P1 - Audit Log:**
-- Minden kritikus művelet naplózása (user login, brand deletion, token refresh)
+- Minden kritikus művelet naplózása (user login, brand deletion, token refresh, post publish)
 - Retention: 12 hónap
+- Admin dashboard: ki, mit, mikor csinált
 
 ---
 
-### NFR3: Scalability (Skálázhatóság)
+## NFR3: Scalability (Skálázhatóság)
 
-#### NFR3.1: Pilot Skála (P0)
+### NFR3.1: Pilot Skála (P0)
 
-**MVP támogatott volumen:**
-- **Ügynökség:** 1-3 agency (nem multi-tenant infra)
-- **User:** 5-15 user
-- **Márka:** 5-10 brand
-- **Poszt:** 500-1000 poszt (3 hónapos pilot, ~50 poszt/hét)
+**MVP támogatott volumen (lásd NFR0.1):**
+- **Ügynökség:** 5-10 agency (target: 8-10)
+- **User:** 10-30 user (target: 20-30)
+- **Márka:** 15-50 brand (target: 40-50)
+- **Poszt:** 500-2000 poszt (4-6 hetes pilot, target: 1500-2000)
 
-**Infrastruktúra (P0):**
-- Single-server deployment (Render, Railway, Fly.io)
-- PostgreSQL (single instance, no replicas)
-- Nincs Redis, nincs CDN
-- Nincs auto-scaling
+**Infrastruktúra (P0 - fizikailag single-server, logikailag multi-tenant):**
+- Single-server deployment (Render, Railway, Fly.io managed service)
+- PostgreSQL (single instance, Render/Railway managed DB, auto backup)
+- Nincs Redis, nincs CDN, nincs auto-scaling
 
-**P0 megjegyzés:** Ha 10 user használja probléma nélkül → sikeres pilot. Nem kell 1000 user-re skálázni.
+**P0 megjegyzés:** Ha pilot során target terhelést (8-10 ügynökség, 40-50 márka) problémamentesen kiszolgálja → sikeres pilot. Nem kell 100+ user-re skálázni P0-ban.
+
+**Skálázási határok (P0 infra becslés):**
+- Single-server (Render/Railway): max. 50-100 concurrent user (túl ezen: response time degradation)
+- PostgreSQL single instance: max. 100k rows (posts table) → P0-ban 2000 poszt → rendben
+- Meta API rate limit: 200 calls/óra (app-level) → P0-ban 100 publish/nap → rendben
 
 ---
 
-#### NFR3.2: Post-Pilot Skálázás (P1)
+### NFR3.2: Post-Pilot Skálázás (P1)
 
-**Target skála (Post-PMF):**
+**Target skála (Post-PMF - 6-12 hónap):**
 - **Ügynökség:** 50-100 agency
-- **User:** 200-500 user
-- **Márka:** 500-1000 brand
+- **User:** 150-300 user
+- **Márka:** 400-800 brand
 - **Poszt:** 50k-100k poszt / év
 
 **Infrastruktúra bővítés (P1):**
-- Horizontal scaling (Kubernetes, Docker Swarm)
-- Database read replicas
-- Redis cache layer
-- CDN (Cloudflare, AWS CloudFront)
-- Background job queue (Sidekiq, BullMQ)
-- Monitoring (Datadog, New Relic)
+- Horizontal scaling (Kubernetes, Docker Swarm, load balancer)
+- Database read replicas (PostgreSQL primary-replica setup)
+- Redis cache layer (session store, API response cache)
+- CDN (Cloudflare, AWS CloudFront) → static asset delivery
+- Background job queue (Sidekiq, BullMQ) → decoupled publishing, retry logic
+- Monitoring (Datadog, New Relic APM)
 
 ---
 
-### NFR4: Reliability & Availability (Megbízhatóság)
+## NFR4: Reliability & Availability (Megbízhatóság)
 
-#### NFR4.1: Uptime (P0)
+### NFR4.1: Uptime
 
-**P0 Target:**
-- **Uptime:** 95% (pilot során)
-- **Planned downtime:** Max 2 óra / hét (deployment, maintenance)
-- **Incident response:** Best-effort (nincs 24/7 support)
+**P0 Target (pilot):**
+- **Uptime:** 95% (4-6 hetes pilot során)
+- **Planned downtime:** Max. 2 óra / hét (deployment, maintenance)
+- **Incident response:** Best-effort (nincs 24/7 support, munkaidő: 9-17)
 
-**P0 megjegyzés:** Ha pilot során 1-2 downtime incidens van (összesen 3-4 óra) → elfogadható. Nem kell 99.9% SLA.
+**P0 megjegyzés:** Ha pilot során 1-2 downtime incidens van (összesen 3-4 óra) → elfogadható. Nem kell 99.9% SLA pilot alatt.
+
+**Realitás:**
+- Render/Railway uptime: ~99.5% (infrastruktúra uptime)
+- Ha Render/Railway down → **nincs fallback** P0-ban → user-eknek kommunikáció (email/Slack)
 
 **P1 - Production SLA:**
 - 99.5% uptime (43 perc downtime / hónap)
-- Status page (status.creaitor.io)
-- Incident postmortem
+- Status page (status.creaitor.io) - real-time incident reporting
+- Incident postmortem (minden > 1 órás downtime után)
 
 ---
 
-#### NFR4.2: Error Handling (P0)
+### NFR4.2: Error Handling
 
-**Backend error handling:**
+**Backend error handling (P0):**
 
-| Hiba Típus | P0 Viselkedés | User Feedback |
-|------------|---------------|---------------|
-| **AI API hiba** (timeout, rate limit) | Retry 1x, ha sikertelen → error message | "AI generálás sikertelen. Próbáld újra!" |
-| **Meta API hiba** (token expire, rate limit) | No auto retry, user manuális retry | "Publikálás sikertelen: token lejárt. Csatold újra a profilt!" |
-| **Database hiba** (connection timeout) | App crash (restart automatikusan) | 500 error page: "Hiba történt. Próbáld újra 1 perc múlva." |
-| **File upload hiba** (nagy fájl, invalid format) | Validation error | "Kép túl nagy (max 10MB) vagy invalid formátum." |
+| Hiba Típus | P0 Viselkedés | User Feedback | Retry |
+|------------|---------------|---------------|-------|
+| **AI API hiba** (timeout, rate limit) | Retry 1x (auto), ha sikertelen → error | "AI generálás sikertelen. Próbáld újra!" | Manual retry gomb |
+| **Meta API hiba** (token expire, rate limit) | No auto retry → error | "Publikálás sikertelen: {error_message}" | Manual retry gomb |
+| **Database hiba** (connection timeout) | App crash (Render auto-restart) | 500 error page: "Hiba történt. Próbáld újra 1 perc múlva." | Auto restart (infra szinten) |
+| **File upload hiba** (túl nagy fájl, invalid format) | Validation error | "Kép túl nagy (max 10MB) vagy invalid formátum." | User módosítja fájlt |
 
-**Frontend error boundary:**
-- React Error Boundary (catch UI crashes)
+**Frontend error boundary (P0):**
+- React Error Boundary (catch UI crashes, fallback UI)
 - Fallback UI: "Valami hiba történt. Frissítsd az oldalt!"
+- Error reporting: console.error (P1: Sentry error tracking)
 
-**P0 megjegyzés:** Nincs robust retry logic, nincs exponential backoff, nincs circuit breaker. Egyszerű error message + manual retry.
+**P0 megjegyzés:** Nincs robust retry logic (exponential backoff), nincs circuit breaker. Egyszerű error message + manual retry.
 
 **P1 - Error Monitoring:**
-- Sentry / Rollbar (exception tracking)
-- Alerting (Slack / email notifikáció kritikus hibáknál)
-- Error dashboards
+- Sentry / Rollbar (exception tracking, stack trace)
+- Alerting (Slack / email notifikáció kritikus hibáknál: > 10 error/óra)
+- Error dashboards (error rate, error types, affected users)
 
 ---
 
-#### NFR4.3: Data Backup & Recovery (P0)
+### NFR4.3: Data Backup & Recovery
 
 **Backup stratégia (P0):**
-- **PostgreSQL:** Daily backup (Render / Railway auto-backup)
-- **Retention:** 7 nap
+- **PostgreSQL:** Daily backup (Render / Railway auto-backup, 7 nap retention)
+- **Manual backup verification:** Hetente egyszer (győződünk meg, hogy backup restorable)
 - **Recovery:** Manual restore (best-effort, nincs automatikus failover)
+
+**Recovery Time Objective (RTO) - P0:**
+- **RTO (target):** < 4 óra (backup restore + app redeploy)
+- **Realitás:** Ha Render/Railway teljes failure → manual migration másik providerre (1-2 nap)
+
+**Recovery Point Objective (RPO) - P0:**
+- **RPO (target):** < 24 óra (daily backup)
+- **Elfogadható adatvesztés pilot alatt:** max. 24 óra adat (utolsó backup óta)
 
 **P0 megjegyzés:** Ha adatvesztés történik (< 24 óra) → pilot során elfogadható. Nem kell multi-region replication.
 
 **P1 - Production Backup:**
-- Hourly backup
+- Hourly backup (1 órás RPO)
 - 30 napos retention
 - Point-in-time recovery (PITR)
-- Multi-region replication
+- Multi-region replication (AWS RDS, GCP Cloud SQL)
 
 ---
 
-### NFR5: Usability (Használhatóság)
+## NFR5: Usability (Használhatóság)
 
-#### NFR5.1: Browser Support (P0)
+### NFR5.1: Browser Support
 
-**Támogatott böngészők:**
+**Támogatott böngészők (P0):**
 - Chrome (latest 2 verzió)
 - Firefox (latest 2 verzió)
 - Safari (latest 2 verzió)
@@ -2496,154 +2648,186 @@ Event (Analytics)
 **Nincs támogatás (P0):**
 - IE11
 - Régi Safari (iOS < 14)
-- Mobile böngészők (Chrome Mobile, Safari Mobile) → P1
+- Opera, Brave (nincs explicit testing, de valószínűleg működik - Chromium-based)
 
-**P0 megjegyzés:** Desktop-first. Ha pilot során valaki mobilon próbálja használni → "Desktop böngészőben nyisd meg!"
+**P0 megjegyzés:** Desktop-first (lásd NFR5.2). Browser support testing: manual (Chrome, Firefox, Safari tesztelés pilot előtt).
 
 ---
 
-#### NFR5.2: Responsive Design (P0)
+### NFR5.2: Responsive Design & Mobile Support
 
-**P0 - Desktop only:**
-- Optimalizálva 1920×1080, 1366×768 felbontásra
-- Tablet (768px - 1024px): Best-effort (nem tesztelünk)
-- Mobile (< 768px): Nincs támogatás (broken UI → elfogadható)
+**P0 - Desktop-first (de mobile-aware):**
+- **Optimalizálva:** 1920×1080, 1366×768 felbontásra (desktop)
+- **Tablet (768px - 1024px):** Best-effort (nem explicit testing, de nem broken UI)
+- **Mobile (< 768px):** **Basic support P0-ban** - mobile böngészőből elérhető, de egyszerűsített UX
+
+**Mobile támogatás P0-ban (simplified UX):**
+- ✅ **Calendar view:** Elérhető mobilon (scrollable, nem drag&drop)
+- ✅ **Post approval:** Elérhető mobilon (Approve / Schedule gomb működik)
+- ✅ **Post edit:** Elérhető mobilon (textarea szerkesztés, nem drag&drop scheduling)
+- ❌ **Brand Brain setup:** Desktop-only (túl komplex form mobilon)
+- ❌ **Drag & drop:** Desktop-only (ha van drag&drop scheduling P0-ban)
+
+**Miért fontos mobile support P0-ban:**
+- Socialos apró ellenőrzéseket, last minute módosításokat, gyors jóváhagyásokat **mobilról is intéz**
+- Ha mobilon **teljesen broken** → továbbra is Meta Business Suite marad a "safe default"
+- **Adoption kockázat:** Tool nem lesz "go-to", csak "amikor épp az asztalnál ülök"
+
+**P0 mobile UX filozófia:**
+- Nem kell pixel-perfect mobile design
+- De core workflow (approve, schedule, edit text) **mobilról is használható** → validálja H2 (go-to tool)
 
 **P1 - Mobile-first:**
-- Teljes responsive design (Tailwind breakpoints)
-- Mobile app (React Native / Flutter)
+- Teljes responsive design (Tailwind breakpoints: sm, md, lg, xl)
+- Mobile app (React Native / Flutter / PWA)
+- Touch-optimized drag&drop
 
 ---
 
-#### NFR5.3: Accessibility (P0)
+### NFR5.3: Accessibility
 
 **P0 - Alapvető:**
-- Keyboard navigation (Tab, Enter működik form-okban)
+- Keyboard navigation (Tab, Enter működik form-okban, gombokban)
 - Alt text képeknél (user-uploaded images → user felelőssége)
-- Nincs WCAG 2.1 AA compliance
+- Nincs WCAG 2.1 AA compliance (nem tesztelünk screen reader-rel)
 
 **P1 - WCAG 2.1 AA:**
-- Screen reader support
-- Contrast ratio compliance
-- ARIA labels
+- Screen reader support (ARIA labels, semantic HTML)
+- Contrast ratio compliance (4.5:1 text, 3:1 UI components)
+- Focus visible (keyboard navigation vizualizáció)
 
 ---
 
-### NFR6: Maintainability (Karbantarthatóság)
+## NFR6: Maintainability (Karbantarthatóság)
 
-#### NFR6.1: Code Quality (P0)
+### NFR6.1: Code Quality
 
 **P0 - Alapvető clean code:**
-- ESLint / Prettier (auto-format)
-- TypeScript (strict mode)
-- Nincs unit test coverage target (< 30% → elfogadható)
-- Nincs code review kötelezettség (solo dev / kis csapat)
+- ESLint / Prettier (auto-format, pre-commit hook)
+- TypeScript (strict mode: true, minden file .ts/.tsx)
+- Nincs unit test coverage target (< 30% → elfogadható P0-ban)
+- Nincs code review kötelezettség (solo dev / kis csapat → review nice-to-have)
 
 **P1 - Production-grade:**
-- Unit test (80% coverage)
-- E2E test (Playwright, Cypress)
-- Code review (PR approval required)
-- CI/CD pipeline (automated testing)
+- Unit test (80% coverage: Jest, Vitest)
+- E2E test (Playwright, Cypress - critical user flows)
+- Code review (PR approval required, min. 1 reviewer)
+- CI/CD pipeline (automated testing, linting, build)
 
 ---
 
-#### NFR6.2: Documentation (P0)
+### NFR6.2: Documentation
 
 **P0 - Minimális:**
-- README.md (setup instructions)
-- `.env.example` (környezeti változók listája)
-- API endpoints (inline code comments)
+- README.md (setup instructions: local dev environment, environment variables)
+- `.env.example` (környezeti változók listája, példa értékekkel)
+- Inline code comments (complex logic, non-obvious decisions)
 - Nincs külső dokumentáció (Notion, Confluence)
 
 **P1 - Comprehensive:**
-- API dokumentáció (Swagger / OpenAPI)
-- Onboarding guide (új developer számára)
-- Runbook (deployment, troubleshooting)
+- API dokumentáció (Swagger / OpenAPI spec)
+- Onboarding guide (új developer számára: architecture overview, code structure)
+- Runbook (deployment, troubleshooting, incident response)
 
 ---
 
-#### NFR6.3: Monitoring & Observability (P0)
+### NFR6.3: Monitoring & Observability
 
 **P0 - Alapvető logging:**
-- Console logs (backend)
-- Browser console (frontend)
+- Console logs (backend: Winston / Pino structured logging)
+- Browser console (frontend: console.error user-facing errors)
 - Nincs centralized logging (Datadog, Splunk)
 - Nincs APM (Application Performance Monitoring)
 
+**P0 monitoring:**
+- Manual checks (használat tracking data: FR8.1 backend events)
+- Email alert kritikus hibáknál (pl. ha Meta API 10x egymás után fail → email a dev-nek)
+
 **P1 - Production monitoring:**
-- Datadog / New Relic (APM)
-- LogDNA / Papertrail (log aggregation)
-- Uptime monitoring (Pingdom, UptimeRobot)
-- Alert dashboards (Slack integration)
+- Datadog / New Relic (APM: request latency, error rate, throughput)
+- LogDNA / Papertrail (log aggregation, search, alerting)
+- Uptime monitoring (Pingdom, UptimeRobot - external check every 5 min)
+- Alert dashboards (Slack integration: critical errors, downtime)
 
 ---
 
-### NFR7: Data & Compliance
+## NFR7: Data & Compliance
 
-#### NFR7.1: Data Retention (P0)
+### NFR7.1: Data Retention
 
-**Retention policy:**
+**Retention policy (P0):**
 - **User data:** Korlátlan (nincs auto-delete)
 - **Post data:** Korlátlan
-- **Event logs:** 12 hónap (után manuális törlés)
-- **Backup:** 7 nap
+- **Event logs:** 12 hónap (után manuális törlés - manual script)
+- **Backup:** 7 nap (daily backup, 7 nap retention)
 
-**P0 megjegyzés:** Nincs GDPR "right to be forgotten" automatizmus. Ha user kéri → manuális deletion.
+**P0 megjegyzés:** Nincs GDPR "right to be forgotten" **automatizmus**. Ha user kéri → **manuális deletion** (7 napon belül - lásd NFR0.3).
+
+**Manuális deletion folyamat (P0):**
+1. User email-t küld: "Töröljétek az adataimat"
+2. Admin (dev) manuálisan törli DB-ből:
+   - User rekord + összes kapcsolódó adat (posts, brands, events - cascade delete)
+   - Backup-ból is törlés (vagy jelzi user-nek: "7 napos backup retention, utána automatikus törlődik")
+3. Confirmation email user-nek: "Adataid törölve"
 
 **P1 - GDPR compliance:**
-- User deletion request (self-service)
-- Data export (JSON export)
+- User deletion self-service (user törli magát UI-ból, automatikus cascade delete)
+- Data export self-service (user letölti saját adatait JSON-ban)
 - Cookie consent banner
-- Privacy policy + Terms of Service
+- Privacy policy + Terms of Service (lawyer-reviewed)
 
 ---
 
-#### NFR7.2: GDPR & Privacy (P0)
+### NFR7.2: GDPR & Privacy
 
-**P0 - Minimális:**
-- Email tárolás (login céljából)
-- Meta access token tárolás (titkosítva)
-- Nincs analytics cookie (Google Analytics, Mixpanel)
-- Nincs third-party tracking
+**P0 - Minimál GDPR baseline (lásd NFR0.3):**
+- Email tárolás (login céljából - legitimate interest)
+- Meta access token tárolás (titkosítva - user explicit consent OAuth flow-ban)
+- Nincs analytics cookie (Google Analytics, Mixpanel - P0-ban nincs tracking)
+- Nincs third-party tracking (Facebook Pixel, LinkedIn Insight Tag)
+- Privacy policy (egyszerű, 1-2 oldal, magyar nyelven)
+- Terms of Service (egyszerű, "use at your own risk" pilot disclaimer)
 
-**P0 megjegyzés:** Pilot során nincs GDPR audit. Ha user kérdez → manuális válasz.
+**P0 megjegyzés:** Pilot során nincs GDPR audit. Ha user kérdez → manuális válasz (email, Slack).
 
 **P1 - GDPR-ready:**
-- Cookie banner (Cookiebot, OneTrust)
-- Privacy policy (lawyer-reviewed)
-- Data Processing Agreement (DPA)
-- Audit trail (user data hozzáférés)
+- Cookie banner (Cookiebot, OneTrust - consent management)
+- Privacy policy (lawyer-reviewed, angol + magyar)
+- Data Processing Agreement (DPA) template ügynökségeknek
+- Audit trail (user data hozzáférés naplózása - ki, mikor, mit nézett meg)
+- Automatikus right-to-be-forgotten
 
 ---
 
-### NFR8: Deployment & DevOps (P0)
+## NFR8: Deployment & DevOps
 
-#### NFR8.1: Hosting & Infrastructure (P0)
+### NFR8.1: Hosting & Infrastructure
 
-**Platform:**
-- **Backend + Frontend:** Render / Railway / Fly.io (single-server)
-- **Database:** PostgreSQL (Render managed DB / Railway)
-- **File storage:** S3 / Cloudinary (image upload)
-- **Email:** SendGrid / Mailgun (transactional emails)
+**Platform (P0):**
+- **Backend + Frontend:** Render / Railway / Fly.io (single-server managed service)
+- **Database:** PostgreSQL (Render managed DB / Railway managed DB)
+- **File storage:** Cloudinary (auto-resize, CDN beépített) vagy S3 (cheaper, manual setup)
+- **Email:** SendGrid / Mailgun (transactional emails: password reset, user invite)
 
-**Deployment:**
+**Deployment (P0):**
 - Manual deployment (git push → auto-deploy)
 - No staging environment (deploy directly to production → elfogadható pilot során)
+- Deployment frequency: 1-2x / hét (bug fix, feature release)
 
 **P1 - Production infra:**
-- Staging + Production környezet
-- CI/CD pipeline (GitHub Actions, GitLab CI)
-- Docker containers
-- Infrastructure as Code (Terraform)
+- Staging + Production környezet (külön DB, külön deployment)
+- CI/CD pipeline (GitHub Actions, GitLab CI - automated tests + deploy)
+- Docker containers (Dockerfile + docker-compose)
+- Infrastructure as Code (Terraform / Pulumi)
 
 ---
 
-#### NFR8.2: Environment Variables (P0)
+### NFR8.2: Environment Variables
 
 **Required env vars (P0):**
 ```bash
 # Database
-DATABASE_URL=postgresql://...
+DATABASE_URL=postgresql://user:pass@host:5432/dbname
 
 # Meta OAuth
 META_APP_ID=123456789
@@ -2652,45 +2836,68 @@ META_REDIRECT_URI=https://creaitor.app/auth/meta/callback
 
 # AI API (OpenAI / Anthropic)
 OPENAI_API_KEY=sk-...
+# ANTHROPIC_API_KEY=sk-ant-... (ha Claude-ot használsz)
 
-# Session secret
-SESSION_SECRET=random-secret-key
+# Session secret (crypto.randomBytes(64).toString('hex'))
+SESSION_SECRET=random-secret-key-64-chars
 
-# Email (SendGrid)
+# Email (SendGrid / Mailgun)
 SENDGRID_API_KEY=SG.abc123...
 
 # File upload (S3 / Cloudinary)
+# S3:
 S3_BUCKET=creaitor-uploads
 S3_ACCESS_KEY=...
 S3_SECRET_KEY=...
+S3_REGION=us-east-1
+# VAGY Cloudinary:
+CLOUDINARY_CLOUD_NAME=...
+CLOUDINARY_API_KEY=...
+CLOUDINARY_API_SECRET=...
+
+# Encryption key (AES-256, 32 bytes hex)
+ENCRYPTION_KEY=... (crypto.randomBytes(32).toString('hex'))
 ```
 
 **P0 megjegyzés:** `.env` fájl git-ignored, manuális setup (nincs secrets manager).
 
+**P1 - Secrets management:**
+- AWS Secrets Manager / HashiCorp Vault
+- Env var rotation (automatic secret rotation)
+- Secrets audit trail
+
 ---
 
-### Non-Functional Requirements Összefoglalás
+## Non-Functional Requirements Összefoglalás
 
-| NFR Kategória | P0 (MVP Pilot) | P1 (Post-PMF) |
-|---------------|----------------|---------------|
-| **Performance** | < 10 sec AI generálás, < 3 sec page load | < 5 sec AI, < 1 sec page load, caching |
-| **Throughput** | 5-15 user, 50-100 poszt/nap | 200-500 user, horizontal scaling |
-| **Security** | HTTPS, bcrypt, token encryption, basic auth | 2FA, secrets manager, SOC2 audit |
-| **Uptime** | 95% (best-effort) | 99.5% SLA, status page |
-| **Error Handling** | Manual retry, basic error messages | Auto retry, Sentry monitoring, alerting |
-| **Backup** | Daily (7 nap retention) | Hourly (30 nap), PITR, multi-region |
-| **Browser Support** | Desktop Chrome/Firefox/Safari (latest 2) | Mobile responsive, mobile app |
-| **Accessibility** | Keyboard navigation | WCAG 2.1 AA compliance |
-| **Testing** | Manual testing, < 30% coverage | 80% unit test, E2E automated |
-| **Monitoring** | Console logs | Datadog/New Relic APM, uptime monitoring |
-| **GDPR** | Minimális (nincs tracking) | Cookie consent, privacy policy, data export |
-| **Deployment** | Single-server, manual deploy | Staging env, CI/CD, Docker, IaC |
+| NFR Kategória | Minimum (elfogadható P0) | Target (P0 cél) | Stretch (P1) |
+|---------------|--------------------------|-----------------|--------------|
+| **Pilot Skála** | 5 ügynökség, 15 márka, 10-15 user | 8-10 ügynökség, 40-50 márka, 20-30 user | 12+ ügynökség, 80+ márka, 40+ user |
+| **Performance (AI gen)** | < 20 sec | < 10 sec | < 5 sec |
+| **Performance (page load)** | < 5 sec | < 3 sec | < 1 sec |
+| **Throughput (AI/nap)** | 50-100 poszt/nap | 150-200 poszt/nap | 300+ poszt/nap |
+| **Security** | HTTPS, bcrypt, token encryption, basic auth | Min. 12 char password, CSRF token | 2FA, secrets manager, SOC2 audit |
+| **Uptime** | 95% (best-effort) | 95% | 99.5% SLA, status page |
+| **Error Handling** | Manual retry, basic error messages | Auto retry (1x), user-friendly errors | Exponential backoff, Sentry monitoring |
+| **Backup** | Daily (7 nap retention) | Daily + manual verification | Hourly (30 nap), PITR, multi-region |
+| **Browser Support** | Desktop Chrome/Firefox/Safari (latest 2) | Desktop + basic mobile support | Full responsive, mobile app |
+| **Accessibility** | Keyboard navigation | Keyboard nav + alt text | WCAG 2.1 AA compliance |
+| **Testing** | Manual testing, < 30% coverage | Manual + smoke tests | 80% unit test, E2E automated |
+| **Monitoring** | Console logs, manual checks | Console logs + email alerts | Datadog/New Relic APM, uptime monitoring |
+| **GDPR** | Minimál baseline (HTTPS, encryption, manuális deletion) | Privacy policy + ToS | Cookie consent, self-service deletion, DPA |
+| **Deployment** | Single-server, manual deploy | Single-server + auto-deploy | Staging env, CI/CD, Docker, IaC |
+
+**Kritikus NFR Döntések (konzisztens FR0.2-vel és sikerkritériumokkal):**
+- ✅ **Pilot skála: 8-10 ügynökség** (nem 1-3!) → konzisztens sikerkritériumokkal
+- ✅ **Jelszó policy: min. 12 char + uppercase + szám** → konzisztens FR1.1-gyel
+- ✅ **Security baseline mandatory P0:** HTTPS, token encryption, manuális GDPR deletion
+- ✅ **Mobile: basic support P0** (approve, schedule, edit mobilról is működik) → H2 adoption validálás
+- ✅ **Min/Target/Stretch logika** minden metrikánál → konzisztens sikerkritérium struktúrával
 
 **P0 filozófia ismétlés:**
-> "Elég jó" egy 5-10 fős, 4 hetes pilothoz. Ha a hipotézisek validálódnak (H1, H2, H3) és 2-3 socialos azt mondja "ezt használnám napi szinten" → akkor skálázunk P1-re. Ha nem → akkor felesleges lett volna production-grade infrastruktúra építése.
+> "Elég jó" egy 8-10 ügynökséges, 4-6 hetes pilothoz. Ha a hipotézisek validálódnak (H1, H2, H3) és target metrikákat elérjük (60%+ usable AI, 20-40% time savings, 8+ NPS) ÉS 3-5 pilot ügynökség mondja "ezt fizetném" → akkor skálázunk P1-re (production hardening, full GDPR, monitoring, CI/CD). Ha nem → akkor nem vesztettünk időt over-engineering-re, de **alapvető megbízhatóság és biztonság megvolt**.
 
 ---
-
 ## Technical Architecture (Technikai Architektúra)
 
 > **Architecture filozófia (P0):** Egyszerű, monolitikus architektúra. Nem microservices, nem over-engineered. Gyors fejlesztés és deploy a cél.
