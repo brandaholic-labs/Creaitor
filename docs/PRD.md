@@ -8,15 +8,51 @@
 
 ## Executive Summary
 
-A Creaitor egy AI-alapú közösségi média tartalomkezelő platform, amely kifejezetten 3–10 fős marketing és social media ügynökségek számára készül. A platform központi innovációja a **Brand Brain koncepció**: minden ügyfélmárkához egy strukturált, AI-vezérelt "márka-agy" tartozik, amely biztosítja, hogy a generált tartalom ne legyen generikus AI-szöveg, hanem valóban márkahű kommunikáció.
+### Célcsoport (Ki?)
 
-A Creaitor célja, hogy az ügynökségi socialosok számára egyszerűsítse és részben automatizálja a heti Facebook és Instagram tartalomnaptár összeállítását, gyorsítsa a szöveg- és vizuálgenerálást, és egy rendszerben kezelje a naptárat, a jóváhagyást és az ütemezést – miközben megtartja vagy javítja a márkahűséget.
+**Elsődleges célcsoport (MVP):** 3–10 fős social media és marketing ügynökségek Magyarországon és a közép-kelet-európai régióban, akik:
+- 5–30 aktív ügyfélmárkát kezelnek párhuzamosan
+- 1–3 socialos dolgozik Facebook és Instagram tartalomgyártáson
+- Jellemzően KKV ügyfeleket szolgálnak ki (kereskedelem, szolgáltatás, horeca, edukáció)
 
-### Mi teszi ezt különlegessé?
+**Másodlagos célcsoport (jövő):** In-house marketing csapatok nagyvállalatoknál, akik több almárkát/termékvonalat kezelnek.
 
-**Brand Brain koncepció** - Az egyetlen AI-alapú social media platform, amely nem általános tartalmat gyárt, hanem minden márkához külön "márka-agyat" épít. Ez a strukturált tudásbázis (példapostok, tone of voice, key messages, vizuális irányok) biztosítja, hogy az AI mindig a márka hangjában kommunikáljon.
+### Fő Feladat / Job-to-be-Done (Mit old meg?)
 
-**Miért fontos ez?** A piackutatás egyértelműen mutatja: a marketingesek 77%-a kísérletezik generatív AI-val, de csak 44%-uk lát jelentős előnyt. A fő probléma: az AI-generált tartalom nem elég "on-brand". A Creaitor pont ezt a rést tölti be – workflow-ba integrált, márkahű AI-tartalomgyártás ügynökségi környezetben.
+A heti Facebook és Instagram tartalomnaptár összeállításának idejét **30-40%-kal csökkenteni** márkánként, miközben:
+- A generált posztok legalább 70%-a csak kisebb szerkesztést igényel
+- A márkahűség minimum 8/10-es szinten marad (socialosok és ügyfelek értékelése alapján)
+- A socialos a teljes munkafolyamatot (tervezés → generálás → jóváhagyás → ütemezés) **egy rendszerben** tudja kezelni
+
+### Fő Megoldás (Hogyan?)
+
+**Brand Brain-alapú AI tartalomgenerálás integrált workflow-val:**
+
+1. **Brand Brain (v1):** Minden ügyfélmárkához strukturált "márka-agy" - példapostok, tone of voice leírás, key messages, vizuális irányok
+2. **AI Copy Studio:** Brand Brain kontextusával generált szövegjavaslatok (nem általános AI-promptolás)
+3. **AI Visual Studio:** Képgenerálás a márka vizuális irányainak figyelembevételével
+4. **Content Calendar:** Heti/havi naptár FB+IG slotokkal, AI-javasolt tartalomtípus-mixszel
+5. **Approval Workflow:** Belső jóváhagyási folyamat (draft → review → approved → scheduled)
+6. **Publishing:** Közvetlen ütemezés Meta Graph API-n keresztül
+
+### Differenciálás (Miért más?)
+
+**Ritka kombináció három dimenzióban:**
+
+1. **Workflow-ba integrált Brand Brain** - Nem ad hoc AI-promptolás, hanem márkánként strukturált tudásbázis, amely minden generálásba beépül
+2. **Ügynökségi multi-brand optimalizáció** - 1 socialos → 5-10 márka kezelése egy felületen, márka-szintű naptárak és státuszok
+3. **Magyar/CEE piaci fókusz** - Lokális nyelvi támogatás, kulturális kontextus, régiós pricing
+
+**Piaci rés:** A kutatások szerint [Forrás: Market Research, 2025] a marketingesek 77%-a kísérletezik generatív AI-val, de csak 44%-uk lát jelentős előnyt. A fő probléma: az AI-generált tartalom nem elég "on-brand". A legtöbb eszköz vagy általános AI-szövegíró (pl. ChatGPT, Jasper) VAGY social media management platform (pl. Hootsuite, Buffer), de nem kombinálja a kettőt workflow-ba ágyazott, márka-specifikus tudásbázissal.
+
+### Technikai Kontextus és Megszorítások
+
+- **Platform:** Multi-tenant SaaS B2B web alkalmazás
+- **Külső függőségek:** Meta Graph API (FB/IG), LLM API (szöveggenerálás), Image generation API
+- **Architektúra:** Modern web stack, multi-tenant adatbázis, background job queue (ütemezéshez)
+- **Skála célok (6 hónap):** 5-10 pilot ügynökség, 25-50 aktív márka
+- **Nyelvi támogatás:** Magyar (primary), később angol, szlovák, lengyel, román
+- **Compliance:** GDPR compliance, Meta platform policies
 
 ---
 
@@ -24,33 +60,76 @@ A Creaitor célja, hogy az ügynökségi socialosok számára egyszerűsítse é
 
 **Technikai típus:** SaaS B2B Web Alkalmazás (Social Media Management)
 
-**Domain:** Általános / Marketing Technology
+**Domain:** MarTech - Social Media Management (ügynökségi fókusz v1, később bővíthető in-house csapatokra)
 
-**Komplexitás:** Közepes-Magas
+**Komplexitás:** Magas
 
-### Projekt jellemzők
+### MVP Scope vs. Long-term Funkciókészlet
 
-A Creaitor egy **multi-tenant SaaS B2B platform**, amely kombinál több összetett technológiai komponenst:
+**Az alábbi komponensek az MVP (6 hónap) részét képezik:**
+- Multi-tenant rendszer (ügynökség/user/márka kezelés)
+- Brand Brain v1 (példapostok, TOV, key messages, vizuális irány tárolása)
+- AI Copy Studio (LLM integráció Brand Brain kontextussal)
+- AI Visual Studio (alapszintű képgenerálás integráció)
+- Content Calendar (FB+IG heti/havi naptár)
+- Approval workflow (draft → review → approved → scheduled)
+- Meta Graph API integráció (FB/IG publishing)
+- Basic insights (aktivitás metrikák, usage tracking)
 
-- **Web-alapú alkalmazás** - Modern SPA/SSR architektúra böngészőben
-- **Multi-tenant rendszer** - Több ügynökség, több márka, több felhasználó kezelése
-- **AI integráció** - LLM-alapú szöveggenerálás, képgenerálás API-kon keresztül
-- **Harmadik fél API-k** - Facebook, Instagram (Meta Graph API) integrációk
-- **Workflow management** - Naptár, jóváhagyási folyamat, ütemezés
-- **Real-time collaboration** - Több felhasználó egyidejű munkája ugyanazon márkákon
+**Long-term fejlesztési irányok (post-MVP):**
+- Brand Brain v2-v3 (RAG-alapú, mélyebb tudásbázis)
+- További platformok (TikTok, LinkedIn, YouTube Shorts)
+- Haladó analitika és riporting
+- White-label megoldás
+- Ügynökségi operációs réteg (tasking, approval chain, dashboard)
 
-### Miért nem specialized domain?
+### Komplexitás Indoklás
 
-Bár a platform a marketing/social media szektorban működik, **nem tartozik a magas szabályozottságú domainekhez** (pl. healthcare, fintech, aerospace). Nem igényel:
-- Speciális compliance certificációt (FDA, HIPAA, PCI-DSS)
-- Szakértői domain tudást (orvosi, jogi, pénzügyi)
-- Iparág-specifikus szabványokat
+A projekt **magas komplexitású**, mivel az MVP is tartalmaz:
 
-Ugyanakkor **létfontosságú domain expertise** szükséges a következő területeken:
-- Social media marketing best practices
-- Ügynökségi workflow-k és működés
-- Brand identity és tone of voice management
-- Magyar és közép-kelet-európai piaci sajátosságok
+1. **Multi-tenant architektúra** - Tenant-szintű adatizolálás, jogosultságkezelés
+2. **Külső API integrációk** - Meta Graph API (rate limits, token management, error handling)
+3. **AI integráció** - LLM és image generation API-k, prompt engineering, context management
+4. **Workflow engine** - Állapotgépek (draft/review/approved/scheduled), background jobs
+5. **Real-time collaboration szempontok** - Több user egyidejű munkája ugyanazon márkán/poszton
+6. **Több komplex domain** - Brand management, social media, AI, ügynökségi workflow
+
+### Domain Sajátosságok
+
+**Szabályozási szempontból:**
+
+A platform **nem tartozik a magas szabályozottságú, specialized domainekhez** (pl. healthcare, fintech, aerospace, legal). Nem igényel:
+- Speciális compliance certificációt (FDA, HIPAA, PCI-DSS, ISO 26262)
+- Szakértői domain tudást (orvosi, jogi, pénzügyi, műszaki)
+- Iparág-specifikus biztonsági szabványokat
+
+Ugyanakkor **GDPR compliance és Meta platform policies** betartása kötelező.
+
+**AI és márka-specifikus kihívások:**
+
+Bár nem "specialized domain" szabályozási értelemben, **magas domain-szenzitivitás** van a következő területeken:
+
+1. **Magyar és CEE nyelvkezelés**
+   - Magyar nyelv helyes AI-generálása (syntax, kulturális kontextus)
+   - Régiós nyelvek támogatása (szlovák, lengyel, román)
+   - Nyelvi minőség biztosítása (nem angolból fordított tartalom)
+
+2. **Márkahű tone of voice**
+   - Brand identity megőrzése AI-generálásban
+   - Tone of voice következetes alkalmazása
+   - Márka-specifikus tabuk, preferált/kerülendő kifejezések kezelése
+
+3. **Social platform policy-k változásai**
+   - Meta API változások gyors követése
+   - Platform-specifikus content guidelines (mit lehet/mit nem)
+   - Rate limiting, quota management
+   - API hozzáférés esetleges korlátozásai
+
+4. **Ügynökségi workflow-minták**
+   - Multi-client kezelés sajátosságai
+   - Jóváhagyási folyamatok diverzitása
+   - Belső ügynökségi folyamatok és KPI-k
+   - Magyar/CEE ügynökségi pricing és működési modellek
 
 ---
 
