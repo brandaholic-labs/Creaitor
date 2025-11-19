@@ -1,0 +1,186 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>1</epicId>
+    <storyId>3</storyId>
+    <title>Docker Compose Environment Setup</title>
+    <status>ready-for-dev</status>
+    <generatedAt>2025-11-19</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/sprint-artifacts/1-3-docker-compose-environment-setup.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>developer</asA>
+    <iWant>Docker Compose configuration for local development environment</iWant>
+    <soThat>all services (Next.js, Redis, Supabase) run consistently across different development machines</soThat>
+    <tasks>
+      <task id="1" title="Docker Compose konfiguráció létrehozása">
+        <subtask>Create docker-compose.yml file in project root</subtask>
+        <subtask>Define next-app service with volume mounts, environment variables, port mapping</subtask>
+        <subtask>Define redis service with persistent volume</subtask>
+        <subtask>Define Docker network and volumes</subtask>
+        <subtask>Add service dependencies and health checks</subtask>
+        <subtask>Test docker-compose up</subtask>
+      </task>
+      <task id="2" title="Dockerfile.dev létrehozása">
+        <subtask>Create Dockerfile.dev with Node.js 20 Alpine base image</subtask>
+        <subtask>Configure working directory, dependencies, port exposure</subtask>
+        <subtask>Test Docker build</subtask>
+      </task>
+      <task id="3" title=".dockerignore fájl létrehozása">
+        <subtask>Create .dockerignore excluding node_modules, .next, .git, .env.local</subtask>
+        <subtask>Verify .dockerignore works</subtask>
+      </task>
+      <task id="4" title="Environment variables konfiguráció">
+        <subtask>Verify .env.local exists (from Story 1.2)</subtask>
+        <subtask>Update docker-compose.yml to use env_file</subtask>
+        <subtask>Add REDIS_URL to .env.local with Docker service name resolution</subtask>
+        <subtask>Test environment variable injection</subtask>
+      </task>
+      <task id="5" title="Service kommunikáció tesztelése">
+        <subtask>Test Next.js → Redis connection</subtask>
+        <subtask>Test Next.js → Supabase connection</subtask>
+        <subtask>Verify network connectivity</subtask>
+      </task>
+      <task id="6" title="Dokumentáció és validation">
+        <subtask>Update README.md with Docker Compose setup instructions</subtask>
+        <subtask>Add package.json scripts (optional)</subtask>
+        <subtask>Test full workflow</subtask>
+        <subtask>Commit changes</subtask>
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <ac id="1">docker-compose up futtatása után minden service elindul: next-app (port 3000), redis (port 6379), supabase-db</ac>
+    <ac id="2">docker-compose.yml definiálja a service-eket volume mount-okkal, environment variable injection-nel, network konfigurációval</ac>
+    <ac id="3">.dockerignore kizárja node_modules, .next, .git</ac>
+    <ac id="4">Dockerfile.dev létezik Next.js development container-hez</ac>
+    <ac id="5">Service-ek kommunikálnak egymással (Next.js → Redis, Next.js → Supabase)</ac>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc path="docs/architecture.md" title="Architecture Document" section="Docker Setup (lines 1374-1435)">
+        Production docker-compose.prod.yml reference implementation with app, worker, redis services. Network and volume patterns for inter-service communication.
+      </doc>
+      <doc path="docs/architecture.md" title="Architecture Document" section="Development Environment (lines 1505-1565)">
+        Local development setup patterns, Redis Docker container usage, environment variable configuration.
+      </doc>
+      <doc path="docs/architecture.md" title="Architecture Document" section="Project Structure (lines 322-326)">
+        Docker directory structure: docker/ folder for production Dockerfiles, docker-compose.yml in project root for local dev.
+      </doc>
+      <doc path="docs/sprint-artifacts/tech-spec-epic-1.md" title="Tech Spec Epic 1" section="Story 1.3 Acceptance Criteria (lines 1129-1140)">
+        Authoritative acceptance criteria list: AC1 (services start), AC2 (docker-compose.yml definition), AC3 (.dockerignore), AC4 (Dockerfile.dev), AC5 (service communication).
+      </doc>
+      <doc path="docs/sprint-artifacts/tech-spec-epic-1.md" title="Tech Spec Epic 1" section="Story Implementation Workflow (lines 682-704)">
+        Story 1.3 position in epic workflow: third step after project initialization and Supabase setup.
+      </doc>
+      <doc path="docs/epics/epic-1-foundation-development-infrastructure.md" title="Epic 1 Story Breakdown" section="Story 1.3">
+        Story overview: Docker Compose for local development, services (Next.js, Redis, Supabase), consistency across machines.
+      </doc>
+      <doc path="docs/archive/prd-creaitor-2025-11-18.md" title="PRD" section="NFR8: Deployment & DevOps">
+        Local development environment consistency requirement, Docker-based containerization.
+      </doc>
+      <doc path="docs/archive/prd-creaitor-2025-11-18.md" title="PRD" section="TA0: Technology Stack Decisions - Infrastructure">
+        Docker Compose usage for local development, infrastructure decisions.
+      </doc>
+      <doc path="docs/sprint-artifacts/1-2-supabase-project-setup-configuration.md" title="Previous Story" section="Dev Agent Record">
+        Story 1.2 learnings: Supabase CLI usage pattern, environment variables (.env.local), Supabase client files location.
+      </doc>
+    </docs>
+    <code>
+      <file path="package.json" kind="manifest" symbol="dependencies" reason="Core dependencies list: Next.js 15, Redis client (ioredis), BullMQ for job queue">
+        Dependencies include: next@^15.0.0, ioredis@^5.8.2, bullmq@^5.63.2. These are required for Docker Compose service configuration.
+      </file>
+      <file path="src/lib/supabase/server.ts" kind="service" symbol="createServerClient" reason="Supabase server client - used for Next.js → Supabase connection testing">
+        Server-side Supabase client singleton. Story 1.2 created this file. Story 1.3 needs to verify connection works in Docker environment.
+      </file>
+      <file path="src/app/api/test-db/route.ts" kind="api-route" symbol="GET" reason="Test API route for Supabase connectivity - reuse for Task 5 testing">
+        Existing test route from Story 1.2. Can be used to verify Next.js → Supabase connection in Docker Compose environment.
+      </file>
+      <file path="src/types/database.types.ts" kind="types" symbol="Database" reason="TypeScript types generated from Supabase schema">
+        Database types already generated in Story 1.2. No changes needed for Story 1.3.
+      </file>
+    </code>
+    <dependencies>
+      <ecosystem name="node">
+        <package name="next" version="^15.0.0"/>
+        <package name="ioredis" version="^5.8.2"/>
+        <package name="bullmq" version="^5.63.2"/>
+        <package name="@supabase/supabase-js" version="^2.83.0"/>
+        <package name="@supabase/ssr" version="^0.7.0"/>
+      </ecosystem>
+      <ecosystem name="docker">
+        <package name="node" version="20-alpine"/>
+        <package name="redis" version="7-alpine"/>
+      </ecosystem>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint type="architecture-pattern">
+      <name>Docker Setup Pattern</name>
+      <description>Development docker-compose.yml should follow production docker-compose.prod.yml patterns (network, volumes, service dependencies) but simplified for local dev (no worker service, optional supabase-db).</description>
+      <source>docs/architecture.md § Docker Setup (lines 1374-1435)</source>
+    </constraint>
+    <constraint type="service-communication">
+      <name>Service Name Resolution</name>
+      <description>Next.js → Redis: Use service name 'redis' in REDIS_URL (redis://redis:6379) for Docker network resolution. Next.js → Supabase: Use environment variable NEXT_PUBLIC_SUPABASE_URL (localhost:54321 for Supabase CLI or service name if containerized).</description>
+      <source>docs/sprint-artifacts/1-3-docker-compose-environment-setup.md § Service Communication Pattern (lines 168-171)</source>
+    </constraint>
+    <constraint type="supabase-integration">
+      <name>Supabase CLI Strategy</name>
+      <description>Use Supabase CLI (npx supabase start) outside Docker Compose (Option A). Pros: Simpler setup, Supabase Studio accessible (port 54323), easier migration workflow. Story 1.2 already established this pattern.</description>
+      <source>docs/sprint-artifacts/1-3-docker-compose-environment-setup.md § Supabase Integration Strategy (lines 173-180)</source>
+    </constraint>
+    <constraint type="hot-reload">
+      <name>Volume Mounts for Hot Reload</name>
+      <description>Mount ./src:/app/src for Next.js hot reload. Also mount package.json and package-lock.json for consistency. Package changes require container restart.</description>
+      <source>docs/sprint-artifacts/1-3-docker-compose-environment-setup.md § Volume Mounts for Hot Reload (lines 182-185)</source>
+    </constraint>
+    <constraint type="environment-variables">
+      <name>Environment Variable Injection</name>
+      <description>Use env_file: .env.local in docker-compose.yml (not copying into image). .env.local must not be in .dockerignore (secrets handled via env_file).</description>
+      <source>docs/sprint-artifacts/1-3-docker-compose-environment-setup.md § Dev Notes (line 273)</source>
+    </constraint>
+    <constraint type="testing">
+      <name>Testing Strategy</name>
+      <description>No unit tests (infrastructure setup, no business logic). Integration tests: Service connectivity tests (~70% coverage target). Manual testing checklist required.</description>
+      <source>docs/sprint-artifacts/1-3-docker-compose-environment-setup.md § Testing Strategy (lines 187-199)</source>
+    </constraint>
+  </constraints>
+
+  <interfaces>
+    <interface name="Docker Compose Services" kind="service-definition" signature="docker-compose.yml services: next-app, redis">
+      <path>docker-compose.yml</path>
+      <description>Service definitions with build context, ports, volumes, environment variables, dependencies, networks.</description>
+    </interface>
+    <interface name="Next.js → Redis Connection" kind="connection-string" signature="REDIS_URL=redis://redis:6379">
+      <path>.env.local</path>
+      <description>Redis connection using Docker service name 'redis' for network resolution.</description>
+    </interface>
+    <interface name="Next.js → Supabase Connection" kind="environment-variable" signature="NEXT_PUBLIC_SUPABASE_URL">
+      <path>.env.local</path>
+      <description>Supabase connection URL (localhost:54321 for Supabase CLI or service name if containerized).</description>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Integration tests for service connectivity. Manual testing checklist for docker-compose up workflow. No unit tests (infrastructure setup, no business logic). Coverage target: ~70% for integration tests.
+    </standards>
+    <locations>
+      <location>tests/integration/docker-services.test.ts</location>
+      <location>Manual testing checklist in story file</location>
+    </locations>
+    <ideas>
+      <test ac="1" type="integration">Test docker-compose up starts all services successfully (next-app, redis). Verify ports 3000 and 6379 are accessible.</test>
+      <test ac="2" type="integration">Test docker-compose.yml service definitions: volume mounts, environment variables, network configuration, service dependencies.</test>
+      <test ac="3" type="manual">Verify .dockerignore excludes node_modules, .next, .git. Test docker build skips excluded files.</test>
+      <test ac="4" type="integration">Test Dockerfile.dev builds successfully. Verify Node.js 20 Alpine base image, working directory, port exposure.</test>
+      <test ac="5" type="integration">Test Next.js → Redis connection: Create test API route GET /api/test-redis, use ioredis to connect to redis://redis:6379, test SET/GET operations. Test Next.js → Supabase connection: Use existing /api/test-db route, verify Supabase client connects successfully.</test>
+    </ideas>
+  </tests>
+</story-context>
+
