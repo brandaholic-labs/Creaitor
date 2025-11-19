@@ -1,6 +1,6 @@
 # Story 1.1: Project Initialization & Core Dependencies
 
-Status: drafted
+Status: ready-for-dev
 
 ## Story
 
@@ -226,7 +226,7 @@ Ez az Epic 1 első story-ja, tehát nincs előző story, amelyből tanulhatnánk
 
 ### Context Reference
 
-<!-- Path(s) to story context XML will be added here by context workflow -->
+- Story Context: docs/sprint-artifacts/1-1-project-initialization-core-dependencies.context.xml
 
 ### Agent Model Used
 
@@ -243,3 +243,7 @@ Ez az Epic 1 első story-ja, tehát nincs előző story, amelyből tanulhatnánk
 ### File List
 
 <!-- File list (NEW/MODIFIED/DELETED) will be added after implementation -->
+
+## Change Log
+
+<!-- Track changes to this story during implementation -->
