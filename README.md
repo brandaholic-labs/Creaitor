@@ -1,0 +1,90 @@
+# Creaitor
+
+AI-powered social media content management platform for agencies managing multiple client brands on Facebook and Instagram.
+
+## Prerequisites
+
+- Node.js 20 LTS or later
+- Docker and Docker Compose (for local Redis and Supabase)
+- Supabase CLI (`npx supabase`)
+
+## Installation
+
+1. Clone the repository:
+```bash
+git clone https://github.com/your-org/creaitor.git
+cd creaitor
+```
+
+2. Install dependencies:
+```bash
+npm install
+```
+
+3. Set up environment variables:
+```bash
+cp .env.example .env.local
+```
+
+Edit `.env.local` with your configuration (Supabase URLs, API keys, etc.)
+
+## Development
+
+Start the Next.js development server:
+
+```bash
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+### Project Structure
+
+```
+src/
+├── app/              # Next.js App Router (routing, pages, API routes)
+├── components/       # UI components (Shadcn UI + custom)
+│   └── ui/           # Shadcn UI base components
+├── lib/              # Shared utilities and helpers
+│   └── utils.ts      # Utility functions (cn, etc.)
+├── services/         # Business logic services (AI, Meta, etc.)
+└── types/            # TypeScript type definitions
+```
+
+## Testing
+
+Testing infrastructure will be set up in Story 1.4.
+
+```bash
+# Placeholder for future testing commands
+npm run test
+npm run test:e2e
+```
+
+## Building for Production
+
+```bash
+npm run build
+npm run start
+```
+
+## Contributing
+
+1. Create a feature branch from `main`
+2. Make your changes following the coding standards
+3. Run tests and linting
+4. Submit a pull request
+
+## Tech Stack
+
+- **Framework:** Next.js 15 (App Router) with TypeScript
+- **Styling:** Tailwind CSS v4 + Shadcn UI
+- **Database:** Supabase (PostgreSQL + Auth + Storage)
+- **State:** Zustand + React Query
+- **AI:** OpenAI GPT-4 + Anthropic Claude 3.5
+- **Background Jobs:** BullMQ + Redis (P1)
+- **Logging:** Winston
+
+## License
+
+Proprietary - All rights reserved

@@ -60,6 +60,12 @@ yarn-error.log*
 .yarn/build-state.yml
 .yarn/install-state.gz
 
+# Next.js
+.next/
+next-env.d.ts
+tsconfig.tsbuildinfo
+*.tsbuildinfo
+
 # Environment variables
 .env
 .env.local
