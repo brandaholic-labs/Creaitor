@@ -1,4 +1,4 @@
-# generated: 2025-11-18
+# generated: 2025-11-19
 # project: creaitor
 # project_key: creaitor
 # tracking_system: file-system
@@ -29,42 +29,79 @@
 # - SM typically drafts next story after previous one is 'done' to incorporate learnings
 # - Dev moves story to 'review', SM reviews, then Dev moves to 'done'
 
-generated: 2025-11-18
-project: Creaitor
+generated: 2025-11-19
+project: creaitor
 project_key: creaitor
 tracking_system: file-system
 story_location: docs/sprint-artifacts
 
 development_status:
-  # Epic 1: Multi-Tenant Alaprendszer
+  # Epic 1: Foundation & Development Infrastructure
   epic-1: backlog
+  1-1-project-initialization-core-dependencies: backlog
+  1-2-supabase-project-setup-configuration: backlog
+  1-3-docker-compose-environment-setup: backlog
+  1-4-test-infrastructure-setup-jest-playwright: backlog
+  1-5-winston-logging-infrastructure: backlog
+  1-6-caddy-reverse-proxy-configuration: backlog
+  1-7-cicd-pipeline-setup-github-actions: backlog
   epic-1-retrospective: optional
 
-  # Epic 2: Brand Brain v1
+  # Epic 2: Multi-Tenant Authentication & Authorization
   epic-2: backlog
+  2-1-agency-registration-onboarding: backlog
+  2-2-user-login-session-management: backlog
+  2-3-row-level-security-rls-policies-setup: backlog
+  2-4-user-invite-team-management: backlog
+  2-5-user-profile-settings: backlog
   epic-2-retrospective: optional
 
-  # Epic 3: AI Copy Studio
+  # Epic 3: Brand Management & Brand Brain
   epic-3: backlog
+  3-1-brand-creation-basic-information: backlog
+  3-2-meta-facebook-instagram-profile-oauth-connection: backlog
+  3-3-brand-brain-editor-reference-posts: backlog
+  3-4-brand-brain-editor-tone-of-voice-tov: backlog
+  3-5-brand-brain-editor-key-messages: backlog
+  3-6-brand-brain-editor-visual-direction: backlog
+  3-7-brand-brain-baseline-validation: backlog
   epic-3-retrospective: optional
 
-  # Epic 4: AI Visual Studio
+  # Epic 4: AI-Powered Content Generation
   epic-4: backlog
+  4-1-ai-copy-studio-ui-post-brief-input: backlog
+  4-2-llm-service-integration-dual-provider: backlog
+  4-3-post-generation-multi-variant-output: backlog
+  4-4-inline-post-editor-character-counter: backlog
+  4-5-mandatory-usability-rating-fr03: backlog
+  4-6-image-upload-management-fr41: backlog
+  4-7-post-regeneration-iteration: backlog
   epic-4-retrospective: optional
 
-  # Epic 5: Content Calendar
+  # Epic 5: Content Calendar & Scheduling System
   epic-5: backlog
+  5-1-weekly-calendar-grid-view: backlog
+  5-2-post-status-state-machine: backlog
+  5-3-scheduling-interface-timezone-handling: backlog
+  5-4-drag-drop-post-rescheduling-p1-optional: backlog
+  5-5-post-quick-actions-in-calendar: backlog
   epic-5-retrospective: optional
 
-  # Epic 6: Approval Workflow
+  # Epic 6: Approval & Publishing Pipeline
   epic-6: backlog
+  6-1-pseudo-approval-workflow-fr61: backlog
+  6-2-meta-oauth-pageaccount-connection: backlog
+  6-3-facebook-page-publishing: backlog
+  6-4-instagram-account-publishing: backlog
+  6-5-bullmq-job-queue-background-workers: backlog
+  6-6-publish-result-tracking-user-notification: backlog
   epic-6-retrospective: optional
 
-  # Epic 7: Publishing & Scheduling
+  # Epic 7: Analytics & Instrumentation
   epic-7: backlog
+  7-1-winston-backend-event-logging: backlog
+  7-2-usability-rating-data-storage: backlog
+  7-3-usage-event-tracking-table: backlog
+  7-4-basic-pilot-metrics-dashboard: backlog
+  7-5-pilot-data-export-csv: backlog
   epic-7-retrospective: optional
-
-  # Epic 8: Basic Insights & Usage Tracking (Instrumentation)
-  epic-8: backlog
-  epic-8-retrospective: optional
-
