@@ -6,7 +6,7 @@ AI-powered social media content management platform for agencies managing multip
 
 - Node.js 20 LTS or later
 - Docker and Docker Compose (for local Redis and Supabase)
-- Supabase CLI (`npx supabase`)
+- Supabase CLI (installed via npm as dev dependency)
 
 ## Installation
 
@@ -21,22 +21,64 @@ cd creaitor
 npm install
 ```
 
-3. Set up environment variables:
+3. Set up Supabase local development:
+```bash
+# Initialize Supabase (if not already done)
+npx supabase init
+
+# Start Supabase local services (PostgreSQL, Auth, Storage, Studio)
+npx supabase start
+
+# Get connection details
+npx supabase status
+```
+
+4. Set up environment variables:
 ```bash
 cp .env.example .env.local
 ```
 
-Edit `.env.local` with your configuration (Supabase URLs, API keys, etc.)
+Edit `.env.local` with your Supabase connection details from `npx supabase status`:
+- `NEXT_PUBLIC_SUPABASE_URL` - API URL (local: http://127.0.0.1:54321)
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Publishable key (safe for client-side)
+- `SUPABASE_SERVICE_ROLE_KEY` - Secret key (server-side only, SECRET)
+
+5. Apply database migrations:
+```bash
+npx supabase migration up
+```
+
+6. Generate TypeScript types from database schema:
+```bash
+npx supabase gen types typescript --local > src/types/database.types.ts
+```
 
 ## Development
 
-Start the Next.js development server:
+### Starting Services
 
+1. Start Supabase local services:
+```bash
+npx supabase start
+```
+
+2. Start the Next.js development server:
 ```bash
 npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+### Supabase Commands
+
+- **Start Supabase:** `npx supabase start`
+- **Stop Supabase:** `npx supabase stop`
+- **Reset database:** `npx supabase db reset` (applies all migrations and seed data)
+- **Check status:** `npx supabase status`
+- **Create migration:** `npx supabase migration new <name>`
+- **Apply migrations:** `npx supabase migration up`
+- **Generate types:** `npx supabase gen types typescript --local > src/types/database.types.ts`
+- **Open Studio:** http://localhost:54323 (Supabase Studio dashboard)
 
 ### Project Structure
 
