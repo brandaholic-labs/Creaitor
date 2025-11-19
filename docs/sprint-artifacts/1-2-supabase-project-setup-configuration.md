@@ -1,6 +1,6 @@
 # Story 1.2: Supabase Project Setup & Configuration
 
-Status: drafted
+Status: ready-for-dev
 
 ## Story
 
@@ -281,6 +281,9 @@ Story 1.1 successfully established the Next.js 15 project foundation. Key learni
 - [Source: docs/sprint-artifacts/tech-spec-epic-1.md § Data Models and Contracts (lines 182-320)] - Complete database schema with constraints
 - [Source: docs/sprint-artifacts/tech-spec-epic-1.md § Test Strategy Summary (line 1417)] - Story 1.2 testing approach (~70% coverage target)
 
+**Testing Strategy:**
+- [Source: docs/test-design-system.md § Teszt Szintek Stratégia (lines 23-26)] - Test coverage targets (40% unit, 30% integration, 30% E2E) and testing approach
+
 **PRD Requirements:**
 - [Source: docs/prd-creaitor-2025-11-18/ta2-technology-stack-decisions-p0.md § TA2.2 Backend Stack] - Supabase PostgreSQL + Auth + Storage
 - [Source: docs/prd-creaitor-2025-11-18/ta3-data-model-single-source-of-truth.md § TA3.1 Core Entities] - Database schema requirements
@@ -296,7 +299,7 @@ Story 1.1 successfully established the Next.js 15 project foundation. Key learni
 
 ### Context Reference
 
-<!-- Path(s) to story context XML will be added here by context workflow -->
+- docs/sprint-artifacts/1-2-supabase-project-setup-configuration.context.xml
 
 ### Agent Model Used
 
