@@ -1,0 +1,70 @@
+# generated: 2025-11-18
+# project: creaitor
+# project_key: creaitor
+# tracking_system: file-system
+# story_location: docs/sprint-artifacts
+
+# STATUS DEFINITIONS:
+# ==================
+# Epic Status:
+#   - backlog: Epic exists in epic file but not contexted
+#   - contexted: Epic tech context created (required before drafting stories)
+#
+# Story Status:
+#   - backlog: Story only exists in epic file
+#   - drafted: Story file created in stories folder
+#   - ready-for-dev: Draft approved and story context created
+#   - in-progress: Developer actively working on implementation
+#   - review: Under SM review (via code-review workflow)
+#   - done: Story completed
+#
+# Retrospective Status:
+#   - optional: Can be completed but not required
+#   - completed: Retrospective has been done
+#
+# WORKFLOW NOTES:
+# ===============
+# - Epics should be 'contexted' before stories can be 'drafted'
+# - Stories can be worked in parallel if team capacity allows
+# - SM typically drafts next story after previous one is 'done' to incorporate learnings
+# - Dev moves story to 'review', SM reviews, then Dev moves to 'done'
+
+generated: 2025-11-18
+project: Creaitor
+project_key: creaitor
+tracking_system: file-system
+story_location: docs/sprint-artifacts
+
+development_status:
+  # Epic 1: Multi-Tenant Alaprendszer
+  epic-1: backlog
+  epic-1-retrospective: optional
+
+  # Epic 2: Brand Brain v1
+  epic-2: backlog
+  epic-2-retrospective: optional
+
+  # Epic 3: AI Copy Studio
+  epic-3: backlog
+  epic-3-retrospective: optional
+
+  # Epic 4: AI Visual Studio
+  epic-4: backlog
+  epic-4-retrospective: optional
+
+  # Epic 5: Content Calendar
+  epic-5: backlog
+  epic-5-retrospective: optional
+
+  # Epic 6: Approval Workflow
+  epic-6: backlog
+  epic-6-retrospective: optional
+
+  # Epic 7: Publishing & Scheduling
+  epic-7: backlog
+  epic-7-retrospective: optional
+
+  # Epic 8: Basic Insights & Usage Tracking (Instrumentation)
+  epic-8: backlog
+  epic-8-retrospective: optional
+
