@@ -1,0 +1,158 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>1</epicId>
+    <storyId>1</storyId>
+    <title>Project Initialization &amp; Core Dependencies</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-19</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/sprint-artifacts/1-1-project-initialization-core-dependencies.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>developer</asA>
+    <iWant>Next.js 15 project initialized with TypeScript, Tailwind CSS, and core dependencies</iWant>
+    <soThat>we have a standardized development environment for all team members</soThat>
+    <tasks>
+      - Task 1: Next.js projekt inicializálás (AC: #1) - 5 subtasks
+      - Task 2: Shadcn UI setup (AC: #2) - 4 subtasks
+      - Task 3: Core dependencies telepítése (AC: #2) - 9 subtasks
+      - Task 4: Project mappa struktúra létrehozása (AC: #3) - 5 subtasks
+      - Task 5: README.md létrehozása (AC: #4) - 6 subtasks
+      - Task 6: Validálás és clean-up (AC: #1, #2, #3, #4) - 5 subtasks
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    AC1: Next.js 15 projekt létrehozva App Router-rel, TypeScript strict mode-dal, Tailwind CSS-sel, ESLint-tel, src/ directory structure-rel
+
+    AC2: Core dependencies telepítve package.json-ban:
+    - Framework: Next.js 15, React 18, TypeScript 5.x
+    - Styling: Tailwind CSS 3.x (vagy 4.0 ha stable)
+    - UI Components: Shadcn UI komponensek (@radix-ui/*)
+    - Backend/Database: Supabase client (@supabase/supabase-js, @supabase/ssr)
+    - Background Jobs: BullMQ + ioredis
+    - Logging: Winston + winston-daily-rotate-file
+    - Validation: Zod
+    - State Management: Zustand
+    - Data Fetching: @tanstack/react-query
+    - Utilities: date-fns, date-fns-tz, clsx, tailwind-merge
+
+    AC3: Project folder structure követi az Architecture konvenciókat:
+    src/app/ (Next.js App Router)
+    src/components/ (UI komponensek)
+    src/lib/ (Shared utilities)
+    src/services/ (Business logic services)
+    src/types/ (TypeScript type definitions)
+
+    AC4: README.md létezik setup instrukcióval (Prerequisites, Installation, Development, Testing, Environment variables)
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/sprint-artifacts/tech-spec-epic-1.md</path>
+        <title>Epic Technical Specification: Foundation &amp; Development Infrastructure</title>
+        <section>Story 1.1 Acceptance Criteria</section>
+        <snippet>Authoritative AC lista Story 1.1-hez. AC1: Next.js 15 projekt létrehozva App Router-rel, TypeScript strict mode-dal. AC2: package.json tartalmazza a core dependencies-t (Next.js 15, TypeScript 5.x, Tailwind CSS 3.x, Shadcn UI, Supabase, BullMQ, Winston, Zod, React Query, Zustand). AC3: Project folder structure követi az Architecture dokumentum konvencióit. AC4: README.md létezik setup instrukcióval.</snippet>
+      </doc>
+      <doc>
+        <path>docs/sprint-artifacts/tech-spec-epic-1.md</path>
+        <title>Epic Technical Specification: Foundation &amp; Development Infrastructure</title>
+        <section>NPM Dependencies</section>
+        <snippet>Teljes dependency lista verziókkal Story 1.1-hez. Core Framework: Next.js ^15.0.0, React ^18.3.0, TypeScript ^5.3.0. Supabase: @supabase/supabase-js ^2.39.0, @supabase/ssr ^0.1.0. Styling: Tailwind CSS ^4.0.0, autoprefixer, postcss. UI: @radix-ui komponensek (dialog, dropdown, slot), class-variance-authority, clsx, tailwind-merge. Logging: winston ^3.11.0, winston-daily-rotate-file ^5.0.0. Validation: zod ^3.22.4. Utilities: date-fns, date-fns-tz. State: @tanstack/react-query ^5.17.9, zustand ^4.4.7. Jobs: bullmq ^5.1.9, ioredis ^5.3.2.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Creaitor Architecture Document</title>
+        <section>Project Initialization (ADR-001)</section>
+        <snippet>Next.js 15 App Router választás indoklása: modern React framework Server Components-szel, built-in API routes-szal, TypeScript támogatással. A create-next-app parancs pontos szintaxisa: npx create-next-app@latest creaitor --typescript --tailwind --app --src-dir --eslint. TypeScript strict mode konfigurálása a tsconfig.json-ban type-safety biztosítására.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Creaitor Architecture Document</title>
+        <section>Project Structure</section>
+        <snippet>Mappa struktúra konvenciók: src/app/ (Next.js App Router routing és pages), src/components/ (UI komponensek Shadcn UI + custom), src/lib/ (Shared utilities, services, hooks), src/types/ (TypeScript type definitions). Path aliases: @/* → ./src/* a tsconfig.json-ban a clean imports-hoz.</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics/epic-1-foundation-development-infrastructure.md</path>
+        <title>Epic 1: Foundation &amp; Development Infrastructure</title>
+        <section>Story 1.1</section>
+        <snippet>As a developer, I want Next.js 15 project initialized with TypeScript, Tailwind CSS, and core dependencies, so that we have a standardized development environment for all team members. Technical Notes: Use npx create-next-app@latest with specific flags (--typescript --tailwind --app --src-dir --eslint), install Shadcn UI with npx shadcn-ui@latest init, configure TypeScript strict mode in tsconfig.json, set up path aliases (@/ for src/).</snippet>
+      </doc>
+      <doc>
+        <path>docs/prd-creaitor-2025-11-18/nfr6-maintainability-karbantarthatsg.md</path>
+        <title>NFR6: Maintainability</title>
+        <section>NFR6.1 Code Quality &amp; NFR6.2 Documentation</section>
+        <snippet>P0 code quality: ESLint/Prettier auto-format with pre-commit hooks, TypeScript strict mode for all .ts/.tsx files. P0 documentation: README.md with setup instructions (local dev environment, environment variables), .env.example with all required variables and example values, inline code comments for complex logic and non-obvious decisions.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <!-- No existing code - this is the first story (project initialization) -->
+    </code>
+    <dependencies>
+      <node>
+        <framework name="Next.js" version="^15.0.0" />
+        <framework name="React" version="^18.3.0" />
+        <language name="TypeScript" version="^5.3.0" />
+        <styling name="Tailwind CSS" version="^4.0.0" />
+        <styling name="autoprefixer" version="^10.4.16" />
+        <styling name="postcss" version="^8.4.32" />
+        <ui name="@radix-ui/react-dialog" version="^1.0.5" />
+        <ui name="@radix-ui/react-dropdown-menu" version="^2.0.6" />
+        <ui name="@radix-ui/react-slot" version="^1.0.2" />
+        <ui name="class-variance-authority" version="^0.7.0" />
+        <ui name="clsx" version="^2.1.0" />
+        <ui name="tailwind-merge" version="^2.2.0" />
+        <database name="@supabase/supabase-js" version="^2.39.0" />
+        <database name="@supabase/ssr" version="^0.1.0" />
+        <logging name="winston" version="^3.11.0" />
+        <logging name="winston-daily-rotate-file" version="^5.0.0" />
+        <validation name="zod" version="^3.22.4" />
+        <utilities name="date-fns" version="^3.0.6" />
+        <utilities name="date-fns-tz" version="^2.0.0" />
+        <state name="@tanstack/react-query" version="^5.17.9" />
+        <state name="zustand" version="^4.4.7" />
+        <jobs name="bullmq" version="^5.1.9" />
+        <jobs name="ioredis" version="^5.3.2" />
+        <devDep name="@types/node" version="^20.10.6" />
+      </node>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    - Framework Constraint: MUST use Next.js 15 App Router (not Pages Router). The --app flag in create-next-app ensures App Router structure.
+    - TypeScript Constraint: MUST enable strict mode in tsconfig.json for type safety across the entire stack.
+    - Path Aliases: MUST configure "@/*" alias pointing to "./src/*" in tsconfig.json for clean imports (e.g., import { Button } from '@/components/ui/button').
+    - Dependency Versions: Core dependencies (Next.js, React, Supabase) use EXACT versions. Utility libraries (date-fns, zod) use CARET versions (^) allowing patch and minor updates.
+    - Lock File: package-lock.json MUST be committed to ensure exact dependency tree locking across environments.
+    - Project Structure: MUST follow Architecture conventions - src/app/, src/components/, src/lib/, src/services/, src/types/ directories.
+    - Shadcn UI Setup: MUST run npx shadcn-ui@latest init and configure baseColor (neutral or slate) and cssVariables: true for design token support.
+  </constraints>
+
+  <interfaces>
+    <!-- No existing interfaces - this is the first story (project initialization) -->
+  </interfaces>
+
+  <tests>
+    <standards>
+      Story 1.1 testing follows Tech Spec § Test Strategy Summary. Unit tests for tsconfig validation and folder structure validation. Integration tests are not applicable for infrastructure setup. E2E tests are not applicable (no features yet). Manual testing checklist includes: TypeScript compilation with no errors (npx tsc --noEmit), ESLint passes (npm run lint), Next.js dev server starts successfully (npm run dev), Production build succeeds (npm run build). Test Coverage Target for Story 1.1: approximately 40% (Tech Spec § Test Coverage Targets).
+    </standards>
+    <locations>
+      tests/unit/ (for unit tests - to be created in Story 1.4)
+      tests/integration/ (for integration tests - to be created in Story 1.4)
+      tests/e2e/ (for E2E tests - to be created in Story 1.4)
+    </locations>
+    <ideas>
+      - AC1 Test: Validate tsconfig.json has strict: true and paths alias configured correctly (Unit test)
+      - AC1 Test: Verify src/app/, src/components/ directories exist after create-next-app (Unit test - file system check)
+      - AC2 Test: Validate package.json contains all required dependencies with correct version ranges (Unit test - JSON validation)
+      - AC3 Test: Verify project folder structure matches Architecture spec (Unit test - directory structure validation)
+      - AC4 Test: Verify README.md exists and contains required sections: Prerequisites, Installation, Development, Testing (Unit test - markdown parsing)
+      - Manual Test: Run 'npm run dev' and verify Next.js starts on http://localhost:3000 without errors
+      - Manual Test: Run 'npm run build' and verify production build completes successfully
+      - Manual Test: Run 'npx tsc --noEmit' and verify no TypeScript compilation errors
+      - Manual Test: Run 'npm run lint' and verify ESLint passes without errors
+    </ideas>
+  </tests>
+</story-context>
