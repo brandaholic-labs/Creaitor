@@ -435,7 +435,11 @@ Minden márkához strukturált "márka-agy" hozzuk létre és tároljuk:
    - Választhat stílust: Fotó / Illusztráció / Grafika
 
 2. **AI Képgenerálás Brand Vizuális Irány Alapján**
-   - Image generation API hívás (DALL-E, Midjourney API, Stable Diffusion)
+   - Image generation API hívás (Nano Banana - Gemini 2.5 Flash Image + Seedream 4.0 dual provider)
+   - **Architecture dokumentum:** ImageAIService intelligent routing:
+     - Character consistency → Nano Banana (Google Gemini)
+     - 4K resolution → Seedream (ByteDance)
+     - Automatic fallback ha egyik provider fail
    - Prompt tartalmazza:
      - Brand vizuális irány szövegét
      - Socialos koncepció leírását
@@ -818,9 +822,11 @@ Az MVP P0 feature-jeit **explicit módon kötjük a Learning Goals hipotézisekh
     - Notification
     - **Indok:** P0-ban elég self-approval vagy pseudo-approval. Multi-user review workflow production feature, nem hipotézis-kritikus.
 
-11. **AI Visual Studio (képgenerálás)** (P1 marad)
+11. **AI Visual Studio (képgenerálás)** (P1 prioritás, de Architecture teljes implementációt tartalmaz)
+    - **Architecture dokumentum:** Teljes ImageAIService definiálva (Nano Banana + Seedream dual provider, ai-image.queue.ts, ImageStudio React komponens)
     - **Alternatíva P0-ban:** Socialos feltölt saját képet
     - **Indok:** H1/H2 teszteléséhez kell AI copy, de képgenerálás opcionális. Ha nincs idő, v1.5-be.
+    - **Megjegyzés:** Az Architecture dokumentum teljes implementációt tartalmaz, de a prioritás (P0 vs P1) sprint planning során explicit döntésre vár.
 
 12. **Saját kép feltöltés + crop/resize**
     - Upload, drag&drop
@@ -914,8 +920,18 @@ Az alábbi lista minden MVP feature-nél megmutatja: **mi az abszolút P0 minimu
 
 #### 4. AI Visual Studio
 
+**Prioritás:** P1 (Should Have), de Architecture dokumentum teljes implementációt tartalmaz
+
+**Architecture dokumentum állapota:**
+- ✅ Teljes ImageAIService definiálva (Nano Banana + Seedream dual provider)
+- ✅ `POST /api/ai/image` endpoint
+- ✅ `ai-image.queue.ts` (BullMQ background job)
+- ✅ ImageStudio React komponens
+- ✅ Intelligent routing: character consistency → Nano Banana, 4K → Seedream
+
 **P1 Feature (nem P0):**
 - Ha nincs idő, P1-be. P0-ban elég, ha socialos feltölt saját képet.
+- **Megjegyzés:** Az Architecture dokumentum teljes implementációt tartalmaz, de a prioritás (P0 vs P1) sprint planning során explicit döntésre vár.
 
 **P0 Alternative (ha AI Visual nincs):**
 - Saját kép feltöltés (upload button)
@@ -1129,7 +1145,7 @@ Az alábbi lista minden MVP feature-nél megmutatja: **mi az abszolút P0 minimu
 | **Analytics/Insights** (poszt performance, engagement metrics) | Nem core value prop, Meta Business Suite megteszi | P2 - native analytics integration |
 | **Instagram Stories/Reels** (csak feed poszt P0) | Complexity magas, feed poszt validálja core workflow-t | P1 - ha feed workflow sikeres |
 | **TikTok/LinkedIn/Twitter integráció** | Meta (FB/IG) elég P0 validáláshoz | P1/P2 - platform expansion |
-| **AI image generation** (DALL-E, Midjourney) | Komplexitás magas, user upload + Cloudinary elég | P2 - ha core AI copy sikeres |
+| **AI image generation** (Nano Banana + Seedream) | Architecture dokumentum teljes implementációt tartalmaz, de prioritás P1 (sprint planning során döntés) | P1 - ha core AI copy sikeres |
 | **AI video generation** | Complexity very high, out of scope pilot-hoz | P2+ - jövőbeli feature |
 | **Team management** (role-based access, permissions) | Pilot: 1-2 user/ügynökség → admin/socialos elég | P1 - multi-user team-ek esetén |
 | **White-label / agency branding** | Nem core value prop pilot-hoz | P2 - enterprise feature |
@@ -1299,6 +1315,7 @@ A socialos össze szeretné állítani egy márka következő heti tartalomnapt�
 7. Képet ad hozzá:
    - P0: Saját kép feltöltése
    - P1: AI Visual Studio használata (képgenerálás)
+   - **Megjegyzés:** Az Architecture dokumentum teljes ImageAIService implementációt tartalmaz (Nano Banana + Seedream dual provider), de a prioritás sprint planning során dől el.
 8. **Használhatósági rating jelölés (P0):** Mentés/publish előtt a user jelöli, mennyire volt használható a generált szöveg ("Rendben, kisebb módosítással" / "Nagy átdolgozás" / "Nem használható")
 9. Poszt draft-ba mentése
 10. Folyamat ismétlése további posztokra
@@ -2121,7 +2138,8 @@ Rating opciók:
 - Formátum check (nem JPEG/PNG → error: "Csak JPEG és PNG formátum támogatott")
 
 **P1 - AI Visual Studio:**
-- Képgenerálás AI-val (DALL-E, Midjourney API)
+- Képgenerálás AI-val (Nano Banana - Gemini 2.5 Flash Image + Seedream 4.0 dual provider)
+- **Architecture dokumentum:** ImageAIService intelligent routing (character consistency → Nano Banana, 4K → Seedream)
 - Brand Visual Direction kontextussal
 - 2-3 képvariáns generálás
 

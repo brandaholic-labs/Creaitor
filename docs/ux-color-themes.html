@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Creaitor - Color Theme Explorer</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #fafafa;
+            color: #171717;
+            line-height: 1.625;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-size: 2.25rem;
+            font-weight: 700;
+            color: #171717;
+            margin-bottom: 0.5rem;
+            line-height: 1.25;
+        }
+
+        h2 {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #262626;
+            margin-top: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        h3 {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #404040;
+            margin-top: 2rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .subtitle {
+            font-size: 1.125rem;
+            color: #525252;
+            margin-bottom: 2rem;
+        }
+
+        .color-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .color-swatch {
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .color-swatch:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        }
+
+        .color-box {
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+
+        .color-info {
+            background: white;
+            padding: 0.75rem;
+            font-size: 0.75rem;
+        }
+
+        .color-name {
+            font-weight: 600;
+            color: #404040;
+            margin-bottom: 0.25rem;
+        }
+
+        .color-hex {
+            color: #737373;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Component Showcase */
+        .component-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 0.625rem 1.25rem;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 0.875rem;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            font-family: inherit;
+        }
+
+        .btn-primary {
+            background: #a855f7;
+            color: white;
+            box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+        }
+
+        .btn-primary:hover {
+            background: #9333ea;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #404040;
+            border: 1px solid #e5e5e5;
+        }
+
+        .btn-secondary:hover {
+            background: #f5f5f5;
+        }
+
+        .btn-ghost {
+            background: transparent;
+            color: #a855f7;
+        }
+
+        .btn-ghost:hover {
+            background: #faf5ff;
+        }
+
+        .card {
+            background: white;
+            border: 1px solid #e5e5e5;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+            transition: box-shadow 0.2s;
+        }
+
+        .card:hover {
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #262626;
+            margin-bottom: 0.5rem;
+        }
+
+        .card-text {
+            color: #525252;
+            font-size: 0.875rem;
+        }
+
+        .input {
+            width: 100%;
+            padding: 0.625rem 0.875rem;
+            border: 1px solid #d4d4d4;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-family: inherit;
+            transition: all 0.2s;
+        }
+
+        .input:focus {
+            outline: none;
+            border-color: #a855f7;
+            box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.1);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .badge-draft { background: #f5f5f5; color: #525252; }
+        .badge-approved { background: #f0fdf4; color: #16a34a; }
+        .badge-scheduled { background: #eff6ff; color: #2563eb; }
+        .badge-published { background: #ecfdf5; color: #059669; }
+        .badge-failed { background: #fef2f2; color: #dc2626; }
+
+        .demo-section {
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+        }
+
+        .badge-group {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+        }
+
+        .brand-logo {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: linear-gradient(135deg, #a855f7 0%, #7e22ce 100%);
+            color: white;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 10px 40px -10px rgba(168, 85, 247, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="brand-logo">
+            ✨ Creaitor
+        </div>
+
+        <h1>Color Theme Explorer</h1>
+        <p class="subtitle">Modern, Creative, Friendly - Purple/Violet alapú dizájn rendszer</p>
+
+        <!-- Brand Colors -->
+        <h2>🎨 Brand Colors (Purple/Violet)</h2>
+        <div class="color-grid">
+            <div class="color-swatch">
+                <div class="color-box" style="background: #faf5ff; color: #581c87;">50</div>
+                <div class="color-info">
+                    <div class="color-name">brand-50</div>
+                    <div class="color-hex">#faf5ff</div>
+                </div>
+            </div>
+            <div class="color-swatch">
+                <div class="color-box" style="background: #f3e8ff; color: #581c87;">100</div>
+                <div class="color-info">
+                    <div class="color-name">brand-100</div>
+                    <div class="color-hex">#f3e8ff</div>
+                </div>
+            </div>
+            <div class="color-swatch">
+                <div class="color-box" style="background: #e9d5ff; color: #581c87;">200</div>
+                <div class="color-info">
+                    <div class="color-name">brand-200</div>
+                    <div class="color-hex">#e9d5ff</div>
+                </div>
+            </div>
+            <div class="color-swatch">
+                <div class="color-box" style="background: #d8b4fe; color: #581c87;">300</div>
+                <div class="color-info">
+                    <div class="color-name">brand-300</div>
+                    <div class="color-hex">#d8b4fe</div>
+                </div>
+            </div>
+            <div class="color-swatch">
+                <div class="color-box" style="background: #c084fc; color: white;">400</div>
+                <div class="color-info">
+                    <div class="color-name">brand-400</div>
+                    <div class="color-hex">#c084fc</div>
+                </div>
+            </div>
+            <div class="color-swatch">
+                <div class="color-box" style="background: #a855f7; color: white;">500 ★</div>
+                <div class="color-info">
+                    <div class="color-name">brand-500 (PRIMARY)</div>
+                    <div class="color-hex">#a855f7</div>
+                </div>
+            </div>
+            <div class="color-swatch">
+                <div class="color-box" style="background: #9333ea; color: white;">600</div>
+                <div class="color-info">
+                    <div class="color-name">brand-600</div>
+                    <div class="color-hex">#9333ea</div>
+                </div>
+            </div>
+            <div class="color-swatch">
+                <div class="color-box" style="background: #7e22ce; color: white;">700</div>
+                <div class="color-info">
+                    <div class="color-name">brand-700</div>
+                    <div class="color-hex">#7e22ce</div>
+                </div>
+            </div>
+            <div class="color-swatch">
+                <div class="color-box" style="background: #6b21a8; color: white;">800</div>
+                <div class="color-info">
+                    <div class="color-name">brand-800</div>
+                    <div class="color-hex">#6b21a8</div>
+                </div>
+            </div>
+            <div class="color-swatch">
+                <div class="color-box" style="background: #581c87; color: white;">900</div>
+                <div class="color-info">
+                    <div class="color-name">brand-900</div>
+                    <div class="color-hex">#581c87</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Semantic Colors -->
+        <h2>✅ Semantic Colors</h2>
+        <div class="color-grid">
+            <div class="color-swatch">
+                <div class="color-box" style="background: #22c55e; color: white;">Success</div>
+                <div class="color-info">
+                    <div class="color-name">success-500</div>
+                    <div class="color-hex">#22c55e</div>
+                </div>
+            </div>
+            <div class="color-swatch">
+                <div class="color-box" style="background: #f59e0b; color: white;">Warning</div>
+                <div class="color-info">
+                    <div class="color-name">warning-500</div>
+                    <div class="color-hex">#f59e0b</div>
+                </div>
+            </div>
+            <div class="color-swatch">
+                <div class="color-box" style="background: #ef4444; color: white;">Error</div>
+                <div class="color-info">
+                    <div class="color-name">error-500</div>
+                    <div class="color-hex">#ef4444</div>
+                </div>
+            </div>
+            <div class="color-swatch">
+                <div class="color-box" style="background: #3b82f6; color: white;">Info</div>
+                <div class="color-info">
+                    <div class="color-name">info-500</div>
+                    <div class="color-hex">#3b82f6</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Typography -->
+        <div class="demo-section">
+            <h2>📝 Typography Samples</h2>
+            <h1 style="margin-top: 1rem;">Hero Heading (4xl)</h1>
+            <h2 style="margin-top: 1rem;">Section Heading (2xl)</h2>
+            <h3 style="margin-top: 1rem;">Card Title (xl)</h3>
+            <p style="margin-top: 1rem; font-size: 1rem; color: #525252;">
+                Body text (base) - A Creaitor egy AI-first, brand-központú social media tartalomkezelő platform
+                magyar ügynökségek számára. Modern, barátságos megjelenés kerekített sarkokkal és soft shadow-kal.
+            </p>
+            <p style="margin-top: 0.5rem; font-size: 0.875rem; color: #737373;">
+                Small text (sm) - Metadata, captions, secondary információk megjelenítésére.
+            </p>
+        </div>
+
+        <!-- Buttons -->
+        <div class="demo-section">
+            <h2>🔘 Button Variants</h2>
+            <div class="button-group">
+                <button class="btn btn-primary">Primary Button</button>
+                <button class="btn btn-secondary">Secondary Button</button>
+                <button class="btn btn-ghost">Ghost Button</button>
+            </div>
+            <p style="margin-top: 1rem; font-size: 0.875rem; color: #737373;">
+                Primary: Fő akciók (Generate, Publish, Save)<br>
+                Secondary: Másodlagos akciók (Cancel, Back)<br>
+                Ghost: Inline akciók (Edit, Delete, Regenerate)
+            </p>
+        </div>
+
+        <!-- Cards -->
+        <div class="demo-section">
+            <h2>🃏 Card Components</h2>
+            <div class="component-grid">
+                <div class="card">
+                    <div class="card-title">Brand Card</div>
+                    <div class="card-text">
+                        Fitness Studio XY<br>
+                        <span style="color: #a3a3a3;">5 scheduled posts</span>
+                    </div>
+                    <div class="button-group" style="margin-top: 1rem;">
+                        <button class="btn btn-primary" style="font-size: 0.75rem; padding: 0.5rem 0.875rem;">View Calendar</button>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-title">AI Copy Studio</div>
+                    <div class="card-text">
+                        Generálj márkahű FB/IG posztokat Brand Brain kontextussal.
+                    </div>
+                    <div class="button-group" style="margin-top: 1rem;">
+                        <button class="btn btn-ghost" style="font-size: 0.75rem; padding: 0.5rem 0.875rem;">Start Generating</button>
+                    </div>
+                </div>
+                <div class="card" style="border: 2px solid #a855f7; box-shadow: 0 10px 40px -10px rgba(168, 85, 247, 0.3);">
+                    <div class="card-title" style="color: #a855f7;">Active Brand</div>
+                    <div class="card-text">
+                        Currently selected brand workspace.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Inputs -->
+        <div class="demo-section">
+            <h2>📥 Input Fields</h2>
+            <div style="max-width: 400px;">
+                <label style="display: block; font-size: 0.875rem; font-weight: 500; color: #404040; margin-bottom: 0.5rem;">
+                    Brief / Poszt Ötlet
+                </label>
+                <input type="text" class="input" placeholder="Pl. Húsvéti akció desszertekre..." />
+
+                <label style="display: block; font-size: 0.875rem; font-weight: 500; color: #404040; margin-top: 1rem; margin-bottom: 0.5rem;">
+                    Tone of Voice
+                </label>
+                <textarea class="input" rows="3" placeholder="Barátságos, közvetlen, nem túl formális..."></textarea>
+            </div>
+        </div>
+
+        <!-- Badges -->
+        <div class="demo-section">
+            <h2>🏷️ Status Badges</h2>
+            <div class="badge-group">
+                <span class="badge badge-draft">Draft</span>
+                <span class="badge badge-approved">Approved</span>
+                <span class="badge badge-scheduled">Scheduled</span>
+                <span class="badge badge-published">Published</span>
+                <span class="badge badge-failed">Failed</span>
+            </div>
+            <p style="margin-top: 1rem; font-size: 0.875rem; color: #737373;">
+                Poszt státuszok a Content Calendar-ban és Approval workflow-ban.
+            </p>
+        </div>
+
+        <!-- Layout Example -->
+        <div class="demo-section">
+            <h2>📐 Layout Example: Brand Selector + Content</h2>
+            <div style="display: grid; grid-template-columns: 250px 1fr; gap: 1.5rem; margin-top: 1rem;">
+                <!-- Sidebar -->
+                <div style="background: #fafafa; border-right: 1px solid #e5e5e5; padding: 1rem; border-radius: 12px;">
+                    <div style="font-size: 0.75rem; font-weight: 600; color: #737373; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.75rem;">
+                        Your Brands
+                    </div>
+                    <div style="background: linear-gradient(135deg, #a855f7 0%, #7e22ce 100%); color: white; padding: 0.75rem; border-radius: 8px; margin-bottom: 0.5rem; box-shadow: 0 4px 6px -1px rgba(168, 85, 247, 0.3);">
+                        <div style="font-weight: 600;">Fitness Studio XY</div>
+                        <div style="font-size: 0.75rem; opacity: 0.9;">Active</div>
+                    </div>
+                    <div style="background: white; border: 1px solid #e5e5e5; padding: 0.75rem; border-radius: 8px; margin-bottom: 0.5rem; cursor: pointer;">
+                        <div style="font-weight: 500; color: #404040;">Bakery Budapest</div>
+                        <div style="font-size: 0.75rem; color: #a3a3a3;">3 scheduled</div>
+                    </div>
+                    <div style="background: white; border: 1px solid #e5e5e5; padding: 0.75rem; border-radius: 8px; cursor: pointer;">
+                        <div style="font-weight: 500; color: #404040;">E-shop Ruha</div>
+                        <div style="font-size: 0.75rem; color: #a3a3a3;">7 scheduled</div>
+                    </div>
+                </div>
+
+                <!-- Main Content -->
+                <div>
+                    <div style="background: white; border-radius: 12px; border: 1px solid #e5e5e5; padding: 1.5rem;">
+                        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem;">
+                            <div style="width: 8px; height: 8px; background: #a855f7; border-radius: 50%;"></div>
+                            <h3 style="margin: 0;">Fitness Studio XY - Content Calendar</h3>
+                        </div>
+                        <div class="component-grid">
+                            <div class="card">
+                                <div style="display: flex; justify-content: between; align-items: start; margin-bottom: 0.5rem;">
+                                    <span class="badge badge-scheduled">Scheduled</span>
+                                    <span style="font-size: 0.75rem; color: #a3a3a3;">Jan 20, 10:00</span>
+                                </div>
+                                <div class="card-title" style="font-size: 1rem;">Reggeli Workout Tippek</div>
+                                <div class="card-text">
+                                    Platform: Facebook
+                                </div>
+                            </div>
+                            <div class="card">
+                                <div style="display: flex; justify-content: between; align-items: start; margin-bottom: 0.5rem;">
+                                    <span class="badge badge-draft">Draft</span>
+                                </div>
+                                <div class="card-title" style="font-size: 1rem;">Új Órarend 2025</div>
+                                <div class="card-text">
+                                    Platform: Instagram
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div style="margin-top: 4rem; padding-top: 2rem; border-top: 1px solid #e5e5e5; text-align: center; color: #737373; font-size: 0.875rem;">
+            <p>✨ Creaitor UX Design Specification - Generated by Sally (BMAD UX Designer Agent)</p>
+            <p style="margin-top: 0.5rem;">Modern, Creative, Friendly - Purple/Violet Color System</p>
+        </div>
+    </div>
+</body>
+</html>

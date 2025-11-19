@@ -30,15 +30,13 @@ workflow_status:
 
   # Phase 1: Planning
   prd: docs/prd-creaitor-2025-11-18.md  # agent: pm (completed)
-  validate-prd: optional  # agent: pm
-  create-design: conditional  # agent: ux-designer
+  create-design: docs/ux-design-specification.md  # agent: ux-designer (completed - retrospective post-architecture)
 
   # Phase 2: Solutioning
   create-architecture: docs/architecture.md  # agent: architect (completed)
-  test-design: recommended  # agent: tea
-  validate-architecture: optional  # agent: architect
-  solutioning-gate-check: required  # agent: architect
+  test-design: docs/test-design-system.md  # agent: tea (completed)
+  solutioning-gate-check: docs/implementation-readiness-report-2025-11-18.md  # agent: architect (completed)
 
   # Phase 3: Implementation
-  sprint-planning: required  # agent: sm
+  sprint-planning: docs/sprint-status.yaml  # agent: sm (completed)
 
