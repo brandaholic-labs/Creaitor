@@ -284,7 +284,7 @@ Story 1.3 successfully established Docker Compose environment. Key learnings for
 - [Source: docs/archive/prd-creaitor-2025-11-18.md § TA5: Testing Strategy] - Jest + Playwright test framework setup
 
 **Test Design Document:**
-- [Source: docs/test-design-system.md] - Test strategy, coverage targets, test pyramid approach
+- [Source: docs/test-design-system.md § Teszt Szintek Stratégia] - Test strategy, coverage targets, test pyramid approach
 
 **Previous Story:**
 - [Source: docs/sprint-artifacts/1-3-docker-compose-environment-setup.md] - Story 1.3 implementation learnings
@@ -304,4 +304,8 @@ Story 1.3 successfully established Docker Compose environment. Key learnings for
 ### Completion Notes List
 
 ### File List
+
+## Change Log
+
+- **2025-11-19:** Story drafted by SM agent (Bob)
 
