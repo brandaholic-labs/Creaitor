@@ -1,6 +1,6 @@
 # Story 1.3: Docker Compose Environment Setup
 
-Status: drafted
+Status: ready-for-dev
 
 ## Story
 
@@ -307,7 +307,7 @@ Story 1.2 successfully established Supabase infrastructure. Key learnings for St
 
 ### Context Reference
 
-<!-- Path(s) to story context XML will be added here by context workflow -->
+- `docs/sprint-artifacts/1-3-docker-compose-environment-setup.context.xml` (generated: 2025-11-19)
 
 ### Agent Model Used
 
