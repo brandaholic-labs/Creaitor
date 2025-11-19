@@ -1,6 +1,6 @@
 # Story 1.4: Test Infrastructure Setup (Jest + Playwright)
 
-Status: drafted
+Status: ready-for-dev
 
 ## Story
 
@@ -293,7 +293,7 @@ Story 1.3 successfully established Docker Compose environment. Key learnings for
 
 ### Context Reference
 
-<!-- Path(s) to story context XML will be added here by context workflow -->
+- docs/sprint-artifacts/1-4-test-infrastructure-setup-jest-playwright.context.xml
 
 ### Agent Model Used
 
