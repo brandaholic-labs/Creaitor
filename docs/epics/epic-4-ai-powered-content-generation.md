@@ -39,6 +39,38 @@ So that **AI can generate relevant copy for my brand**.
 - Brief placeholder examples shown
 - Platform choice affects AI prompt (FB: longer copy, IG: shorter + emoji-friendly)
 
+**Frontend Components:**
+- AI Copy Studio page: `/brands/{brandId}/ai-copy` route (src/app/brands/[brandId]/ai-copy/page.tsx)
+- PostBriefForm component (src/components/ai-copy/PostBriefForm.tsx)
+  - Shadcn UI: Form, Textarea, Select, Button components
+  - Post brief textarea (50-500 chars)
+  - Platform selector (Facebook or Instagram)
+  - Content type dropdown (Termékbemutató, Akció, Tipp, Insight, Entertaining)
+  - Brief placeholder examples
+  - Form validation (minimum 10 characters)
+- BrandBrainContextPreview component (src/components/ai-copy/BrandBrainContextPreview.tsx)
+  - Shadcn UI: Card, Badge components
+  - Brand name display
+  - TOV summary (first 100 chars)
+  - Key messages list
+- GenerateButton component (src/components/ai-copy/GenerateButton.tsx)
+  - Shadcn UI: Button component
+  - Disabled if Brand Brain incomplete
+  - Tooltip with requirements if disabled
+
+**Backend Components:**
+- API route: GET /api/brands/{brandId}/brand-brain/context
+  - Returns Brand Brain context (TOV, key messages, reference posts)
+  - Used for context preview
+- Brand Brain validation check (brand_brain_status)
+
+**Tests:**
+- E2E test: AI Copy Studio page loads with Brand Brain context preview
+- E2E test: Generate button disabled if Brand Brain incomplete
+- E2E test: Form validation (brief minimum 10 characters)
+- E2E test: Platform selector affects UI
+- Integration test: Brand Brain context API call
+
 ---
 
 ## Story 4.2: LLM Service Integration (Dual Provider)
@@ -86,6 +118,28 @@ So that **we have reliability and can fallback if primary provider fails**.
 - Timeout: 8 seconds primary, 8 seconds fallback
 - Log AI calls with logAICall() (Winston)
 
+**Frontend Components:**
+- None (backend-only story, no UI changes)
+
+**Backend Components:**
+- LLMService class: src/services/llm/LLMService.ts
+  - generateCopy() method
+  - Primary provider: OpenAI GPT-4
+  - Fallback provider: Anthropic Claude
+  - Prompt building (Brand Brain TOV, key messages, reference posts, user brief)
+  - Error handling and fallback logic
+  - Returns: text, provider, tokensUsed, latencyMs
+- Environment variables: OPENAI_API_KEY, ANTHROPIC_API_KEY
+- Winston logging: logAICall() for AI call tracking
+
+**Tests:**
+- Unit test: LLMService.generateCopy() with OpenAI
+- Unit test: LLMService.generateCopy() fallback to Anthropic on OpenAI failure
+- Unit test: Prompt building includes Brand Brain context
+- Integration test: OpenAI API call
+- Integration test: Anthropic API call
+- Integration test: Fallback logic on timeout/error
+
 ---
 
 ## Story 4.3: Post Generation & Multi-Variant Output
@@ -126,6 +180,38 @@ So that **I can choose the best one or iterate**.
 - Use BullMQ for background job (optional P1, P0 can be synchronous)
 - Streaming response for better UX (P1 feature)
 - Store generation metadata (provider, tokens, latency) in usage_events
+
+**Frontend Components:**
+- VariantDisplayCards component (src/components/ai-copy/VariantDisplayCards.tsx)
+  - Shadcn UI: Card, Button, Badge components
+  - Variant cards display (Variant 1, Variant 2)
+  - Character count per variant
+  - Platform badge (FB/IG)
+  - "Use This" button per variant
+  - "Regenerate This Variant" button (P1)
+- LoadingIndicator component (src/components/ai-copy/LoadingIndicator.tsx)
+  - Shadcn UI: Skeleton, Badge components
+  - "Generating..." message
+- ErrorDisplay component (src/components/ai-copy/ErrorDisplay.tsx)
+  - Shadcn UI: Alert, Button components
+  - Error message display
+  - Retry button
+
+**Backend Components:**
+- API route: POST /api/brands/{brandId}/ai-copy/generate
+  - Calls LLMService.generateCopy()
+  - Generates 2 variants (P0: 2, P1: configurable 1-5)
+  - Returns variants with metadata
+- Usage events tracking: usage_events table (provider, tokens, latency)
+- BullMQ job queue (optional P1, P0 synchronous)
+
+**Tests:**
+- E2E test: Click Generate → loading indicator → variants displayed
+- E2E test: Variant selection → "Use This" button works
+- E2E test: Error handling → error message + retry button
+- E2E test: Brand Brain incomplete → disabled with tooltip
+- Integration test: POST /api/ai-copy/generate API call
+- Integration test: Usage events tracking
 
 ---
 
@@ -169,6 +255,34 @@ So that **I can refine the post to perfection before publishing**.
 - Character count updates on keypress (debounced for performance)
 - Autosave draft every 5 seconds (P1 feature)
 
+**Frontend Components:**
+- PostEditor component (src/components/ai-copy/PostEditor.tsx)
+  - Shadcn UI: Textarea, Button, Badge components
+  - Editable textarea (or Tiptap editor P1)
+  - Real-time character counter (e.g., "234 / 2200 for Facebook")
+  - Platform-specific character limits display
+  - Warning if exceeds limit
+  - Bold text formatting (P1)
+  - Emoji picker (P1)
+  - Line breaks preserved
+- SaveDraftButton component (src/components/ai-copy/SaveDraftButton.tsx)
+  - Shadcn UI: Button component
+  - Saves draft to posts table
+
+**Backend Components:**
+- API route: POST /api/posts
+  - Creates post in posts table
+  - Fields: brand_id, content, platform, status ('draft'), is_ai_generated, ai_provider
+  - Returns postId
+- Database: posts table insert
+
+**Tests:**
+- E2E test: Select variant → editor opens → edit text → save draft
+- E2E test: Character counter updates in real-time
+- E2E test: Character limit warning shown
+- E2E test: Save draft → post saved to database
+- Integration test: POST /api/posts API call
+
 ---
 
 ## Story 4.5: Mandatory Usability Rating (FR0.3)
@@ -210,6 +324,31 @@ So that **the product team can measure H1 hypothesis (8/10 brand consistency)**.
 - DB constraint prevents saving AI post without rating
 - Rating aggregation in Epic 7 (Analytics)
 
+**Frontend Components:**
+- UsabilityRatingModal component (src/components/ai-copy/UsabilityRatingModal.tsx)
+  - Shadcn UI: Dialog, Button, RadioGroup components
+  - Modal title: "Rate AI Output Quality"
+  - Rating options (1-10 scale):
+    - 1-3: "Not usable, rewrote from scratch"
+    - 4-6: "Major edits needed"
+    - 7-8: "Minor edits needed" (target)
+    - 9-10: "Perfect, no edits"
+  - Cannot be dismissed without rating (mandatory)
+  - Submit button
+
+**Backend Components:**
+- API route: PATCH /api/posts/{postId}/rating
+  - Updates posts.ai_usability_rating
+  - Database constraint: CHECK (is_ai_generated = false OR ai_usability_rating IS NOT NULL)
+- Database: posts.ai_usability_rating field
+
+**Tests:**
+- E2E test: Save AI-generated draft → rating modal shown → cannot dismiss without rating
+- E2E test: Select rating → modal closes → draft saved → success toast
+- E2E test: Database constraint prevents saving without rating
+- Integration test: PATCH /api/posts/{postId}/rating API call
+- Integration test: Database constraint validation
+
 ---
 
 ## Story 4.6: Image Upload & Management (FR4.1)
@@ -250,6 +389,37 @@ So that **posts have visual content for better engagement**.
 - Generate thumbnail (P1 feature)
 - Instagram: Must be square or 4:5 ratio (validation P1)
 
+**Frontend Components:**
+- ImageUploadButton component (src/components/ai-copy/ImageUploadButton.tsx)
+  - Shadcn UI: Button, Input (file) components
+  - "Upload Image" button
+  - File picker (accept: image/jpeg, image/png, image/gif)
+- ImagePreview component (src/components/ai-copy/ImagePreview.tsx)
+  - Shadcn UI: Image, Button components
+  - Image preview display
+  - Remove image button
+- UploadProgressIndicator component (src/components/ai-copy/UploadProgressIndicator.tsx)
+  - Shadcn UI: Progress, Badge components
+  - Upload progress display
+
+**Backend Components:**
+- API route: POST /api/posts/{postId}/image
+  - Uploads image to Supabase Storage (bucket: 'post-images')
+  - Path: post-images/{brandId}/{postId}/{filename}
+  - Updates posts.image_url
+- API route: DELETE /api/posts/{postId}/image
+  - Deletes image from Supabase Storage
+  - Sets posts.image_url = NULL
+- Supabase Storage integration
+- Client-side validation: max 10MB, JPG/PNG/GIF only
+
+**Tests:**
+- E2E test: Upload image → progress indicator → preview shown
+- E2E test: Remove image → image deleted from Storage
+- E2E test: File validation (size, format)
+- Integration test: Supabase Storage upload API call
+- Integration test: Image deletion from Storage
+
 ---
 
 ## Story 4.7: Post Regeneration & Iteration
@@ -280,5 +450,24 @@ So that **I can iterate until I get on-brand content**.
 - Same LLMService call as initial generation
 - Track regeneration_count in usage_events
 - Each regeneration logs AI tokens consumed
+
+**Frontend Components:**
+- RegenerateButton component (src/components/ai-copy/RegenerateButton.tsx)
+  - Shadcn UI: Button component
+  - "Regenerate All" button
+  - Loading state during regeneration
+
+**Backend Components:**
+- API route: POST /api/brands/{brandId}/ai-copy/regenerate
+  - Calls LLMService.generateCopy() with same parameters
+  - Replaces previous variants
+  - Tracks regeneration_count in usage_events
+- Usage events tracking: regeneration_count, AI tokens consumed
+
+**Tests:**
+- E2E test: Click Regenerate All → new variants replace previous
+- E2E test: Regeneration count tracked in usage_events
+- Integration test: POST /api/ai-copy/regenerate API call
+- Integration test: Usage events regeneration tracking
 
 ---

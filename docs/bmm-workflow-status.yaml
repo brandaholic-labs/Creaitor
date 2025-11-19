@@ -30,7 +30,7 @@ workflow_status:
 
   # Phase 1: Planning
   prd: docs/prd-creaitor-2025-11-18.md  # agent: pm (completed)
-  create-design: conditional  # agent: ux-designer
+  create-design: docs/ux-design-specification.md  # agent: ux-designer (completed - retrospective post-architecture)
 
   # Phase 2: Solutioning
   create-architecture: docs/architecture.md  # agent: architect (completed)

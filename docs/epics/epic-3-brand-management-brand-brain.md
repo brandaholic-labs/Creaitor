@@ -46,6 +46,34 @@ So that **I can start managing social media content for this client**.
 - Form built with Shadcn UI components
 - Mobile responsive
 
+**Frontend Components:**
+- Brands list page: `/brands` route (src/app/brands/page.tsx)
+- BrandList component (src/components/brand/BrandList.tsx)
+  - Shadcn UI: Card, Button, Badge components
+  - "Add New Brand" button
+  - List of existing brands
+- BrandCreationModal component (src/components/brand/BrandCreationModal.tsx)
+  - Shadcn UI: Dialog, Input, Button, Form, Select components
+  - Brand name input (required, 2-100 chars)
+  - Industry dropdown (optional)
+  - Website URL input (optional, URL validation)
+  - Description textarea (optional, max 500 chars)
+  - Form validation (Zod schema)
+
+**Backend Components:**
+- API route: POST /api/brands
+  - Validates agency_id matches current user (RLS check)
+  - Inserts new brand into brands table
+  - Returns brandId for redirect
+- Database: brands table insert
+
+**Tests:**
+- E2E test: Create brand → form submit → redirect to /brands/{brandId}/setup
+- E2E test: Form validation (required fields, URL format)
+- E2E test: Brand appears in brands list after creation
+- Integration test: POST /api/brands API call
+- Integration test: RLS policy ensures brand belongs to user's agency
+
 ---
 
 ## Story 3.2: Meta (Facebook & Instagram) Profile OAuth Connection
@@ -93,6 +121,42 @@ So that **I can publish posts directly to these platforms**.
 - Follow FR0.5: Token management, 60-day expiry
 - Handle token refresh (P1: auto-refresh with long-lived token)
 
+**Frontend Components:**
+- Brand setup page: `/brands/{brandId}/setup` route (src/app/brands/[brandId]/setup/page.tsx)
+- OAuthConnectionButton component (src/components/brand/OAuthConnectionButton.tsx)
+  - Shadcn UI: Button, Badge components
+  - "Connect Facebook Page" button
+  - "Connect Instagram Account" button
+  - Connection status indicators (connected ✓ / not connected)
+- PageSelectorModal component (src/components/brand/PageSelectorModal.tsx)
+  - Shadcn UI: Dialog, Button, Card components
+  - List of user's Facebook Pages
+  - Page selection interface
+  - Instagram account selection (linked to FB Page)
+- TokenRefreshWarning component (src/components/brand/TokenRefreshWarning.tsx)
+  - Shadcn UI: Alert, Badge components
+  - Warning shown 7 days before token expiry
+
+**Backend Components:**
+- API route: GET /api/brands/{brandId}/oauth/facebook (initiate OAuth)
+  - Redirects to Facebook OAuth consent screen
+- API route: GET /api/brands/{brandId}/oauth/callback (OAuth callback)
+  - Exchanges code for access token
+  - Fetches user's Facebook Pages
+  - Stores token encrypted in social_profiles table
+- API route: POST /api/brands/{brandId}/social-profiles (connect page/account)
+  - Creates social_profiles record
+  - Validates token with Meta Graph API
+- Database: social_profiles table (platform, access_token, expires_at)
+- Meta Graph API integration (v18.0)
+
+**Tests:**
+- E2E test: Connect Facebook Page → OAuth flow → page selected → connection saved
+- E2E test: Connect Instagram → linked to FB Page → connection saved
+- E2E test: Token refresh warning shown 7 days before expiry
+- Integration test: Meta Graph API OAuth flow
+- Integration test: Token storage and encryption
+
 ---
 
 ## Story 3.3: Brand Brain Editor - Reference Posts
@@ -131,6 +195,37 @@ So that **AI can generate on-brand content matching these examples**.
 - Character counter shown
 - Autosave on blur (debounced 2 seconds)
 
+**Frontend Components:**
+- Brand Brain page: `/brands/{brandId}/brand-brain` route (src/app/brands/[brandId]/brand-brain/page.tsx)
+- ReferencePostsSection component (src/components/brand-brain/ReferencePostsSection.tsx)
+  - Shadcn UI: Card, Textarea, Button, Badge components
+  - Form to add reference posts (max 3)
+  - Post text textarea (max 5000 chars)
+  - Platform tag selector (Facebook or Instagram)
+  - Optional "Why this post?" note (max 200 chars)
+  - Character counter
+  - Edit/delete existing posts
+  - Minimum requirement validation (at least 1 post)
+
+**Backend Components:**
+- API route: POST /api/brands/{brandId}/brand-brain/reference-posts
+  - Creates brand_brain_entries record (entry_type: 'reference_post')
+  - Stores content as JSONB
+- API route: PATCH /api/brands/{brandId}/brand-brain/reference-posts/{entryId}
+  - Updates reference post
+- API route: DELETE /api/brands/{brandId}/brand-brain/reference-posts/{entryId}
+  - Deletes reference post
+- Database: brand_brain_entries table (entry_type, content JSONB)
+- Autosave logic (debounced 2 seconds)
+
+**Tests:**
+- E2E test: Add reference post → autosave → content saved
+- E2E test: Edit reference post → autosave → content updated
+- E2E test: Delete reference post → content removed
+- E2E test: Maximum 3 posts validation
+- E2E test: Minimum 1 post requirement warning
+- Integration test: Brand brain entries API calls
+
 ---
 
 ## Story 3.4: Brand Brain Editor - Tone of Voice (TOV)
@@ -165,6 +260,28 @@ So that **AI generates copy matching the brand's personality**.
 - Debounced autosave (2 seconds after last keystroke)
 - Character count updates in real-time
 - Validate min 100 chars before allowing AI generation
+
+**Frontend Components:**
+- ToneOfVoiceSection component (src/components/brand-brain/ToneOfVoiceSection.tsx)
+  - Shadcn UI: Textarea, Badge components
+  - Textarea (200-500 characters)
+  - Real-time character counter
+  - Example prompts display
+  - Minimum requirement validation (≥100 chars)
+  - Autosave indicator
+
+**Backend Components:**
+- API route: POST /api/brands/{brandId}/brand-brain/tone-of-voice
+  - Creates/updates brand_brain_entries (entry_type: 'tone_of_voice')
+  - Autosave on blur (debounced 2 seconds)
+- Database: brand_brain_entries table
+
+**Tests:**
+- E2E test: Type TOV text → autosave → content saved
+- E2E test: Character counter updates in real-time
+- E2E test: Minimum 100 chars validation
+- E2E test: TOV text shown in AI Copy Studio context preview
+- Integration test: TOV autosave API call
 
 ---
 
@@ -201,6 +318,30 @@ So that **AI-generated posts highlight these important points**.
 - Dynamic form with Add/Remove buttons
 - Autosave entire array on change
 
+**Frontend Components:**
+- KeyMessagesSection component (src/components/brand-brain/KeyMessagesSection.tsx)
+  - Shadcn UI: Input, Button, Card, Badge components
+  - "Add Key Message" button
+  - Dynamic list of key messages
+  - Each message: text input (max 200 chars) + delete button
+  - Validation: minimum 2, maximum 5 messages
+  - Autosave on change
+
+**Backend Components:**
+- API route: POST /api/brands/{brandId}/brand-brain/key-messages
+  - Creates/updates brand_brain_entries (entry_type: 'key_messages')
+  - Stores as JSON array
+  - Autosave on change
+- Database: brand_brain_entries table
+
+**Tests:**
+- E2E test: Add key message → autosave → content saved
+- E2E test: Remove key message → autosave → content updated
+- E2E test: Minimum 2 messages validation
+- E2E test: Maximum 5 messages validation
+- E2E test: Key messages shown in AI Copy Studio context preview
+- Integration test: Key messages autosave API call
+
 ---
 
 ## Story 3.6: Brand Brain Editor - Visual Direction
@@ -231,6 +372,26 @@ So that **AI image prompts (P1) match the brand's visual aesthetic**.
 - Similar implementation to Story 3.4 (TOV)
 - P0: Text only; P1: Image upload integration
 - Used by AI Image Studio when generating image prompts
+
+**Frontend Components:**
+- VisualDirectionSection component (src/components/brand-brain/VisualDirectionSection.tsx)
+  - Shadcn UI: Textarea, Badge components
+  - Textarea (100-300 characters)
+  - Character counter
+  - Example descriptions display
+  - Autosave indicator
+
+**Backend Components:**
+- API route: POST /api/brands/{brandId}/brand-brain/visual-direction
+  - Creates/updates brand_brain_entries (entry_type: 'visual_direction')
+  - Autosave on blur (debounced 2 seconds)
+- Database: brand_brain_entries table
+
+**Tests:**
+- E2E test: Type visual direction → autosave → content saved
+- E2E test: Character counter updates in real-time
+- E2E test: Visual direction displayed in AI Image Studio (P1)
+- Integration test: Visual direction autosave API call
 
 ---
 
@@ -274,6 +435,29 @@ So that **AI output quality meets 8/10 brand consistency target (FR0.1)**.
 - PostgreSQL function: `calculate_brand_brain_status(brand_id)`
 - Cache result in brands.brand_brain_status (updated via trigger)
 - Frontend checks status before allowing AI generation
+
+**Frontend Components:**
+- BrandBrainStatusBadge component (src/components/brand-brain/BrandBrainStatusBadge.tsx)
+  - Shadcn UI: Badge component
+  - Status display: Complete (✅) or Incomplete (⚠️)
+  - Used in /brands list and Brand Brain page
+- BrandBrainProgressIndicator component (src/components/brand-brain/BrandBrainProgressIndicator.tsx)
+  - Shadcn UI: Progress, Badge components
+  - Progress indicator showing completion status
+  - Requirements checklist display
+
+**Backend Components:**
+- PostgreSQL function: `calculate_brand_brain_status(brand_id)`
+  - Checks: ≥1 reference post, TOV ≥100 chars, ≥2 key messages, visual direction ≥50 chars
+- Database trigger: Updates brands.brand_brain_status on brand_brain_entries insert/update
+- Database: brands.brand_brain_status field (cached status)
+
+**Tests:**
+- E2E test: Brand Brain status updates when requirements met
+- E2E test: AI Copy Studio disabled for incomplete Brand Brain
+- E2E test: Tooltip shown with requirements when incomplete
+- Integration test: PostgreSQL function calculates status correctly
+- Integration test: Trigger updates cached status
 
 
 ---

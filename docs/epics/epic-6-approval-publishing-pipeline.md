@@ -38,6 +38,29 @@ So that **there's a clear workflow checkpoint before publishing**.
 - Update status to 'approved'
 - P1: Add approved_by_user_id column
 
+**Frontend Components:**
+- ApproveButton component (src/components/calendar/ApproveButton.tsx)
+  - Shadcn UI: Button component
+  - "Approve" button
+  - Enabled only for posts in 'review' status
+  - Disabled for other statuses
+
+**Backend Components:**
+- API route: POST /api/posts/{postId}/approve
+  - Validates current status = 'review'
+  - Updates posts.status = 'approved'
+  - P1: Sets posts.approved_by_user_id
+  - Logs approval action in usage_events
+- Database: posts.status update
+- Usage events tracking: Approval action logging
+
+**Tests:**
+- E2E test: Approve button enabled for review posts
+- E2E test: Click Approve → status changes to approved
+- E2E test: Schedule button becomes enabled after approval
+- Integration test: POST /api/posts/{postId}/approve API call
+- Integration test: Usage events logging
+
 ---
 
 ## Story 6.2: Meta OAuth & Page/Account Connection
@@ -71,6 +94,23 @@ So that **we can publish to Facebook Pages and Instagram Accounts via Meta Graph
 - Store tokens encrypted
 - 60-day expiry (short-lived token, P1: long-lived token)
 - Error handling: Token expired, insufficient permissions
+
+**Frontend Components:**
+- None (backend-only story, token management happens in Story 3.2)
+
+**Backend Components:**
+- MetaGraphAPIService class: src/services/meta/MetaGraphAPIService.ts
+  - Token retrieval from social_profiles table
+  - Token validation (expires_at check)
+  - Token refresh logic (P1: automatic refresh)
+- Database: social_profiles table (access_token, access_token_expires_at)
+- Error handling: Token expired, insufficient permissions
+
+**Tests:**
+- Unit test: Token validation (expired token check)
+- Unit test: Token retrieval from database
+- Integration test: Meta Graph API token validation
+- Integration test: Token refresh logic (P1)
 
 ---
 
@@ -111,6 +151,27 @@ So that **content goes live automatically at scheduled time**.
 - Rate limit handling: Respect Meta API limits
 - Image upload: Use multipart/form-data for photos
 - Log publish events with logPublishEvent()
+
+**Frontend Components:**
+- None (backend-only story, publishing happens via BullMQ worker)
+
+**Backend Components:**
+- MetaGraphAPIService.publishToFacebook() method
+  - Fetches post content, image_url from posts table
+  - Fetches FB Page access token from social_profiles
+  - Calls Meta Graph API: POST /{page-id}/feed or POST /{page-id}/photos
+  - Updates posts table on success/failure
+- Retry logic: 3 attempts with exponential backoff (1s, 2s, 4s)
+- Winston logging: logPublishEvent()
+- Database: posts table updates (status, published_at, meta_post_id, post_url)
+
+**Tests:**
+- Unit test: publishToFacebook() method
+- Unit test: Retry logic (3 attempts, exponential backoff)
+- Integration test: Meta Graph API Facebook publishing
+- Integration test: Image upload (multipart/form-data)
+- Integration test: Rate limit handling
+- Integration test: Winston logging
 
 ---
 
@@ -154,6 +215,28 @@ So that **IG content goes live automatically**.
 - Two-step publish process specific to IG
 - Caption max 2200 chars
 
+**Frontend Components:**
+- None (backend-only story, publishing happens via BullMQ worker)
+
+**Backend Components:**
+- MetaGraphAPIService.publishToInstagram() method
+  - Two-step Instagram publishing:
+    1. Create media container: POST /{ig-user-id}/media
+    2. Publish container: POST /{ig-user-id}/media_publish
+  - Validates image_url exists (Instagram requires image)
+  - Updates posts table on success/failure
+- Retry logic: 3 attempts with exponential backoff (1s, 2s, 4s)
+- Winston logging: logPublishEvent()
+- Database: posts table updates (status, published_at, meta_post_id, post_url)
+
+**Tests:**
+- Unit test: publishToInstagram() method
+- Unit test: Two-step publish process
+- Unit test: Image validation (Instagram requires image)
+- Integration test: Meta Graph API Instagram publishing
+- Integration test: Retry logic
+- Integration test: Winston logging
+
 ---
 
 ## Story 6.5: BullMQ Job Queue & Background Workers
@@ -194,6 +277,30 @@ So that **publishing happens reliably at scheduled times without blocking UI**.
 - Docker: Separate service for worker
 - Use Bull Board for job monitoring (optional P1)
 
+**Frontend Components:**
+- BullBoardDashboard component (src/components/admin/BullBoardDashboard.tsx) - P1
+  - Bull Board dashboard integration
+  - Job monitoring UI at /admin/queues
+  - Job status, retry count, error details
+
+**Backend Components:**
+- BullMQ worker: src/workers/publish-worker.ts
+  - Processes 'publish-post' queue jobs
+  - Fetches post from database
+  - Calls MetaGraphAPIService based on platform
+  - Updates post status on success/failure
+- BullMQ queue configuration: 'publish-post' queue
+- Job retry configuration: Max 3 attempts, exponential backoff
+- Failed jobs queue: Manual inspection
+- Bull Board integration (P1): /admin/queues dashboard
+
+**Tests:**
+- Unit test: Worker processes job correctly
+- Unit test: Job retry logic
+- Integration test: BullMQ job creation and processing
+- Integration test: Failed jobs moved to failed queue
+- Integration test: Bull Board dashboard (P1)
+
 ---
 
 ## Story 6.6: Publish Result Tracking & User Notification
@@ -231,5 +338,40 @@ So that **I know if my content went live and can fix issues**.
 - API route: POST /api/posts/{postId}/retry-publish
 - Store error details in posts.publish_error_message
 - Notification system (P1): Supabase Realtime or simple polling
+
+**Frontend Components:**
+- PostStatusBadge component (src/components/calendar/PostStatusBadge.tsx)
+  - Shadcn UI: Badge component
+  - Status display: "Published ✓" (green) or "Failed ❌" (red)
+  - Published timestamp display
+- ViewOnPlatformButton component (src/components/calendar/ViewOnPlatformButton.tsx)
+  - Shadcn UI: Button component
+  - Opens post_url in new tab
+- RetryPublishButton component (src/components/calendar/RetryPublishButton.tsx)
+  - Shadcn UI: Button component
+  - "Retry Publish" button (for failed posts)
+  - Error message display
+- NotificationBell component (src/components/notifications/NotificationBell.tsx) - P1
+  - Shadcn UI: Button, Badge components
+  - In-app notification bell icon
+  - Notification display
+
+**Backend Components:**
+- API route: POST /api/posts/{postId}/retry-publish
+  - Creates new BullMQ job immediately
+  - Retries failed publish
+- Database: posts.publish_error_message field (error details storage)
+- Notification system (P1): Supabase Realtime or polling
+  - "Post '{title}' published successfully" notification
+  - "Post '{title}' failed to publish" notification
+
+**Tests:**
+- E2E test: Published post shows "Published ✓" badge
+- E2E test: Failed post shows "Failed ❌" badge + error message
+- E2E test: View on Platform button opens post_url
+- E2E test: Retry Publish button retries failed post
+- E2E test: Notifications displayed (P1)
+- Integration test: POST /api/posts/{postId}/retry-publish API call
+- Integration test: Notification system (P1)
 
 ---

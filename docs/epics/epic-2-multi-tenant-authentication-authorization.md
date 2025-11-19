@@ -52,6 +52,27 @@ So that **I can start using Creaitor for my team and clients**.
 - Mobile responsive with 44x44px touch targets
 - WCAG 2.1 AA compliant form
 
+**Frontend Components:**
+- Registration page: `/register` route (src/app/register/page.tsx)
+- RegistrationForm component (src/components/auth/RegistrationForm.tsx)
+  - Shadcn UI: Input, Button, Form components
+  - Password strength meter (zxcvbn library)
+  - Form validation (Zod schema)
+  - Error handling and display
+- Onboarding welcome page: `/onboarding/welcome` route (placeholder)
+
+**Backend Components:**
+- Supabase Auth integration (signUp method)
+- API route: POST /api/auth/register (optional, or direct Supabase client call)
+- Database: agencies table insert
+- Database: users table insert (linked to auth.users)
+
+**Tests:**
+- E2E test: Complete registration flow (form submit → email verification → redirect)
+- E2E test: Form validation (invalid email, weak password, password mismatch)
+- Unit test: Password strength meter calculation
+- Integration test: Supabase Auth signUp API call
+
 ---
 
 ## Story 2.2: User Login & Session Management
@@ -88,6 +109,30 @@ So that **I can access Creaitor securely without re-authenticating constantly**.
 - Protected routes: /dashboard/*, /brands/*, /calendar/*, /settings/*
 - Public routes: /login, /register, /
 - Password reset flow via Supabase Auth (P1)
+
+**Frontend Components:**
+- Login page: `/login` route (src/app/login/page.tsx)
+- LoginForm component (src/components/auth/LoginForm.tsx)
+  - Shadcn UI: Input, Button, Form components
+  - Email and password inputs
+  - "Remember me" checkbox (P1 feature)
+  - Error message display
+- Auth middleware: src/middleware.ts (Next.js middleware)
+  - Redirects unauthenticated users to /login
+  - Protects routes: /dashboard/*, /brands/*, /calendar/*, /settings/*
+- Session persistence (Supabase auth-helpers-nextjs)
+
+**Backend Components:**
+- Supabase Auth integration (signInWithPassword method)
+- Session management (httpOnly cookies, secure, SameSite=Lax)
+- Auth middleware logic (route protection)
+
+**Tests:**
+- E2E test: Login flow (valid credentials → redirect to /dashboard)
+- E2E test: Invalid credentials → error message
+- E2E test: Session persists across page refresh
+- E2E test: Protected routes redirect to /login when unauthenticated
+- Integration test: Supabase Auth signIn API call
 
 ---
 
@@ -136,6 +181,20 @@ So that **agencies can only access their own data, preventing data leaks**.
 - Test RLS with multiple test users from different agencies
 - Follow Architecture Pattern 2: Multi-Brand Context Isolation
 
+**Frontend Components:**
+- None (backend-only story, no UI changes)
+
+**Backend Components:**
+- PostgreSQL RLS policies (SQL migration: 002_rls_policies.sql)
+- Helper function: `current_user_agency_id()` in SQL
+- RLS policies for tables: users, agencies, brands, social_profiles, posts, brand_brain_entries, usage_events
+
+**Tests:**
+- Integration test: RLS policy prevents cross-tenant data access
+- Integration test: User can only read their own agency data
+- Integration test: User can only access brands belonging to their agency
+- SQL test: `current_user_agency_id()` function returns correct agency_id
+
 ---
 
 ## Story 2.4: User Invite & Team Management
@@ -183,6 +242,40 @@ So that **my team can collaborate on client brands**.
 - Implement permission checks in API routes via middleware
 - Last active tracked via usage_events table (optional P1)
 
+**Frontend Components:**
+- Team management page: `/settings/team` route (src/app/settings/team/page.tsx)
+- InviteUserForm component (src/components/team/InviteUserForm.tsx)
+  - Shadcn UI: Input, Button, Form, Select (role dropdown), Dialog components
+  - Email input with validation
+  - Role selector (Admin or Editor)
+  - Optional full name input
+- TeamList component (src/components/team/TeamList.tsx)
+  - Shadcn UI: Table, Badge, Button components
+  - User list display (name, email, role, last active)
+  - Role change functionality (Admin ↔ Editor)
+  - User deactivation (soft delete)
+- Invite acceptance page: `/invite/accept` route (src/app/invite/accept/page.tsx)
+  - Email pre-filled (read-only)
+  - Password setup form
+
+**Backend Components:**
+- API route: POST /api/team/invite
+  - Supabase Auth inviteUserByEmail() method
+  - Creates invite record (invites table)
+  - Sends email with magic link
+- API route: GET /api/team (list team members)
+- API route: PATCH /api/team/{userId} (update role, deactivate)
+- Database: invites table (pending invites)
+- Permission middleware (admin-only for invite/role change)
+
+**Tests:**
+- E2E test: Admin invites user → email sent → user accepts → account created
+- E2E test: Admin changes user role
+- E2E test: Admin deactivates user
+- E2E test: Editor cannot access invite functionality
+- Integration test: Supabase Auth inviteUserByEmail API call
+- Integration test: Permission checks (admin vs editor)
+
 ---
 
 ## Story 2.5: User Profile & Settings
@@ -218,6 +311,34 @@ So that **I can keep my account information current**.
 - Use Supabase Auth updateUser() for password change
 - Email change flow requires verification (P1 feature)
 - Form validation with Zod schema
+
+**Frontend Components:**
+- Profile settings page: `/settings/profile` route (src/app/settings/profile/page.tsx)
+- ProfileForm component (src/components/settings/ProfileForm.tsx)
+  - Shadcn UI: Input, Button, Form components
+  - Full name input (editable)
+  - Email display (read-only)
+  - Change password section (current password, new password, confirm password)
+  - Success toast notifications
+- PasswordChangeForm component (src/components/settings/PasswordChangeForm.tsx)
+  - Current password validation
+  - New password strength requirements
+  - Password confirmation matching
+
+**Backend Components:**
+- API route: PATCH /api/settings/profile
+  - Updates users.full_name
+- API route: PATCH /api/settings/password
+  - Supabase Auth updateUser() for password change
+  - Current password validation
+- Form validation (Zod schema)
+
+**Tests:**
+- E2E test: Update full name → success toast
+- E2E test: Change password → success toast
+- E2E test: Invalid current password → error message
+- E2E test: Weak new password → validation error
+- Integration test: Supabase Auth updateUser API call
 
 
 ---

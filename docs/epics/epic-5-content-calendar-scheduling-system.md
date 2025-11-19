@@ -49,6 +49,42 @@ So that **I can visualize the content pipeline at a glance**.
 - Europe/Budapest timezone for display (FR5.3)
 - Responsive: Desktop grid, mobile list view
 
+**Frontend Components:**
+- Calendar page: `/calendar` route (src/app/calendar/page.tsx)
+- WeeklyCalendarGrid component (src/components/calendar/WeeklyCalendarGrid.tsx)
+  - Shadcn UI: Card, Button, Badge components
+  - 7 columns (Monday-Sunday)
+  - Time slots (optional P1: hourly slots)
+  - Post cards display
+  - Week navigation buttons (Previous/Next/Today)
+  - Week range display
+- BrandFilterDropdown component (src/components/calendar/BrandFilterDropdown.tsx)
+  - Shadcn UI: Select component
+  - Brand filter dropdown
+  - "All Brands" option
+- PostCard component (src/components/calendar/PostCard.tsx)
+  - Shadcn UI: Card, Badge components
+  - Post preview (first 50 chars)
+  - Platform icon (FB/IG)
+  - Status badge (draft/review/approved/scheduled/published)
+  - Scheduled time display
+
+**Backend Components:**
+- API route: GET /api/calendar
+  - Query parameters: brandId (optional), weekStart (date)
+  - Returns posts for selected week
+  - Filters by brandId if provided
+  - Returns posts with status, scheduled_for, content preview
+- Database: posts table query (filtered by brand_id, week range)
+
+**Tests:**
+- E2E test: Calendar page loads with current week
+- E2E test: Week navigation (Previous/Next/Today)
+- E2E test: Brand filter changes displayed posts
+- E2E test: Post cards display correct information
+- Integration test: GET /api/calendar API call
+- Integration test: Week range filtering
+
 ---
 
 ## Story 5.2: Post Status State Machine
@@ -85,6 +121,31 @@ So that **posts progress through workflow consistently**.
 - Implement state machine logic in API routes
 - Frontend buttons enabled/disabled based on current status
 - Log state transitions for audit trail
+
+**Frontend Components:**
+- PostStatusButtons component (src/components/calendar/PostStatusButtons.tsx)
+  - Shadcn UI: Button, Badge components
+  - Status transition buttons (enabled/disabled based on current status)
+  - "Ready for Review" button (draft → review)
+  - "Approve" button (review → approved)
+  - "Move to Draft" button (any status → draft, except published)
+
+**Backend Components:**
+- API route: PATCH /api/posts/{postId}/status
+  - Validates status transition (state machine logic)
+  - Updates posts.status
+  - Logs state transition in usage_events
+- Database: posts.status enum (draft, review, approved, scheduled, published)
+- Database constraint or application logic: Enforces valid transitions
+- Usage events tracking: State transition logging
+
+**Tests:**
+- E2E test: Status transition buttons enabled/disabled correctly
+- E2E test: Valid status transitions work
+- E2E test: Invalid status transitions rejected
+- Integration test: Status transition API call
+- Integration test: State machine logic validation
+- Integration test: Usage events logging
 
 ---
 
@@ -130,6 +191,38 @@ So that **posts go live at optimal times for my audience**.
 - BullMQ delayed job: queue.add('publish-post', {postId}, {delay: msUntilScheduled})
 - Validate scheduled_for >= now()
 
+**Frontend Components:**
+- SchedulingModal component (src/components/calendar/SchedulingModal.tsx)
+  - Shadcn UI: Dialog, Calendar, Select, Button components
+  - Date picker (calendar UI)
+  - Time picker (HH:MM format)
+  - Timezone display: "Europe/Budapest"
+  - "Schedule Post" button
+  - Past date/time validation error display
+- ScheduleButton component (src/components/calendar/ScheduleButton.tsx)
+  - Shadcn UI: Button component
+  - Opens scheduling modal
+  - Enabled only for approved posts
+
+**Backend Components:**
+- API route: POST /api/posts/{postId}/schedule
+  - Validates scheduled_for >= now()
+  - Converts Europe/Budapest to UTC
+  - Updates posts.scheduled_for (UTC)
+  - Updates posts.status = 'scheduled'
+  - Creates BullMQ delayed job
+- BullMQ job creation: queue.add('publish-post', {postId, brandId, platform}, {delay: msUntilScheduled})
+- Database: posts.scheduled_for field (UTC timestamp)
+
+**Tests:**
+- E2E test: Open scheduling modal → select date/time → schedule post
+- E2E test: Past date/time rejected with error
+- E2E test: Scheduled post appears in calendar at correct time
+- E2E test: Timezone conversion (Europe/Budapest → UTC)
+- Integration test: POST /api/posts/{postId}/schedule API call
+- Integration test: BullMQ job creation
+- Integration test: Timezone conversion logic
+
 ---
 
 ## Story 5.4: Drag & Drop Post Rescheduling (P1 - Optional)
@@ -161,6 +254,28 @@ So that **I can quickly reorganize my content schedule**.
 - API route: PATCH /api/posts/{postId}/reschedule
 - Time preserved, only date changes
 - P1 feature (nice to have, not critical for P0)
+
+**Frontend Components:**
+- DragAndDropCalendar component (src/components/calendar/DragAndDropCalendar.tsx)
+  - dnd-kit or react-beautiful-dnd library
+  - Drag and drop functionality for post cards
+  - Optimistic UI update (post moves immediately)
+  - Error toast on failure (revert position)
+- PostCard (enhanced with drag handle)
+
+**Backend Components:**
+- API route: PATCH /api/posts/{postId}/reschedule
+  - Updates posts.scheduled_for (date changes, time preserved)
+  - Reschedules BullMQ job
+- BullMQ job rescheduling logic
+
+**Tests:**
+- E2E test: Drag post to different day → post moves → backend updates
+- E2E test: Only scheduled/approved posts can be dragged
+- E2E test: Optimistic UI update → confirmation
+- E2E test: Failed update → post reverts + error toast
+- Integration test: PATCH /api/posts/{postId}/reschedule API call
+- Integration test: BullMQ job rescheduling
 
 ---
 
@@ -204,5 +319,36 @@ So that **I can edit, delete, or publish posts without leaving the calendar view
 - Use Shadcn UI DropdownMenu component
 - API routes: PATCH /api/posts/{postId}, DELETE /api/posts/{postId}
 - RLS ensures user can only modify their agency's posts
+
+**Frontend Components:**
+- PostQuickActions component (src/components/calendar/PostQuickActions.tsx)
+  - Shadcn UI: DropdownMenu, Button, Dialog components
+  - Context menu on post card hover
+  - Status-appropriate action buttons:
+    - Draft: Edit, Delete
+    - Approved: Schedule, Edit, Delete
+    - Scheduled: Publish Now, Edit Schedule, Cancel Schedule, Delete
+    - Published: View on Platform
+- DeleteConfirmationModal component (src/components/calendar/DeleteConfirmationModal.tsx)
+  - Shadcn UI: Dialog, Button components
+  - Confirmation modal for delete action
+
+**Backend Components:**
+- API route: PATCH /api/posts/{postId}
+  - Updates post (edit, status change, schedule change)
+- API route: DELETE /api/posts/{postId}
+  - Deletes post (soft delete or hard delete)
+- API route: POST /api/posts/{postId}/publish-now
+  - Bypasses schedule, publishes immediately
+- RLS policy: Ensures user can only modify their agency's posts
+
+**Tests:**
+- E2E test: Quick actions menu appears on hover
+- E2E test: Status-appropriate actions shown
+- E2E test: Delete action requires confirmation
+- E2E test: Actions complete successfully
+- Integration test: PATCH /api/posts/{postId} API call
+- Integration test: DELETE /api/posts/{postId} API call
+- Integration test: RLS policy enforcement
 
 ---

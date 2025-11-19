@@ -45,6 +45,8 @@ development_status:
   1-5-winston-logging-infrastructure: backlog
   1-6-caddy-reverse-proxy-configuration: backlog
   1-7-cicd-pipeline-setup-github-actions: backlog
+  1-8-frontend-design-system-setup-tailwind-shadcn-design-tokens: backlog
+  1-9-frontend-layout-navigation-sidebar-topbar-brand-selector: backlog
   epic-1-retrospective: optional
 
   # Epic 2: Multi-Tenant Authentication & Authorization

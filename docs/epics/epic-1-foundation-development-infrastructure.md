@@ -288,5 +288,155 @@ So that **every commit is tested and deployments are consistent**.
 - Store production secrets in GitHub Secrets
 - Deployment target: Hetzner VPS (Docker containers)
 
+---
+
+## Story 1.8: Frontend Design System Setup (Tailwind Config, Shadcn UI, Design Tokens)
+
+As a **frontend developer**,
+I want **Tailwind CSS configured with purple/violet color palette, Shadcn UI components installed, and design token system**,
+So that **we have a consistent, scalable design system foundation for all UI components**.
+
+**Acceptance Criteria:**
+
+**Given** Story 1.1 completed (Next.js project initialized)
+**When** I configure Tailwind CSS and design system
+**Then** tailwind.config.ts exists with:
+- Purple/violet color palette (#a855f7 primary, shades: 50-950)
+- Design token system using CSS variables (--color-primary, --color-secondary, etc.)
+- Typography configuration (font families, sizes, weights)
+- Spacing scale (4px base unit)
+- Responsive breakpoints (sm: 640px, md: 768px, lg: 1024px, xl: 1280px, 2xl: 1536px)
+- Shadow utilities (elevation levels)
+- Border radius utilities
+
+**And** Design tokens defined in src/styles/design-tokens.css:
+- Color tokens (primary, secondary, accent, background, foreground, muted, etc.)
+- Typography tokens (font families, sizes, line heights)
+- Spacing tokens
+- Shadow tokens
+- Border radius tokens
+- Dark mode ready (CSS variables, future P1 feature)
+
+**And** Shadcn UI components installed and configured:
+- Base components: Button, Input, Textarea, Card, Dialog, Badge, Toast, Calendar
+- Components installed via `npx shadcn-ui@latest add [component]`
+- Components use design tokens (CSS variables)
+- Components follow UX Design Specification (Section 1: Design System Foundation)
+
+**And** src/components/ui/ directory contains:
+- All installed Shadcn UI components
+- Components are customizable via Tailwind classes
+- Components use design tokens
+
+**And** Example usage documented in README.md:
+- How to use design tokens
+- How to add new Shadcn UI components
+- How to customize components
+
+**Prerequisites:** Story 1.1
+
+**Technical Notes:**
+- Follow UX Design Specification Section 1.1 (Design System Choice)
+- Use Tailwind CSS v4 (or latest stable)
+- Design tokens enable easy theme switching (light/dark mode future P1)
+- Color palette: Purple/Violet (#a855f7) as primary, following UX spec
+- Reference: docs/ux-design-specification.md Section 1
+
+**Frontend Components:**
+- Tailwind config setup
+- Design token CSS file
+- Shadcn UI base components (Button, Input, Card, Dialog, Badge, Toast, Calendar)
+
+**Backend Components:**
+- None (frontend-only story)
+
+**Tests:**
+- Unit test: Design token CSS variables are defined
+- Unit test: Tailwind config exports correct color palette
+- Visual regression: Shadcn UI components render correctly with design tokens
+
+---
+
+## Story 1.9: Frontend Layout & Navigation (Sidebar, TopBar, Brand Selector, Routing)
+
+As a **frontend developer**,
+I want **main layout components (Sidebar, TopBar, MainLayout) and navigation setup with persistent Brand Selector**,
+So that **all subsequent features have consistent navigation and brand context awareness**.
+
+**Acceptance Criteria:**
+
+**Given** Story 1.8 completed (Design System Setup)
+**When** I create layout components
+**Then** MainLayout component exists in src/components/layout/MainLayout.tsx:
+- Wraps all authenticated pages
+- Contains Sidebar and TopBar
+- Responsive: Sidebar collapses on mobile (< lg breakpoint)
+- Uses design tokens for styling
+
+**And** Sidebar component exists in src/components/layout/Sidebar.tsx:
+- Navigation links: Dashboard, Brands, Calendar, Settings
+- Brand Selector (persistent, always visible)
+- User profile section (bottom)
+- Collapsible on mobile
+- Active route highlighted
+- Uses Shadcn UI components (Button, Badge)
+
+**And** TopBar component exists in src/components/layout/TopBar.tsx:
+- Shows active brand name and logo (from Brand Selector)
+- User menu dropdown (profile, settings, logout)
+- Notifications icon (placeholder, P1 feature)
+- Responsive: Brand Selector moves to TopBar on mobile
+
+**And** Brand Selector component exists in src/components/brand/BrandSelector.tsx:
+- Dropdown showing all user's brands
+- Active brand highlighted (visual indicator)
+- Brand logo + name displayed
+- Click to switch active brand
+- Uses Zustand state management (activeBrandId)
+- Persistent across page navigation (UX Pattern 1: Active Brand Context Lock)
+
+**And** Navigation routing configured:
+- Next.js App Router setup in src/app/
+- Protected routes: /dashboard/*, /brands/*, /calendar/*, /settings/*
+- Public routes: /login, /register, /
+- Auth middleware redirects unauthenticated users to /login
+- Active route state managed (highlighted in Sidebar)
+
+**And** Layout components are responsive:
+- Desktop (≥ lg): Sidebar always visible, TopBar horizontal
+- Mobile (< lg): Sidebar collapsible (hamburger menu), TopBar full width
+- Touch targets: 44x44px minimum (WCAG 2.1 AA)
+
+**And** Example pages exist:
+- src/app/dashboard/page.tsx (placeholder dashboard)
+- src/app/login/page.tsx (placeholder login page)
+- Layout applied to dashboard, not to login
+
+**Prerequisites:** Story 1.8
+
+**Technical Notes:**
+- Follow UX Design Specification Section 2.2 (Pattern 1: Active Brand Context Lock)
+- Brand Selector uses Zustand store: `useBrandStore` with `activeBrandId` state
+- Layout components use Shadcn UI components (Button, Dropdown, Badge)
+- Responsive breakpoints: lg (1024px) for sidebar collapse
+- Reference: docs/ux-design-specification.md Section 2
+
+**Frontend Components:**
+- MainLayout component
+- Sidebar component
+- TopBar component
+- BrandSelector component
+- Navigation routing setup
+- Placeholder pages (dashboard, login)
+
+**Backend Components:**
+- None (frontend-only story, backend auth in Epic 2)
+
+**Tests:**
+- Unit test: BrandSelector updates Zustand store on brand change
+- Unit test: Sidebar highlights active route
+- E2E test: Navigation between routes works
+- E2E test: Brand Selector persists active brand across navigation
+- E2E test: Responsive layout: Sidebar collapses on mobile
 
 ---
