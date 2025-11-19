@@ -243,3 +243,7 @@ Ez az Epic 1 első story-ja, tehát nincs előző story, amelyből tanulhatnánk
 ### File List
 
 <!-- File list (NEW/MODIFIED/DELETED) will be added after implementation -->
+
+## Change Log
+
+<!-- Track changes to this story during implementation -->
