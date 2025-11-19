@@ -12,6 +12,8 @@ so that **all services (Next.js, Redis, Supabase) run consistently across differ
 
 Ez a story a Creaitor lokális fejlesztői környezet Docker-alapú containerizálását hozza létre. Az **Epic 1: Foundation & Development Infrastructure** harmadik lépéseként biztosítja, hogy minden fejlesztő ugyanazt a környezetet használja, és a szolgáltatások (Next.js app, Redis, Supabase PostgreSQL) konzisztensen működjenek.
 
+[Source: docs/epics/epic-1-foundation-development-infrastructure.md § Story 1.3]
+
 **Üzleti indoklás:** Konzisztens fejlesztői környezet biztosítása, amely csökkenti a "works on my machine" problémákat és gyorsítja az onboarding folyamatot. Docker Compose lehetővé teszi, hogy egyetlen parancs (`docker-compose up`) elindítsa az összes szükséges szolgáltatást.
 
 **Kapcsolódás az architektúrához:**
@@ -22,6 +24,8 @@ Ez a story a Creaitor lokális fejlesztői környezet Docker-alapú containeriz�
 **PRD Requirements lefedettség:**
 - **NFR8: Deployment & DevOps:** Lokális fejlesztői környezet konzisztenciája, Docker-alapú containerizáció
 - **TA0: Technology Stack Decisions - Infrastructure:** Docker Compose használata lokális fejlesztéshez
+
+[Source: docs/archive/prd-creaitor-2025-11-18.md § NFR8: Deployment & DevOps / TA0: Technology Stack Decisions - Infrastructure]
 
 **Tech Spec Epic 1 hivatkozás:**
 - [Source: docs/sprint-artifacts/tech-spec-epic-1.md § Story 1.3 Acceptance Criteria (lines 1129-1140)]
@@ -291,6 +295,10 @@ Story 1.2 successfully established Supabase infrastructure. Key learnings for St
 
 **Epic 1 Story Breakdown:**
 - [Source: docs/epics/epic-1-foundation-development-infrastructure.md § Story 1.3] - Story overview and technical notes
+
+**PRD Requirements:**
+- [Source: docs/archive/prd-creaitor-2025-11-18.md § NFR8: Deployment & DevOps] - Local development environment consistency, Docker-based containerization
+- [Source: docs/archive/prd-creaitor-2025-11-18.md § TA0: Technology Stack Decisions - Infrastructure] - Docker Compose usage for local development
 
 **Previous Story:**
 - [Source: docs/sprint-artifacts/1-2-supabase-project-setup-configuration.md] - Story 1.2 implementation learnings
