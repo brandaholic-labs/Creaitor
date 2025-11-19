@@ -42,6 +42,7 @@ Edit `.env.local` with your Supabase connection details from `npx supabase statu
 - `NEXT_PUBLIC_SUPABASE_URL` - API URL (local: http://127.0.0.1:54321)
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Publishable key (safe for client-side)
 - `SUPABASE_SERVICE_ROLE_KEY` - Secret key (server-side only, SECRET)
+- `REDIS_URL` - Redis connection URL (Docker: redis://redis:6379, Manual: redis://localhost:6379)
 
 5. Apply database migrations:
 ```bash
@@ -55,19 +56,60 @@ npx supabase gen types typescript --local > src/types/database.types.ts
 
 ## Development
 
-### Starting Services
+### Option A: Docker Compose (Recommended)
+
+The easiest way to run all services consistently:
+
+```bash
+# Start all services (Next.js app, Redis)
+docker-compose up
+
+# Or run in detached mode (background)
+docker-compose up -d
+
+# View logs
+docker-compose logs -f
+
+# Stop all services
+docker-compose down
+
+# Stop and remove volumes (clean slate)
+docker-compose down -v
+```
+
+**Services:**
+- Next.js app: http://localhost:3000
+- Redis: localhost:6379
+- Supabase: Run separately with `npx supabase start` (outside Docker)
+
+**Note:** Supabase runs via Supabase CLI (not in Docker Compose) for easier setup and Supabase Studio access.
+
+### Option B: Manual Setup
 
 1. Start Supabase local services:
 ```bash
 npx supabase start
 ```
 
-2. Start the Next.js development server:
+2. Start Redis (via Docker):
+```bash
+docker run -d -p 6379:6379 redis:7-alpine
+```
+
+3. Start the Next.js development server:
 ```bash
 npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+### Docker Compose Commands
+
+- **Start all services:** `docker-compose up` or `npm run docker:up`
+- **Stop all services:** `docker-compose down` or `npm run docker:down`
+- **View logs:** `docker-compose logs -f` or `npm run docker:logs`
+- **Rebuild containers:** `docker-compose up --build`
+- **Clean volumes:** `docker-compose down -v`
 
 ### Supabase Commands
 
