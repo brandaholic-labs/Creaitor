@@ -1,6 +1,6 @@
 # Story 1.8: Frontend Design System Setup (Tailwind Config, Shadcn UI, Design Tokens)
 
-Status: drafted
+Status: ready-for-dev
 
 ## Story
 
@@ -190,7 +190,7 @@ Story 1.7 successfully set up CI/CD pipeline with GitHub Actions. Key context fo
 
 ### Context Reference
 
-<!-- Path(s) to story context XML will be added here by context workflow -->
+- docs/sprint-artifacts/1-8-frontend-design-system-setup-tailwind-shadcn-design-tokens.context.xml
 
 ### Agent Model Used
 
