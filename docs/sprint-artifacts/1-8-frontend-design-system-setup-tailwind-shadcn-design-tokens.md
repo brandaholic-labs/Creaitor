@@ -131,21 +131,39 @@ so that **we have a consistent, scalable design system foundation for all UI com
 
 Story 1.7 successfully set up CI/CD pipeline with GitHub Actions. Key context for Story 1.8:
 
+**New Files Created (relevant context):**
+- ✅ `.github/workflows/ci.yml` - CI workflow runs ESLint and tests on every PR
+- ✅ `.github/workflows/deploy.yml` - CD workflow for automated deployment
+- ✅ `tests/e2e/smoke.spec.ts` - E2E smoke tests for critical paths
+
+**Completion Notes:**
+- ✅ CI/CD pipeline successfully implemented and reviewed
+- ✅ All review findings resolved (rollback logic fixed, explicit coverage check added)
+- ✅ PR checks block merge on ESLint errors, test failures, or coverage < 60%
+
 **Relevant Context:**
 - ✅ CI pipeline runs ESLint and tests on every PR
 - ✅ Design token CSS and Tailwind config changes will be validated in CI
 - ✅ Visual regression tests (if added) can be integrated into CI pipeline (P1)
 
-**No direct dependencies on Story 1.7 files, but:**
+**Implications for Story 1.8:**
 - Design system setup should follow TypeScript strict mode (Story 1.1)
 - Components should be testable (Story 1.4 test infrastructure ready)
+- Design token CSS and Tailwind config files will be automatically validated in CI on every PR
+- Unit tests for design tokens (Task 6) will run in CI pipeline
+
+[Source: docs/sprint-artifacts/1-7-cicd-pipeline-setup-github-actions.md]
 
 ### References
 
 - [Source: docs/epics/epic-1-foundation-development-infrastructure.md#story-18-frontend-design-system-setup-tailwind-config-shadcn-ui-design-tokens]
 - [Source: docs/sprint-artifacts/tech-spec-epic-1.md#story-18-frontend-design-system-setup]
 - [Source: docs/architecture.md#decision-summary] - Tailwind CSS v4, Shadcn UI decisions
-- [Source: docs/ux-design-specification.md] - Section 1: Design System Foundation, Section 3.2: Color Palette, Section 3.3: Typography
+- [Source: docs/architecture.md#project-structure] - Component directory structure (`src/components/ui/`)
+- [Source: docs/architecture.md#testing-strategy] - Unit test guidance and coverage requirements
+- [Source: docs/ux-design-specification.md#section-1-design-system-foundation] - Design System Foundation (Shadcn UI choice, component library)
+- [Source: docs/ux-design-specification.md#section-3.2-color-palette] - Purple/Violet color palette (#a855f7)
+- [Source: docs/ux-design-specification.md#section-3.3-typography] - Typography (Plus Jakarta Sans + Inter)
 
 ### Technical Notes
 
@@ -183,4 +201,9 @@ Story 1.7 successfully set up CI/CD pipeline with GitHub Actions. Key context fo
 ### Completion Notes List
 
 ### File List
+
+## Change Log
+
+- **2025-11-20:** Story drafted by SM agent (Bob) - YOLO mode, no elicitation
+- **2025-11-20:** Story improved after validation - Enhanced "Learnings from Previous Story" section with Story 1.7 file list and completion notes, expanded References section with specific architecture documentation sections
 
