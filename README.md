@@ -1,6 +1,24 @@
-# Creaitor
+# Creaitor is a brand-first AI social media content platform designed for agencies.
 
-AI-powered social media content management platform for agencies managing multiple client brands on Facebook and Instagram.
+## Design System
+
+The project uses a custom design system built on **Tailwind CSS v4** and **Shadcn UI**.
+
+### Design Tokens
+Design tokens are defined as CSS variables in `src/styles/design-tokens.css`.
+- **Colors**: Purple/Violet brand palette (`--color-brand-500`), semantic colors (`--color-primary`, `--color-destructive`, etc.)
+- **Typography**: `Plus Jakarta Sans` (Headings) and `Inter` (Body)
+- **Spacing & Radius**: Standardized scales (e.g., `--radius-md`)
+
+### Components
+UI components are located in `src/components/ui/`.
+To add a new component:
+```bash
+npx shadcn@latest add [component-name]
+```
+
+### Dark Mode
+The system is future-ready for dark mode. Toggle the `.dark` class on the `html` element to switch themes.
 
 ## Prerequisites
 
