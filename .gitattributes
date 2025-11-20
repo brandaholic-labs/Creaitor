@@ -1,0 +1,16 @@
+# Exclude generated files from GitHub language statistics
+# This prevents HTML reports and coverage files from skewing language stats
+
+# Test coverage reports (HTML)
+coverage/** linguist-generated=true
+*.lcov linguist-generated=true
+
+# Playwright test reports (HTML)
+playwright-report/** linguist-generated=true
+test-results/** linguist-generated=true
+
+# Next.js build outputs (HTML)
+.next/** linguist-generated=true
+
+# Documentation files should be counted (keep docs/ux-color-themes.html as documentation)
+
