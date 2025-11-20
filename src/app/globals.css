@@ -6,10 +6,11 @@
 
 @layer base {
   * {
-    @apply border-border;
+    border-color: hsl(var(--color-border));
   }
   body {
-    @apply bg-background text-foreground;
+    background-color: hsl(var(--color-background));
+    color: hsl(var(--color-foreground));
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 }

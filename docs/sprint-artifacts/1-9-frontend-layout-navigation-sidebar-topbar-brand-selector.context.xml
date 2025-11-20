@@ -1,0 +1,114 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>1</epicId>
+    <storyId>9</storyId>
+    <title>Frontend Layout &amp; Navigation (Sidebar, TopBar, Brand Selector)</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-20</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/sprint-artifacts/1-9-frontend-layout-navigation-sidebar-topbar-brand-selector.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>frontend developer</asA>
+    <iWant>main layout components (Sidebar, TopBar, MainLayout) and navigation setup with persistent Brand Selector</iWant>
+    <soThat>all subsequent features have consistent navigation and brand context awareness</soThat>
+    <tasks>
+      <task>Task 1: MainLayout component (AC: #1)</task>
+      <task>Task 2: Sidebar component (AC: #2)</task>
+      <task>Task 3: TopBar component (AC: #3)</task>
+      <task>Task 4: Brand Selector component (AC: #4)</task>
+      <task>Task 5: Navigation routing setup (AC: #5)</task>
+      <task>Task 6: Responsive layout implementation (AC: #6)</task>
+      <task>Task 7: Example pages (AC: #7)</task>
+      <task>Task 8: Unit tests (AC: #1, #2, #3, #4)</task>
+      <task>Task 9: E2E tests (AC: #5, #6)</task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <ac id="1">MainLayout component exists in src/components/layout/MainLayout.tsx, wraps authenticated pages, contains Sidebar and TopBar, responsive (sidebar collapse &lt; lg), uses design tokens</ac>
+    <ac id="2">Sidebar component exists in src/components/layout/Sidebar.tsx, navigation links (Dashboard, Brands, Calendar, Settings), Brand Selector (persistent, visible), user profile section (bottom), collapsible mobile, active route highlight, Shadcn UI components</ac>
+    <ac id="3">TopBar component exists in src/components/layout/TopBar.tsx, active brand name + logo display, user menu dropdown (profile, settings, logout), notifications icon placeholder (P1), responsive (Brand Selector moves to TopBar mobile)</ac>
+    <ac id="4">Brand Selector component exists in src/components/brand/BrandSelector.tsx, dropdown all user brands, active brand highlight, brand logo + name display, click to switch, Zustand state management (activeBrandId), persistent across navigation (UX Pattern 1)</ac>
+    <ac id="5">Navigation routing configured: Next.js App Router (src/app/), protected routes (/dashboard/*, /brands/*, /calendar/*, /settings/*), public routes (/login, /register, /), auth middleware redirect unauthenticated users /login, active route state managed</ac>
+    <ac id="6">Layout components responsive: Desktop (≥ lg): sidebar visible, TopBar horizontal; Mobile (&lt; lg): sidebar collapsible (hamburger), TopBar full width; Touch targets: 44x44px min (WCAG 2.1 AA)</ac>
+    <ac id="7">Example pages exist: src/app/dashboard/page.tsx (placeholder), src/app/login/page.tsx (placeholder); layout applied to dashboard, not to login</ac>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc path="docs/sprint-artifacts/tech-spec-epic-1.md" title="Epic 1 Technical Specification" section="Story 1.9: Frontend Layout &amp; Navigation" snippet="Story 1.9 acceptance criteria and implementation details for layout components, navigation routing, and Brand Selector with Zustand state management." />
+      <doc path="docs/architecture.md" title="System Architecture" section="Project Structure, Decision Summary" snippet="Next.js 15 App Router, Zustand state management, component directory structure (src/components/layout/, src/components/brand/), responsive breakpoints (lg: 1024px)." />
+      <doc path="docs/ux-design-specification.md" title="UX Design Specification" section="Section 2.2: Navigation Structure, Section 6.1: BrandSelector Component" snippet="Sidebar layout (250px width, navigation links, Brand Selector placement), TopBar (active brand indicator), Brand Selector component specification (UX Pattern 1: Active Brand Context Lock)." />
+      <doc path="docs/epics/epic-1-foundation-development-infrastructure.md" title="Epic 1: Foundation &amp; Development Infrastructure" section="Story 1.9: Frontend Layout &amp; Navigation" snippet="Story acceptance criteria, technical notes, frontend components, and test requirements." />
+      <doc path="docs/sprint-artifacts/1-9-frontend-layout-navigation-sidebar-topbar-brand-selector.md" title="Story 1.9 Draft" section="Dev Notes, Technical Notes" snippet="Architecture constraints, project structure notes, learnings from Story 1.8 (design system setup), testing strategy, and technical implementation details." />
+    </docs>
+    <code>
+      <file path="src/components/layout/MainLayout.tsx" kind="component" symbol="MainLayout" reason="Main layout component wrapping authenticated pages with Sidebar and TopBar - to be created" />
+      <file path="src/components/layout/Sidebar.tsx" kind="component" symbol="Sidebar" reason="Sidebar navigation component with Brand Selector integration - to be created" />
+      <file path="src/components/layout/TopBar.tsx" kind="component" symbol="TopBar" reason="Top bar component showing active brand and user menu - to be created" />
+      <file path="src/components/brand/BrandSelector.tsx" kind="component" symbol="BrandSelector" reason="Brand selector dropdown component with Zustand state management - to be created" />
+      <file path="src/lib/stores/brand-store.ts" kind="store" symbol="useBrandStore" reason="Zustand store for activeBrandId state management - to be created" />
+      <file path="src/app/(dashboard)/layout.tsx" kind="layout" symbol="DashboardLayout" reason="Protected route layout applying MainLayout to authenticated pages - to be created" />
+      <file path="src/app/(auth)/layout.tsx" kind="layout" symbol="AuthLayout" reason="Public route layout for login/register pages - to be created" />
+      <file path="src/middleware.ts" kind="middleware" symbol="middleware" reason="Next.js auth middleware to redirect unauthenticated users to /login - to be created" />
+      <file path="src/app/dashboard/page.tsx" kind="page" symbol="DashboardPage" reason="Placeholder dashboard page with MainLayout - to be created" />
+      <file path="src/app/login/page.tsx" kind="page" symbol="LoginPage" reason="Placeholder login page without MainLayout - to be created" />
+      <file path="src/styles/design-tokens.css" kind="style" symbol="design-tokens" reason="Design tokens from Story 1.8 (colors, typography, spacing, shadow) - already exists" />
+      <file path="src/components/ui/button.tsx" kind="component" symbol="Button" reason="Shadcn UI Button component from Story 1.8 - already exists" />
+      <file path="src/components/ui/badge.tsx" kind="component" symbol="Badge" reason="Shadcn UI Badge component from Story 1.8 - already exists" />
+      <file path="src/components/ui/dropdown-menu.tsx" kind="component" symbol="DropdownMenu" reason="Shadcn UI Dropdown component for Brand Selector - already exists" />
+    </code>
+    <dependencies>
+      <ecosystem name="node">
+        <package name="next" version="^15.0.0" />
+        <package name="react" version="^18.3.0" />
+        <package name="react-dom" version="^18.3.0" />
+        <package name="zustand" version="^5.0.8" />
+        <package name="@tanstack/react-query" version="^5.90.10" />
+        <package name="@supabase/supabase-js" version="^2.83.0" />
+        <package name="@supabase/ssr" version="^0.7.0" />
+        <package name="@radix-ui/react-dropdown-menu" version="^2.1.16" />
+        <package name="tailwindcss" version="^4.0.0" />
+        <package name="class-variance-authority" version="^0.7.1" />
+        <package name="clsx" version="^2.1.1" />
+        <package name="tailwind-merge" version="^3.4.0" />
+      </ecosystem>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint>Layout Components: src/components/layout/ directory (Architecture § Project Structure)</constraint>
+    <constraint>Brand Components: src/components/brand/ directory (Architecture § Project Structure)</constraint>
+    <constraint>State Management: Zustand for activeBrandId (Architecture § Decision Summary: Zustand)</constraint>
+    <constraint>Styling: Design tokens from Story 1.8 (src/styles/design-tokens.css)</constraint>
+    <constraint>UI Components: Shadcn UI components (Button, Badge, Dropdown) from Story 1.8</constraint>
+    <constraint>Routing: Next.js 15 App Router (Architecture § Decision Summary: Next.js 15 App Router)</constraint>
+    <constraint>Responsive Breakpoints: lg (1024px) for sidebar collapse (Architecture § Project Structure)</constraint>
+    <constraint>Touch Targets: 44x44px minimum (WCAG 2.1 AA compliance)</constraint>
+    <constraint>Brand Selector State: Zustand store should persist activeBrandId across page navigation (localStorage or sessionStorage)</constraint>
+  </constraints>
+  <interfaces>
+    <interface name="BrandSelector Props" kind="component interface" signature="interface BrandSelectorProps { brands: Brand[]; activeBrandId: string | null; onBrandChange: (brandId: string) => void; }" path="src/components/brand/BrandSelector.tsx" />
+    <interface name="MainLayout Props" kind="component interface" signature="interface MainLayoutProps { children: React.ReactNode; user: User; }" path="src/components/layout/MainLayout.tsx" />
+    <interface name="Sidebar Props" kind="component interface" signature="interface SidebarProps { collapsed?: boolean; onToggle?: () => void; }" path="src/components/layout/Sidebar.tsx" />
+    <interface name="Zustand Brand Store" kind="state store" signature="interface BrandContextState { activeBrandId: string | null; brands: Brand[]; setActiveBrand: (brandId: string) => void; }" path="src/lib/stores/brand-store.ts" />
+    <interface name="Next.js usePathname Hook" kind="react hook" signature="usePathname(): string" path="next/navigation" />
+  </interfaces>
+  <tests>
+    <standards>Jest for unit/integration tests with @swc/jest for TypeScript support. Playwright for E2E tests. React Testing Library for component testing. Coverage target: ≥60% for MVP. Test pyramid: 40% unit, 30% integration, 30% E2E. Follow Test Design document (docs/test-design-system.md) strategy.</standards>
+    <locations>tests/unit/ for unit tests, tests/integration/ for integration tests, tests/e2e/ for Playwright E2E tests. Component tests alongside components or in tests/unit/components/.</locations>
+    <ideas>
+      <test acId="1">Unit test: BrandSelector updates Zustand store on brand change - verify setActiveBrand updates activeBrandId in store</test>
+      <test acId="2">Unit test: Sidebar highlights active route correctly - verify usePathname() hook returns current path and active link is highlighted</test>
+      <test acId="3">Unit test: MainLayout applies layout to authenticated pages only - verify MainLayout wraps children and Sidebar/TopBar render</test>
+      <test acId="4">Unit test: Brand Selector persists active brand across navigation - verify Zustand store persists activeBrandId in localStorage</test>
+      <test acId="5">E2E test: Navigation between routes works - Playwright test navigating Dashboard → Brands → Calendar → Settings</test>
+      <test acId="6">E2E test: Brand Selector persists active brand across navigation - verify activeBrandId persists after route change</test>
+      <test acId="6">E2E test: Responsive layout - Sidebar collapses on mobile - verify sidebar hidden on viewport &lt; lg (1024px)</test>
+      <test acId="6">E2E test: Touch targets are 44x44px minimum - verify all interactive elements meet WCAG 2.1 AA requirement</test>
+    </ideas>
+  </tests>
+</story-context>
+
