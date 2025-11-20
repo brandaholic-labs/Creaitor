@@ -34,6 +34,10 @@ logs/
 coverage/
 *.lcov
 
+# Playwright test reports
+playwright-report/
+test-results/
+
 # Python (if used in future)
 __pycache__/
 *.py[cod]
