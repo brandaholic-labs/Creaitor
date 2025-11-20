@@ -137,13 +137,24 @@ src/
 
 ## Testing
 
-Testing infrastructure will be set up in Story 1.4.
-
-```bash
-# Placeholder for future testing commands
-npm run test
-npm run test:e2e
-```
+Testing infrastructure is set up with Jest (Unit/Integration) and Playwright (E2E).
+ 
+ ```bash
+ # Run unit tests
+ npm run test:unit
+ 
+ # Run integration tests
+ npm run test:integration
+ 
+ # Run E2E tests
+ npm run test:e2e
+ 
+ # Run all tests (except E2E)
+ npm run test
+ 
+ # Generate coverage report
+ npm run test:coverage
+ ```
 
 ## Building for Production
 
