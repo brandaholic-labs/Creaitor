@@ -36,6 +36,26 @@ jobs:
       - name: Generate Coverage Report
         run: npm run test:coverage
 
+      - name: Check Coverage Threshold
+        run: |
+          if [ ! -f coverage/coverage-summary.json ]; then
+            echo "Coverage summary not found!"
+            exit 1
+          fi
+
+          COVERAGE=$(node -e "const fs=require('fs'); const data=JSON.parse(fs.readFileSync('coverage/coverage-summary.json','utf8')); console.log(data.total.lines.pct);")
+          THRESHOLD=60
+
+          echo "Current coverage: $COVERAGE%"
+          echo "Required threshold: $THRESHOLD%"
+
+          if (( $(echo "$COVERAGE < $THRESHOLD" | bc -l) )); then
+            echo "Coverage $COVERAGE% is below threshold $THRESHOLD%"
+            exit 1
+          fi
+
+          echo "Coverage check passed!"
+
       - name: Upload Coverage Artifacts
         uses: actions/upload-artifact@v4
         if: always()

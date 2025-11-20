@@ -45,6 +45,16 @@ jobs:
       - name: Add Host Key
         run: ssh-keyscan -H ${{ secrets.HETZNER_IP }} >> ~/.ssh/known_hosts
 
+      - name: Store Previous Commit Hash
+        id: store-commit
+        env:
+          HOST: root@${{ secrets.HETZNER_IP }}
+          APP_DIR: /opt/creaitor
+        run: |
+          PREVIOUS_COMMIT=$(ssh $HOST "cd $APP_DIR && git rev-parse HEAD")
+          echo "previous_commit=$PREVIOUS_COMMIT" >> $GITHUB_OUTPUT
+          echo "Stored previous commit: $PREVIOUS_COMMIT"
+
       - name: Deploy to Hetzner VPS
         env:
           HOST: root@${{ secrets.HETZNER_IP }}
@@ -71,7 +81,9 @@ jobs:
         env:
           HOST: root@${{ secrets.HETZNER_IP }}
           APP_DIR: /opt/creaitor
+          PREVIOUS_COMMIT: ${{ steps.store-commit.outputs.previous_commit }}
         run: |
           echo "Deployment failed, initiating rollback..."
-          # Attempt to revert to previous commit and redeploy
-          ssh $HOST "cd $APP_DIR && git reset --hard HEAD@{1} && docker-compose -f docker-compose.prod.yml up -d --build"
+          echo "Rolling back to commit: $PREVIOUS_COMMIT"
+          ssh $HOST "cd $APP_DIR && git reset --hard $PREVIOUS_COMMIT && docker-compose -f docker-compose.prod.yml up -d --build"
+          echo "Rollback completed!"
