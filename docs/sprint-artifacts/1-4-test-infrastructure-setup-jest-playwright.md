@@ -1,6 +1,6 @@
 # Story 1.4: Test Infrastructure Setup (Jest + Playwright)
 
-Status: ready-for-dev
+Status: review
 
 ## Story
 
@@ -61,22 +61,22 @@ Ez a story a Creaitor test infrastruktúrájának beállítását hozza létre. 
 
 ## Tasks / Subtasks
 
-- [ ] **Task 1: Jest konfiguráció létrehozása** (AC: #1)
-  - [ ] Subtask 1.1: Install Jest dependencies: `jest`, `@swc/jest`, `@testing-library/react`, `@testing-library/jest-dom`
-  - [ ] Subtask 1.2: Create `jest.config.js` with:
+- [x] **Task 1: Jest konfiguráció létrehozása** (AC: #1)
+  - [x] Subtask 1.1: Install Jest dependencies: `jest`, `@swc/jest`, `@testing-library/react`, `@testing-library/jest-dom`
+  - [x] Subtask 1.2: Create `jest.config.js` with:
     - TypeScript support (@swc/jest transformer)
     - Module path aliases (`@/*` → `src/*`)
     - Test environment: `jsdom` (React components)
     - Coverage configuration (threshold: ≥80% critical paths)
     - Test file patterns: `**/*.test.ts`, `**/*.test.tsx`
-  - [ ] Subtask 1.3: Configure React Testing Library:
+  - [x] Subtask 1.3: Configure React Testing Library:
     - Setup file: `tests/setup.ts` (jest-dom matchers import)
     - Jest config: `setupFilesAfterEnv: ['<rootDir>/tests/setup.ts']`
-  - [ ] Subtask 1.4: Verify Jest works: `npm run test:unit` runs successfully
+  - [x] Subtask 1.4: Verify Jest works: `npm run test:unit` runs successfully
 
-- [ ] **Task 2: Playwright konfiguráció létrehozása** (AC: #2)
-  - [ ] Subtask 2.1: Install Playwright: `@playwright/test`
-  - [ ] Subtask 2.2: Create `playwright.config.ts` with:
+- [x] **Task 2: Playwright konfiguráció létrehozása** (AC: #2)
+  - [x] Subtask 2.1: Install Playwright: `@playwright/test`
+  - [x] Subtask 2.2: Create `playwright.config.ts` with:
     - Browser engines: Chromium, Firefox, WebKit
     - Base URL: `http://localhost:3000`
     - Test directory: `tests/e2e/`
@@ -84,66 +84,66 @@ Ez a story a Creaitor test infrastruktúrájának beállítását hozza létre. 
     - Video on failure: `videos/` directory
     - Parallel execution: `workers: 1` (P0, sequential safer)
     - Timeout: 30s action timeout (generous for P0)
-  - [ ] Subtask 2.3: Install browser engines: `npx playwright install`
-  - [ ] Subtask 2.4: Create test fixtures for authentication (placeholder, Epic 2-ben implementáljuk)
-  - [ ] Subtask 2.5: Verify Playwright works: `npm run test:e2e` runs successfully
+  - [x] Subtask 2.3: Install browser engines: `npx playwright install`
+  - [x] Subtask 2.4: Create test fixtures for authentication (placeholder, Epic 2-ben implementáljuk)
+  - [x] Subtask 2.5: Verify Playwright works: `npm run test:e2e` runs successfully
 
-- [ ] **Task 3: package.json scripts hozzáadása** (AC: #3)
-  - [ ] Subtask 3.1: Add `test:unit` script: `jest --testPathPattern=unit`
-  - [ ] Subtask 3.2: Add `test:integration` script: `jest --testPathPattern=integration`
-  - [ ] Subtask 3.3: Add `test:e2e` script: `playwright test`
-  - [ ] Subtask 3.4: Add `test:coverage` script: `jest --coverage --coverageThreshold='{"global":{"lines":60,"statements":60,"functions":60,"branches":60}}'`
-  - [ ] Subtask 3.5: Add `test` script: `npm run test:unit && npm run test:integration` (all non-E2E tests)
+- [x] **Task 3: package.json scripts hozzáadása** (AC: #3)
+  - [x] Subtask 3.1: Add `test:unit` script: `jest --testPathPattern=unit`
+  - [x] Subtask 3.2: Add `test:integration` script: `jest --testPathPattern=integration`
+  - [x] Subtask 3.3: Add `test:e2e` script: `playwright test`
+  - [x] Subtask 3.4: Add `test:coverage` script: `jest --coverage --coverageThreshold='{"global":{"lines":60,"statements":60,"functions":60,"branches":60}}'`
+  - [x] Subtask 3.5: Add `test` script: `npm run test:unit && npm run test:integration` (all non-E2E tests)
 
-- [ ] **Task 4: Example tesztek létrehozása** (AC: #4)
-  - [ ] Subtask 4.1: Create `tests/unit/example.test.ts`:
+- [x] **Task 4: Example tesztek létrehozása** (AC: #4)
+  - [x] Subtask 4.1: Create `tests/unit/example.test.ts`:
     - Example unit test (utility function test)
     - Jest matchers usage (expect, toBe, toEqual)
     - TypeScript types
-  - [ ] Subtask 4.2: Create `tests/integration/api/example.test.ts`:
+  - [x] Subtask 4.2: Create `tests/integration/api/example.test.ts`:
     - Example API route test (Next.js API route)
     - MSW (Mock Service Worker) setup for API mocking
     - Supertest vagy fetch API használata
-  - [ ] Subtask 4.3: Create `tests/e2e/example.spec.ts`:
+  - [x] Subtask 4.3: Create `tests/e2e/example.spec.ts`:
     - Example E2E test (navigation flow)
     - Playwright page object pattern (optional)
     - Screenshot/video capture demonstration
 
-- [ ] **Task 5: Test utilities és fixtures létrehozása** (AC: #1, #2)
-  - [ ] Subtask 5.1: Create `tests/utils/mockSupabase.ts`:
+- [x] **Task 5: Test utilities és fixtures létrehozása** (AC: #1, #2)
+  - [x] Subtask 5.1: Create `tests/utils/mockSupabase.ts`:
     - Supabase client mock (for integration tests)
     - Mock responses for common queries
-  - [ ] Subtask 5.2: Create `tests/utils/mockAI.ts`:
+  - [x] Subtask 5.2: Create `tests/utils/mockAI.ts`:
     - AI service mock (for future Epic 4 tests)
     - Mock LLM responses
-  - [ ] Subtask 5.3: Create `tests/utils/testFixtures.ts`:
+  - [x] Subtask 5.3: Create `tests/utils/testFixtures.ts`:
     - Common test data (users, brands, posts)
     - Fixture helpers for test setup
-  - [ ] Subtask 5.4: Create `tests/setup.ts`:
+  - [x] Subtask 5.4: Create `tests/setup.ts`:
     - Jest setup file (jest-dom matchers)
     - Global test utilities
 
-- [ ] **Task 6: CI/CD integráció előkészítése** (AC: #1, #2, #3)
-  - [ ] Subtask 6.1: Verify Jest works in CI environment (GitHub Actions compatible)
-  - [ ] Subtask 6.2: Verify Playwright works in CI environment (headless mode)
-  - [ ] Subtask 6.3: Document CI test execution in README.md (Story 1.7-ben implementáljuk a CI/CD pipeline-t)
+- [x] **Task 6: CI/CD integráció előkészítése** (AC: #1, #2, #3)
+  - [x] Subtask 6.1: Verify Jest works in CI environment (GitHub Actions compatible)
+  - [x] Subtask 6.2: Verify Playwright works in CI environment (headless mode)
+  - [x] Subtask 6.3: Document CI test execution in README.md (Story 1.7-ben implementáljuk a CI/CD pipeline-t)
 
-- [ ] **Task 7: Dokumentáció és validation** (AC: #1, #2, #3, #4)
-  - [ ] Subtask 7.1: Update README.md with test setup instructions:
+- [x] **Task 7: Dokumentáció és validation** (AC: #1, #2, #3, #4)
+  - [x] Subtask 7.1: Update README.md with test setup instructions:
     - Prerequisites: Node.js, npm
     - Test commands: `npm run test:unit`, `npm run test:integration`, `npm run test:e2e`
     - Coverage reporting: `npm run test:coverage`
     - Test file structure: `tests/unit/`, `tests/integration/`, `tests/e2e/`
-  - [ ] Subtask 7.2: Add test examples documentation:
+  - [x] Subtask 7.2: Add test examples documentation:
     - How to write unit tests
     - How to write integration tests
     - How to write E2E tests
-  - [ ] Subtask 7.3: Test full workflow:
+  - [x] Subtask 7.3: Test full workflow:
     - `npm run test:unit` ✅
     - `npm run test:integration` ✅
     - `npm run test:e2e` ✅
     - `npm run test:coverage` ✅
-  - [ ] Subtask 7.4: Commit changes: `git add . && git commit -m "feat(epic-1): Story 1.4 - Test infrastructure setup (Jest + Playwright)"`
+  - [x] Subtask 7.4: Commit changes: `git add . && git commit -m "feat(epic-1): Story 1.4 - Test infrastructure setup (Jest + Playwright)"`
 
 ## Dev Notes
 
@@ -305,7 +305,22 @@ Story 1.3 successfully established Docker Compose environment. Key learnings for
 
 ### File List
 
+- jest.config.js
+- playwright.config.ts
+- package.json
+- tests/setup.ts
+- tests/unit/example.test.ts
+- tests/integration/api/health.test.ts
+- tests/e2e/example.spec.ts
+- tests/e2e/fixtures.ts
+- tests/utils/mockSupabase.ts
+- tests/utils/mockAI.ts
+- tests/utils/testFixtures.ts
+- src/app/api/health/route.ts
+- README.md
+
 ## Change Log
 
 - **2025-11-19:** Story drafted by SM agent (Bob)
+- **2025-11-20:** Implemented Jest and Playwright infrastructure, added example tests and utilities.
 

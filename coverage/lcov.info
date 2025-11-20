@@ -1,0 +1,16 @@
+TN:
+SF:src/app/api/health/route.ts
+FN:3,GET
+FNF:1
+FNH:1
+FNDA:2,GET
+DA:1,1
+DA:3,2
+DA:4,2
+LF:3
+LH:3
+BRDA:7,0,0,2
+BRDA:7,0,1,1
+BRF:2
+BRH:2
+end_of_record
