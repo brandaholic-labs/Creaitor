@@ -1,0 +1,91 @@
+# Docker Compose override for Supabase services
+# This file is automatically merged with the CLI-generated docker-compose.yml
+# by Supabase CLI when running `supabase start`
+
+version: '3.8'
+
+services:
+  # Memory limits for all Supabase services
+  # Analytics service (runs logflare) - container: supabase_analytics_creaitor
+  analytics:
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+        reservations:
+          memory: 256m
+    environment:
+      LOGFLARE_LOG_LEVEL: warn
+  #
+  # auth - GoTrue authentication service (container: supabase_auth_creaitor)
+  auth:
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+        reservations:
+          memory: 128m
+  #
+  # rest - PostgREST API service (container: supabase_rest_creaitor)
+  rest:
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+        reservations:
+          memory: 128m
+  #
+  # realtime - Realtime subscription service (container: supabase_realtime_creaitor)
+  realtime:
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+        reservations:
+          memory: 256m
+  #
+  # storage - Storage API service (container: supabase_storage_creaitor)
+  storage:
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+        reservations:
+          memory: 128m
+  #
+  # studio - Supabase Studio web interface (container: supabase_studio_creaitor)
+  studio:
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+        reservations:
+          memory: 128m
+  #
+  # kong - API Gateway (container: supabase_kong_creaitor)
+  kong:
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+        reservations:
+          memory: 128m
+  #
+  # vector - Vector log collector (container: supabase_vector_creaitor)
+  vector:
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+        reservations:
+          memory: 256m
+  #
+  #functions - Edge Runtime for Edge Functions (container: supabase_edge_runtime_creaitor)
+  functions:
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+        reservations:
+          memory: 256m
+
