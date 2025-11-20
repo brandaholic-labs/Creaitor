@@ -1,6 +1,6 @@
 # Story 1.6: Caddy Reverse Proxy Configuration
 
-Status: drafted
+Status: ready-for-dev
 
 ## Story
 
@@ -102,7 +102,7 @@ Story 1.5 successfully established Winston logging infrastructure. Key context f
 
 ### Context Reference
 
-<!-- Path(s) to story context XML will be added here by context workflow -->
+- `docs/sprint-artifacts/1-6-caddy-reverse-proxy-configuration.context.xml`
 
 ### Agent Model Used
 

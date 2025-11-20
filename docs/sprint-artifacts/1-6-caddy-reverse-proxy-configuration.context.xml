@@ -1,0 +1,121 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>1</epicId>
+    <storyId>6</storyId>
+    <title>Caddy Reverse Proxy Configuration</title>
+    <status>ready-for-dev</status>
+    <generatedAt>2025-11-20T10:50:01Z</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/sprint-artifacts/1-6-caddy-reverse-proxy-configuration.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>developer</asA>
+    <iWant>Caddy configured as reverse proxy with automatic HTTPS</iWant>
+    <soThat>production deployment has SSL termination and simplified configuration</soThat>
+    <tasks>
+      <task id="1" title="Caddy telepítése és konfigurálása">
+        <subtask>Create Caddyfile in project root with domain configuration</subtask>
+        <subtask>Configure automatic HTTPS (Let's Encrypt) for creaitor.hu</subtask>
+        <subtask>Configure reverse proxy to Next.js app (localhost:3000)</subtask>
+        <subtask>Add security headers (HSTS, X-Content-Type-Options, X-Frame-Options, Referrer-Policy)</subtask>
+        <subtask>Configure access logs in JSON format</subtask>
+        <subtask>Enable gzip compression</subtask>
+      </task>
+      <task id="2" title="Deployment dokumentáció">
+        <subtask>Create or update docs/deployment.md</subtask>
+        <subtask>Document Hetzner VPS provisioning steps</subtask>
+        <subtask>Document Caddy installation steps</subtask>
+        <subtask>Document Caddyfile deployment process</subtask>
+        <subtask>Document health check verification after deployment</subtask>
+      </task>
+      <task id="3" title="Testing és validálás">
+        <subtask>Test Caddyfile syntax validation (caddy validate)</subtask>
+        <subtask>Test local reverse proxy setup (if possible)</subtask>
+        <subtask>Verify health check endpoint accessible via Caddy (/api/health)</subtask>
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <ac id="1" title="Caddy reverse proxy configured">
+      <item>Automatic HTTPS via Let's Encrypt for creaitor.hu</item>
+      <item>Reverse proxy to Next.js app on localhost:3000</item>
+      <item>Security headers (HSTS, X-Content-Type-Options, X-Frame-Options, Referrer-Policy)</item>
+      <item>Access logs in JSON format</item>
+      <item>Gzip compression enabled</item>
+    </ac>
+    <ac id="2" title="Caddyfile exists">
+      <item>Caddyfile exists in project root with configuration</item>
+      <item>Configuration follows Architecture ADR-007 (Caddy vs Nginx decision)</item>
+    </ac>
+    <ac id="3" title="Deployment instructions exist">
+      <item>Deployment instructions exist in docs/deployment.md</item>
+      <item>Includes Hetzner VPS setup steps</item>
+      <item>Includes Caddy installation and configuration steps</item>
+    </ac>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc path="docs/architecture.md" title="Architecture Document" section="Deployment Architecture">
+        <snippet>Hetzner VPS deployment stack: Caddy (80/443) automatic HTTPS reverse proxy, Next.js app (Docker container port 3000), BullMQ worker + Redis, Supabase external. Caddy configuration example with automatic Let's Encrypt, security headers, JSON access logs.</snippet>
+      </doc>
+      <doc path="docs/architecture.md" title="Architecture Document" section="ADR-007: Caddy over Nginx for Reverse Proxy">
+        <snippet>Decision rationale: Automatic HTTPS (zero config), simpler Caddyfile syntax vs Nginx, zero maintenance (no certbot cron jobs), HTTP/3 support built-in, perfect for single-app deployment. Trade-off: slightly less battle-tested than Nginx but mature enough for production.</snippet>
+      </doc>
+      <doc path="docs/sprint-artifacts/tech-spec-epic-1.md" title="Epic 1 Technical Specification" section="Story 1.6 Acceptance Criteria">
+        <snippet>AC1: Caddy reverse proxy configured with automatic HTTPS, reverse proxy to localhost:3000, security headers, JSON access logs, gzip compression. AC2: Caddyfile exists in project root. AC3: Deployment instructions in docs/deployment.md with Hetzner VPS and Caddy setup steps.</snippet>
+      </doc>
+      <doc path="docs/epics/epic-1-foundation-development-infrastructure.md" title="Epic 1" section="Story 1.6">
+        <snippet>Story 1.6: Caddy Reverse Proxy Configuration. Follow Architecture ADR-007, Caddy auto-renews Let's Encrypt certificates (zero config), production Hetzner VPS (€12/month), health check endpoint: /api/health.</snippet>
+      </doc>
+      <doc path="docs/sprint-artifacts/1-5-winston-logging-infrastructure.md" title="Story 1.5" section="Learnings">
+        <snippet>Winston logging infrastructure established. Caddy access logs can be integrated with Winston logger (future enhancement). Health check endpoint (/api/health) should be logged via request logging middleware. Caddy logs can complement application logs for full observability.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact path="src/app/api/health/route.ts" kind="api-route" symbol="GET" lines="3-10" reason="Health check endpoint for deployment verification. Returns status, timestamp, version, environment. Used by Caddy reverse proxy health checks and CD pipeline." />
+    </code>
+    <dependencies>
+      <node>
+        <package name="next" version="^15.0.0" />
+        <package name="react" version="^18.3.0" />
+        <package name="react-dom" version="^18.3.0" />
+        <package name="typescript" version="^5.3.0" />
+      </node>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint>Reverse Proxy: Caddy (Architecture ADR-007: Caddy vs Nginx decision)</constraint>
+    <constraint>Deployment Target: Hetzner VPS (CX31 plan, €12/month)</constraint>
+    <constraint>HTTPS: Automatic Let's Encrypt certificates (zero config)</constraint>
+    <constraint>Health Check Endpoint: /api/health (already implemented in Story 1.1)</constraint>
+    <constraint>Security Headers: HSTS, X-Content-Type-Options, X-Frame-Options, Referrer-Policy (Architecture § Security Architecture)</constraint>
+    <constraint>New Files: Caddyfile (project root), docs/deployment.md (if not exists)</constraint>
+    <constraint>Modified Files: None (Caddyfile is new, deployment docs may be new or updated)</constraint>
+  </constraints>
+  <interfaces>
+    <interface name="Health Check API" kind="REST endpoint" signature="GET /api/health" path="src/app/api/health/route.ts">
+      <description>Returns application health status with timestamp, version, and environment. Used by deployment pipeline and Caddy for health checks.</description>
+    </interface>
+  </interfaces>
+  <tests>
+    <standards>Test infrastructure: Jest for unit/integration tests, Playwright for E2E tests. Coverage target: ≥60% for MVP. Testing strategy: Unit tests with mocked responses, integration tests for API routes, E2E tests only for critical user flows. No tests for UI components in MVP (focus on service layer).</standards>
+    <locations>tests/unit/ - Unit tests, tests/integration/ - Integration tests, tests/e2e/ - E2E tests (Playwright)</locations>
+    <ideas>
+      <test ac="AC1">Test Caddyfile syntax validation using `caddy validate` command</test>
+      <test ac="AC1">Test local reverse proxy setup (if possible) - verify Caddy routes to Next.js app on localhost:3000</test>
+      <test ac="AC1">E2E: Verify health check endpoint accessible via Caddy (/api/health) after deployment</test>
+      <test ac="AC1">Integration: Verify security headers are present in HTTP responses (HSTS, X-Content-Type-Options, X-Frame-Options, Referrer-Policy)</test>
+      <test ac="AC1">Integration: Verify gzip compression is enabled (check Content-Encoding header)</test>
+      <test ac="AC2">Unit: Validate Caddyfile exists in project root</test>
+      <test ac="AC2">Unit: Validate Caddyfile follows Architecture ADR-007 configuration pattern</test>
+      <test ac="AC3">Unit: Validate docs/deployment.md exists</test>
+      <test ac="AC3">Unit: Validate deployment.md contains Hetzner VPS setup steps</test>
+      <test ac="AC3">Unit: Validate deployment.md contains Caddy installation steps</test>
+    </ideas>
+  </tests>
+</story-context>
+
