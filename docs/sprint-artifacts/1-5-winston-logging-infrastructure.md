@@ -1,6 +1,6 @@
 # Story 1.5: Winston Logging Infrastructure
 
-Status: review
+Status: done
 
 ## Story
 
