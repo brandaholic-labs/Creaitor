@@ -156,6 +156,82 @@ Testing infrastructure is set up with Jest (Unit/Integration) and Playwright (E2
  npm run test:coverage
  ```
 
+## Logging
+
+Structured logging using Winston with different formats for development and production.
+
+### Log Levels
+
+- **ERROR:** Application errors and exceptions
+- **WARN:** Warning messages (non-critical issues)
+- **INFO:** General information (user events, API calls)
+- **DEBUG:** Detailed debugging information (dev only)
+
+### Log Destinations
+
+- **Development:** Console (pretty print, colorized)
+- **Production:** JSON files (structured for log aggregation)
+  - `logs/error-YYYY-MM-DD.log` - Errors only
+  - `logs/combined-YYYY-MM-DD.log` - All logs
+  - **Rotation:** 20MB max filesize, retains 14 days
+
+### Basic Usage
+
+```typescript
+import logger from '@/lib/logger';
+
+// Simple logging
+logger.info('User logged in', { userId: '123', email: 'user@example.com' });
+logger.error('Database connection failed', { error: err.message });
+logger.warn('Slow API response', { endpoint: '/api/posts', duration: 5000 });
+logger.debug('Cache hit', { key: 'user:123', ttl: 3600 });
+```
+
+### Utility Functions
+
+```typescript
+import { logUserEvent, logAICall, logPublishEvent, logError } from '@/lib/logger';
+
+// Log user events
+logUserEvent('user_123', 'login', { ip: '192.168.1.1' });
+
+// Log AI API calls (for tracking usage and costs)
+logAICall('brand_456', 'openai', 1500, 2300); // brandId, provider, tokens, latency(ms)
+
+// Log publishing events
+logPublishEvent('post_789', 'facebook', 'success', { fbPostId: '123456' });
+logPublishEvent('post_790', 'instagram', 'failed', { error: 'Invalid access token' });
+
+// Log errors with context
+try {
+  await riskyOperation();
+} catch (error) {
+  logError(error as Error, { userId: 'user_123', operation: 'riskyOperation' });
+}
+```
+
+### Request Logging Middleware
+
+Automatically log all API requests with duration, status code, and user ID:
+
+```typescript
+// src/app/api/example/route.ts
+import { withRequestLogging } from '@/lib/logger/middleware';
+import { NextRequest, NextResponse } from 'next/server';
+
+export const GET = withRequestLogging(async (request: NextRequest) => {
+  // Your API logic here
+  return NextResponse.json({ data: 'example' });
+});
+```
+
+**Logged information:**
+- Request ID (unique per request)
+- HTTP method and URL
+- Request duration (milliseconds)
+- Response status code
+- User ID (if authenticated - Epic 2)
+
 ## Building for Production
 
 ```bash

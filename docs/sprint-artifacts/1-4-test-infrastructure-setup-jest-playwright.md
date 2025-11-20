@@ -1,6 +1,6 @@
 # Story 1.4: Test Infrastructure Setup (Jest + Playwright)
 
-Status: review
+Status: done
 
 ## Story
 
