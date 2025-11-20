@@ -1,0 +1,174 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>1</epicId>
+    <storyId>8</storyId>
+    <title>Frontend Design System Setup (Tailwind Config, Shadcn UI, Design Tokens)</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-20T12:00:00.000Z</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/sprint-artifacts/1-8-frontend-design-system-setup-tailwind-shadcn-design-tokens.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>frontend developer</asA>
+    <iWant>Tailwind CSS configured with purple/violet color palette, Shadcn UI components installed, and design token system</iWant>
+    <soThat>we have a consistent, scalable design system foundation for all UI components</soThat>
+    <tasks>Task 1: Tailwind CSS configuration (AC: #1)
+- Subtask 1.1: Create/update tailwind.config.ts with purple/violet color palette (#a855f7 primary, shades 50-950)
+- Subtask 1.2: Configure design token system using CSS variables in Tailwind config
+- Subtask 1.3: Configure typography (font families: Plus Jakarta Sans for headings, Inter for body)
+- Subtask 1.4: Configure spacing scale (4px base unit)
+- Subtask 1.5: Configure responsive breakpoints (sm, md, lg, xl, 2xl)
+- Subtask 1.6: Configure shadow utilities (elevation levels)
+- Subtask 1.7: Configure border radius utilities
+
+Task 2: Design tokens CSS file (AC: #2)
+- Subtask 2.1: Create src/styles/design-tokens.css file
+- Subtask 2.2: Define color tokens (primary, secondary, accent, background, foreground, muted, etc.) as CSS variables
+- Subtask 2.3: Define typography tokens (font families, sizes, line heights) as CSS variables
+- Subtask 2.4: Define spacing tokens as CSS variables
+- Subtask 2.5: Define shadow tokens as CSS variables
+- Subtask 2.6: Define border radius tokens as CSS variables
+- Subtask 2.7: Ensure dark mode ready (CSS variables structure, no toggle switch P0)
+
+Task 3: Shadcn UI installation and configuration (AC: #3, #4)
+- Subtask 3.1: Initialize Shadcn UI if not already done: `npx shadcn-ui@latest init`
+- Subtask 3.2: Install base components: Button (`npx shadcn-ui@latest add button`)
+- Subtask 3.3: Install Input component (`npx shadcn-ui@latest add input`)
+- Subtask 3.4: Install Textarea component (`npx shadcn-ui@latest add textarea`)
+- Subtask 3.5: Install Card component (`npx shadcn-ui@latest add card`)
+- Subtask 3.6: Install Dialog component (`npx shadcn-ui@latest add dialog`)
+- Subtask 3.7: Install Badge component (`npx shadcn-ui@latest add badge`)
+- Subtask 3.8: Install Toast component (`npx shadcn-ui@latest add toast`)
+- Subtask 3.9: Install Calendar component (`npx shadcn-ui@latest add calendar`)
+- Subtask 3.10: Verify components are in src/components/ui/ directory
+- Subtask 3.11: Update components to use design tokens (CSS variables) instead of hardcoded values
+- Subtask 3.12: Verify components follow UX Design Specification Section 1 (Design System Foundation)
+
+Task 4: Integration and testing (AC: #1, #2, #3, #4)
+- Subtask 4.1: Import design-tokens.css in app/globals.css or root layout
+- Subtask 4.2: Verify Tailwind config references design tokens correctly
+- Subtask 4.3: Create example page or component demonstrating design token usage
+- Subtask 4.4: Verify Shadcn UI components render correctly with design tokens
+- Subtask 4.5: Test responsive breakpoints work correctly
+
+Task 5: Documentation (AC: #5)
+- Subtask 5.1: Add design token usage section to README.md
+- Subtask 5.2: Document how to add new Shadcn UI components
+- Subtask 5.3: Document how to customize components using Tailwind classes
+- Subtask 5.4: Include examples of design token usage in components
+
+Task 6: Unit tests (AC: #1, #2)
+- Subtask 6.1: Unit test: Design token CSS variables are defined (parse CSS file, verify variables exist)
+- Subtask 6.2: Unit test: Tailwind config exports correct color palette (verify primary color is #a855f7)
+- Subtask 6.3: Visual regression test: Shadcn UI components render correctly with design tokens (optional, P1)</tasks>
+  </story>
+
+  <acceptanceCriteria>AC1: Tailwind configuration (tailwind.config.ts)
+- Purple/violet color palette (#a855f7 primary, shades: 50-950)
+- Design token system using CSS variables (--color-primary, --color-secondary, etc.)
+- Typography configuration (font families, sizes, weights)
+- Spacing scale (4px base unit)
+- Responsive breakpoints (sm: 640px, md: 768px, lg: 1024px, xl: 1280px, 2xl: 1536px)
+- Shadow utilities (elevation levels)
+- Border radius utilities
+
+AC2: Design tokens (src/styles/design-tokens.css)
+- Color tokens (primary, secondary, accent, background, foreground, muted, etc.)
+- Typography tokens (font families, sizes, line heights)
+- Spacing tokens
+- Shadow tokens
+- Border radius tokens
+- Dark mode ready (CSS variables, future P1 feature)
+
+AC3: Shadcn UI components installed and configured
+- Base components: Button, Input, Textarea, Card, Dialog, Badge, Toast, Calendar
+- Components installed via `npx shadcn-ui@latest add [component]`
+- Components use design tokens (CSS variables)
+- Components follow UX Design Specification (Section 1: Design System Foundation)
+
+AC4: Component directory structure
+- `src/components/ui/` directory contains all installed Shadcn UI components
+- Components are customizable via Tailwind classes
+- Components use design tokens
+
+AC5: Documentation
+- Example usage documented in README.md:
+  - How to use design tokens
+  - How to add new Shadcn UI components
+  - How to customize components</acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc path="docs/sprint-artifacts/tech-spec-epic-1.md" title="Epic Technical Specification: Foundation & Development Infrastructure" section="Story 1.8: Frontend Design System Setup" snippet="Story 1.8 acceptance criteria and technical notes for Tailwind CSS configuration, design tokens, and Shadcn UI components installation." />
+      <doc path="docs/architecture.md" title="Creaitor - Architektúra Dokumentum" section="Decision Summary" snippet="Tailwind CSS v4 decision, Shadcn UI choice, and project structure conventions for component organization (src/components/ui/)." />
+      <doc path="docs/ux-design-specification.md" title="Creaitor UX Design Specification" section="Section 1: Design System Foundation" snippet="Shadcn UI + Tailwind CSS v4 design system choice, component library strategy, and customization approach." />
+      <doc path="docs/ux-design-specification.md" title="Creaitor UX Design Specification" section="Section 3.2: Color Palette (Tailwind CSS v4)" snippet="Purple/Violet color palette definition with #a855f7 as primary brand color, including all shades (50-950) and semantic colors (success, warning, error, info)." />
+      <doc path="docs/ux-design-specification.md" title="Creaitor UX Design Specification" section="Section 3.3: Typography" snippet="Font family configuration: Plus Jakarta Sans for headings, Inter for body text, with font scale and line height specifications." />
+      <doc path="docs/ux-design-specification.md" title="Creaitor UX Design Specification" section="Section 3.4: Spacing & Layout" snippet="Spacing scale (4px base unit), border radius utilities, and shadow definitions for elevation levels." />
+      <doc path="docs/ux-design-specification.md" title="Creaitor UX Design Specification" section="Section 3.6: Dark Mode Support (Future-Ready)" snippet="CSS variables approach for dark mode readiness, with light mode as default and dark mode toggle as P1 feature." />
+      <doc path="docs/epics/epic-1-foundation-development-infrastructure.md" title="Epic 1: Foundation & Development Infrastructure" section="Story 1.8: Frontend Design System Setup" snippet="Story acceptance criteria, technical notes, and component requirements for design system setup." />
+    </docs>
+    <code>
+      <artifact path="tailwind.config.ts" kind="config" symbol="tailwindConfig" lines="1-20" reason="Existing Tailwind config file that needs to be updated with purple/violet color palette, design tokens, typography, spacing, breakpoints, shadows, and border radius utilities." />
+      <artifact path="components.json" kind="config" symbol="shadcnConfig" lines="1-21" reason="Shadcn UI configuration file showing initialization status. Components need to be installed and configured to use design tokens." />
+      <artifact path="src/components/ui/button.tsx" kind="component" symbol="Button" reason="Existing Shadcn UI Button component. Needs verification that it uses design tokens (CSS variables) and follows UX Design Specification." />
+      <artifact path="package.json" kind="manifest" symbol="dependencies" lines="19-40" reason="Package dependencies include Tailwind CSS v4, Shadcn UI dependencies (@radix-ui packages, class-variance-authority, clsx, tailwind-merge). Verify all required dependencies are present." />
+    </code>
+    <dependencies>
+      <ecosystem name="Node.js">
+        <package name="tailwindcss" version="^4.0.0" />
+        <package name="@tailwindcss/postcss" version="^4.1.17" />
+        <package name="autoprefixer" version="^10.4.16" />
+        <package name="postcss" version="^8.4.32" />
+      </ecosystem>
+      <ecosystem name="Shadcn UI">
+        <package name="@radix-ui/react-dialog" version="^1.1.15" />
+        <package name="@radix-ui/react-dropdown-menu" version="^2.1.16" />
+        <package name="@radix-ui/react-slot" version="^1.2.4" />
+        <package name="class-variance-authority" version="^0.7.1" />
+        <package name="clsx" version="^2.1.1" />
+        <package name="tailwind-merge" version="^3.4.0" />
+      </ecosystem>
+    </dependencies>
+  </artifacts>
+
+  <constraints>Architecture Constraints:
+- Styling Framework: Tailwind CSS v4 (Architecture § Decision Summary: Tailwind CSS v4)
+- UI Library: Shadcn UI (Architecture § Decision Summary: Shadcn UI)
+- Color Palette: Purple/Violet (#a855f7) as primary brand color (UX Design Specification § 3.2)
+- Typography: Plus Jakarta Sans (headings) + Inter (body) - UX Design Specification § 3.3
+- Design Tokens: CSS variables for future-ready dark mode (P1 feature, but structure P0)
+- Component Location: `src/components/ui/` (Architecture § Project Structure)
+
+Development Rules:
+- Follow TypeScript strict mode (Story 1.1)
+- Components should be testable (Story 1.4 test infrastructure ready)
+- Design token CSS and Tailwind config files will be automatically validated in CI on every PR (Story 1.7)
+- Unit tests for design tokens (Task 6) will run in CI pipeline</constraints>
+  <interfaces>
+    <interface name="Tailwind Config API" kind="configuration" signature="tailwind.config.ts exports Config type with theme.extend containing colors, typography, spacing, breakpoints, shadows, borderRadius" path="tailwind.config.ts" />
+    <interface name="Shadcn UI Component API" kind="component library" signature="Components installed via `npx shadcn-ui@latest add [component]` use Radix UI primitives and Tailwind classes, customizable via className prop" path="src/components/ui/" />
+    <interface name="Design Tokens CSS Variables" kind="CSS variables" signature="CSS custom properties defined in :root selector: --color-primary, --color-secondary, --spacing-*, --font-*, --shadow-*, --radius-*" path="src/styles/design-tokens.css" />
+  </interfaces>
+  <tests>
+    <standards>Testing Standards:
+- Unit tests: Jest with @swc/jest for fast compilation (Story 1.4)
+- Test coverage target: ≥60% for MVP (Story 1.4)
+- Design token validation: Parse CSS file and verify all required CSS variables exist
+- Tailwind config validation: Verify color palette exports correct primary color (#a855f7)
+- Visual regression: Optional P1 feature for Shadcn UI component rendering verification
+- CI pipeline: All tests run on every PR (Story 1.7)</standards>
+    <locations>Test Locations:
+- Unit tests: tests/unit/ (design token CSS validation, Tailwind config validation)
+- Integration tests: tests/integration/ (component rendering with design tokens)
+- E2E tests: tests/e2e/ (optional visual regression for Shadcn UI components)</locations>
+    <ideas>Test Ideas:
+- AC1: Unit test parses tailwind.config.ts and verifies brand-500 color is #a855f7
+- AC2: Unit test parses src/styles/design-tokens.css and verifies all required CSS variables exist (--color-primary, --color-secondary, --spacing-*, --font-*, --shadow-*, --radius-*)
+- AC3: Integration test verifies Shadcn UI Button component renders with design token colors applied
+- AC4: Integration test verifies src/components/ui/ directory contains all required Shadcn UI components
+- AC5: Manual test: README.md contains design token usage examples</ideas>
+  </tests>
+</story-context>
+

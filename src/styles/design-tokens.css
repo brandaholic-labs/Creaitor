@@ -1,0 +1,133 @@
+:root {
+  /* Brand Colors - Purple/Violet */
+  --color-brand-50: #faf5ff;
+  --color-brand-100: #f3e8ff;
+  --color-brand-200: #e9d5ff;
+  --color-brand-300: #d8b4fe;
+  --color-brand-400: #c084fc;
+  --color-brand-500: #a855f7; /* Primary */
+  --color-brand-600: #9333ea;
+  --color-brand-700: #7e22ce;
+  --color-brand-800: #6b21a8;
+  --color-brand-900: #581c87;
+  --color-brand-950: #3b0764;
+
+  /* Semantic Colors (Light Mode Default) */
+  --color-background: 255 255 255;
+  --color-foreground: 15 23 42; /* slate-900 */
+  
+  --color-primary: 168 85 247; /* brand-500 */
+  --color-primary-foreground: 255 255 255;
+
+  --color-secondary: 241 245 249; /* slate-100 */
+  --color-secondary-foreground: 15 23 42; /* slate-900 */
+
+  --color-muted: 241 245 249; /* slate-100 */
+  --color-muted-foreground: 100 116 139; /* slate-500 */
+
+  --color-accent: 241 245 249; /* slate-100 */
+  --color-accent-foreground: 15 23 42; /* slate-900 */
+
+  --color-destructive: 239 68 68; /* red-500 */
+  --color-destructive-foreground: 255 255 255;
+
+  --color-border: 226 232 240; /* slate-200 */
+  --color-input: 226 232 240; /* slate-200 */
+  --color-ring: 168 85 247; /* brand-500 */
+
+  --color-card: 255 255 255;
+  --color-card-foreground: 15 23 42;
+
+  --color-popover: 255 255 255;
+  --color-popover-foreground: 15 23 42;
+
+  /* Typography */
+  --font-heading: "Plus Jakarta Sans", sans-serif;
+  --font-body: "Inter", sans-serif;
+
+  /* Spacing (4px base unit) */
+  --spacing-0: 0;
+  --spacing-px: 1px;
+  --spacing-0_5: 0.125rem; /* 2px */
+  --spacing-1: 0.25rem; /* 4px */
+  --spacing-1_5: 0.375rem; /* 6px */
+  --spacing-2: 0.5rem; /* 8px */
+  --spacing-2_5: 0.625rem; /* 10px */
+  --spacing-3: 0.75rem; /* 12px */
+  --spacing-3_5: 0.875rem; /* 14px */
+  --spacing-4: 1rem; /* 16px */
+  --spacing-5: 1.25rem; /* 20px */
+  --spacing-6: 1.5rem; /* 24px */
+  --spacing-7: 1.75rem; /* 28px */
+  --spacing-8: 2rem; /* 32px */
+  --spacing-9: 2.25rem; /* 36px */
+  --spacing-10: 2.5rem; /* 40px */
+  --spacing-11: 2.75rem; /* 44px */
+  --spacing-12: 3rem; /* 48px */
+  --spacing-14: 3.5rem; /* 56px */
+  --spacing-16: 4rem; /* 64px */
+  --spacing-20: 5rem; /* 80px */
+  --spacing-24: 6rem; /* 96px */
+  --spacing-28: 7rem; /* 112px */
+  --spacing-32: 8rem; /* 128px */
+  --spacing-36: 9rem; /* 144px */
+  --spacing-40: 10rem; /* 160px */
+  --spacing-44: 11rem; /* 176px */
+  --spacing-48: 12rem; /* 192px */
+  --spacing-52: 13rem; /* 208px */
+  --spacing-56: 14rem; /* 224px */
+  --spacing-60: 15rem; /* 240px */
+  --spacing-64: 16rem; /* 256px */
+  --spacing-72: 18rem; /* 288px */
+  --spacing-80: 20rem; /* 320px */
+  --spacing-96: 24rem; /* 384px */
+
+  /* Shadow (elevation levels) */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  --shadow-2xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+  --shadow-inner: inset 0 2px 4px 0 rgb(0 0 0 / 0.05);
+  --shadow-none: 0 0 #0000;
+
+  /* Border Radius */
+  --radius-sm: 0.125rem;
+  --radius-md: 0.375rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
+  --radius-2xl: 1rem;
+  --radius-3xl: 1.5rem;
+  --radius-full: 9999px;
+}
+
+.dark {
+  /* Semantic Colors (Dark Mode) */
+  --color-background: 2 6 23; /* slate-950 */
+  --color-foreground: 248 250 252; /* slate-50 */
+
+  --color-primary: 192 132 252; /* brand-400 (lighter for dark mode) */
+  --color-primary-foreground: 15 23 42;
+
+  --color-secondary: 30 41 59; /* slate-800 */
+  --color-secondary-foreground: 248 250 252; /* slate-50 */
+
+  --color-muted: 30 41 59; /* slate-800 */
+  --color-muted-foreground: 148 163 184; /* slate-400 */
+
+  --color-accent: 30 41 59; /* slate-800 */
+  --color-accent-foreground: 248 250 252; /* slate-50 */
+
+  --color-destructive: 127 29 29; /* red-900 */
+  --color-destructive-foreground: 248 250 252;
+
+  --color-border: 30 41 59; /* slate-800 */
+  --color-input: 30 41 59; /* slate-800 */
+  --color-ring: 192 132 252; /* brand-400 */
+
+  --color-card: 2 6 23; /* slate-950 */
+  --color-card-foreground: 248 250 252;
+
+  --color-popover: 2 6 23; /* slate-950 */
+  --color-popover-foreground: 248 250 252;
+}

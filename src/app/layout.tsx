@@ -6,6 +6,8 @@ export const metadata: Metadata = {
   description: 'Brand-first AI social media content platform for agencies',
 }
 
+import { Toaster } from "@/components/ui/sonner"
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -13,7 +15,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="hu">
-      <body className="font-sans antialiased">{children}</body>
+      <body className="font-sans antialiased">
+        {children}
+        <Toaster />
+      </body>
     </html>
   )
 }
