@@ -27,6 +27,9 @@ desktop.ini
 *.bak
 *.cache
 
+# Logging (Winston logs directory)
+logs/
+
 # Python (if used in future)
 __pycache__/
 *.py[cod]
