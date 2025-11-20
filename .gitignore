@@ -30,6 +30,10 @@ desktop.ini
 # Logging (Winston logs directory)
 logs/
 
+# Test coverage reports
+coverage/
+*.lcov
+
 # Python (if used in future)
 __pycache__/
 *.py[cod]
