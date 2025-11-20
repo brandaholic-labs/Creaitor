@@ -1,0 +1,204 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>1</epicId>
+    <storyId>5</storyId>
+    <title>Winston Logging Infrastructure</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-20T10:07:00+01:00</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/sprint-artifacts/1-5-winston-logging-infrastructure.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>developer</asA>
+    <iWant>Winston logger configured with structured logging and log levels</iWant>
+    <soThat>we can track events, errors, and debug issues across all services</soThat>
+    <tasks>
+      - Task 1: Winston és kiegészítők telepítése (AC: #1, #4)
+        - Subtask 1.1: Install packages: winston, winston-daily-rotate-file
+        - Subtask 1.2: Install types: @types/winston (if needed)
+      - Task 2: Logger Service implementálása (AC: #1)
+        - Subtask 2.1: Create src/lib/logger/index.ts (Singleton pattern)
+        - Subtask 2.2: Configure log levels (error, warn, info, debug)
+        - Subtask 2.3: Configure formats (JSON for prod, simple/colorize for dev)
+        - Subtask 2.4: Configure transports (Console, File: error.log, combined.log)
+      - Task 3: Log Rotation konfigurálása (AC: #4)
+        - Subtask 3.1: Configure winston-daily-rotate-file transport for combined.log
+        - Subtask 3.2: Configure winston-daily-rotate-file transport for error.log
+        - Subtask 3.3: Set policies: 20MB max size, 14 days retention
+      - Task 4: Utility függvények implementálása (AC: #2)
+        - Subtask 4.1: Implement logUserEvent helper
+        - Subtask 4.2: Implement logAICall helper (structured metadata for AI tracking)
+        - Subtask 4.3: Implement logPublishEvent helper
+        - Subtask 4.4: Implement logError helper (standardized error object handling)
+      - Task 5: Request Logging Middleware (AC: #3)
+        - Subtask 5.1: Create src/lib/logger/middleware.ts (or integrate into Next.js middleware)
+        - Subtask 5.2: Log request method, URL, duration, status code
+        - Subtask 5.3: Extract and log userId if present in session
+      - Task 6: Dokumentáció (AC: #5)
+        - Subtask 6.1: Update README.md with "Logging" section
+        - Subtask 6.2: Add code examples for common logging scenarios
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    AC1: Winston logger singleton exists
+    - Log levels: error, warn, info, debug
+    - JSON format for production (structured logging)
+    - Pretty print format for development (readable console output)
+    - File transports: error.log (errors only), combined.log (all logs)
+    - Console transport for development
+
+    AC2: Logger utility functions exist
+    - logUserEvent(userId, eventType, metadata)
+    - logAICall(brandId, provider, tokens, latency)
+    - logPublishEvent(postId, platform, status, metadata)
+    - logError(error, context)
+
+    AC3: Request logging middleware exists
+    - Middleware for Next.js API routes to log incoming requests
+    - Includes timestamp, requestId, userId (if authenticated)
+
+    AC4: Log rotation configured
+    - Max 20MB per file
+    - Keep 14 days history
+    - Uses winston-daily-rotate-file
+
+    AC5: Example usage documented
+    - README.md updated with logging usage examples
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Creaitor Architecture Documentation</title>
+        <section>Project Structure</section>
+        <snippet>Logger service location: src/lib/logger/index.ts. Winston configured for structured logging with JSON in production and pretty print in development. Log destinations: Console (dev), File (prod), future Sentry/Logtail integration.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Creaitor Architecture Documentation</title>
+        <section>Logging Strategy</section>
+        <snippet>Winston structured logging with levels ERROR, WARN, INFO, DEBUG. File transports with rotation. Performance-critical: file logging must be async/non-blocking.</snippet>
+      </doc>
+      <doc>
+        <path>docs/sprint-artifacts/tech-spec-epic-1.md</path>
+        <title>Epic Technical Specification: Foundation &amp; Development Infrastructure</title>
+        <section>Detailed Design - Logger Service</section>
+        <snippet>Logger Service (src/lib/logger/index.ts): Centralized structured logging with Winston. Log levels: ERROR, WARN, INFO, DEBUG. JSON format in production, pretty print in development. File transports: error.log, combined.log. Utility functions: logUserEvent(), logAICall(), logPublishEvent(), logError().</snippet>
+      </doc>
+      <doc>
+        <path>docs/sprint-artifacts/tech-spec-epic-1.md</path>
+        <title>Epic Technical Specification: Foundation &amp; Development Infrastructure</title>
+        <section>Logging Strategy</section>
+        <snippet>Winston for structured logging. Log levels: ERROR, WARN, INFO, DEBUG. Destinations: Console (dev), File (prod), future Sentry/Logtail for aggregation and alerting (Post-MVP).</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>package.json</path>
+        <kind>dependency manifest</kind>
+        <symbol>dependencies.winston, dependencies.winston-daily-rotate-file</symbol>
+        <lines>36-37</lines>
+        <reason>Winston and winston-daily-rotate-file packages are already installed as dependencies. No additional installation needed.</reason>
+      </artifact>
+      <artifact>
+        <path>src/lib</path>
+        <kind>directory</kind>
+        <symbol>lib/</symbol>
+        <lines>-</lines>
+        <reason>The lib/ directory exists with supabase/ subdirectory and utils.ts file. Logger service should be created at src/lib/logger/index.ts per architecture.</reason>
+      </artifact>
+      <artifact>
+        <path>tests/utils</path>
+        <kind>directory</kind>
+        <symbol>utils/</symbol>
+        <lines>-</lines>
+        <reason>Test utilities directory exists. Mock logger can be added here for unit tests to avoid actual log file writes during testing.</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <node>
+        <package name="winston" version="^3.18.3" />
+        <package name="winston-daily-rotate-file" version="^5.0.0" />
+        <package name="date-fns" version="^4.1.0" />
+        <package name="date-fns-tz" version="^3.2.0" />
+        <package name="zod" version="^4.1.12" />
+      </node>
+      <devDependencies>
+        <package name="@types/node" version="^20.10.6" />
+      </devDependencies>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    - Service Location: src/lib/logger/index.ts (Architecture § Detailed Design)
+    - Log Levels: ERROR, WARN, INFO, DEBUG (Architecture § Logging Strategy)
+    - Format: JSON in production for future log aggregation tools (Logtail/Sentry), Pretty Print in development for readability
+    - Performance: File logging must be async/non-blocking to avoid blocking application execution
+    - Singleton Pattern: One logger instance shared across the application
+    - Test Integration: Logger should integrate with test utilities (mock logger for tests)
+    - Environment Detection: Use NODE_ENV to determine production vs development mode
+    - Log Rotation: 20MB max file size, 14 days retention (Architecture § Logging Strategy)
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>Logger Interface</name>
+      <kind>TypeScript interface</kind>
+      <signature>
+        interface Logger {
+          info(message: string, meta?: object): void;
+          warn(message: string, meta?: object): void;
+          error(message: string, meta?: object): void;
+          debug(message: string, meta?: object): void;
+        }
+      </signature>
+      <path>src/lib/logger/index.ts</path>
+    </interface>
+    <interface>
+      <name>Utility Functions</name>
+      <kind>exported functions</kind>
+      <signature>
+        export function logUserEvent(userId: string, eventType: string, metadata?: object): void;
+        export function logAICall(brandId: string, provider: string, tokens: number, latency: number): void;
+        export function logPublishEvent(postId: string, platform: string, status: string, metadata?: object): void;
+        export function logError(error: Error, context?: object): void;
+      </signature>
+      <path>src/lib/logger/index.ts</path>
+    </interface>
+    <interface>
+      <name>Request Logging Middleware</name>
+      <kind>Next.js middleware</kind>
+      <signature>
+        export function requestLogger(): void; // Logs: timestamp, requestId, method, URL, duration, userId (if auth)
+      </signature>
+      <path>src/lib/logger/middleware.ts</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Jest for unit testing, @swc/jest for fast TypeScript compilation. Coverage target ≥60%. Test infrastructure established in Story 1.4. Tests should mock logger to avoid file I/O during test execution. Use test utilities from tests/utils/ directory.
+    </standards>
+    <locations>
+      - tests/unit/lib/logger/ (unit tests for logger service)
+      - tests/integration/lib/logger/ (integration tests for request middleware)
+      - tests/utils/mockLogger.ts (mock logger for testing)
+    </locations>
+    <ideas>
+      - AC1: Test logger singleton pattern (verify same instance returned)
+      - AC1: Test log level filtering (debug logs not written in production)
+      - AC1: Test format selection (JSON in production, pretty in development)
+      - AC1: Test file transports (error.log contains only errors, combined.log contains all)
+      - AC2: Test logUserEvent utility function (verify correct metadata structure)
+      - AC2: Test logAICall utility function (verify AI provider tracking)
+      - AC2: Test logPublishEvent utility function (verify platform and status logging)
+      - AC2: Test logError utility function (verify error object serialization)
+      - AC3: Test request logging middleware (verify REQUEST logs appear with requestId)
+      - AC4: Test log rotation configuration (verify max size and retention policies)
+      - AC5: Verify README.md documentation exists and includes code examples
+    </ideas>
+  </tests>
+</story-context>

@@ -1,6 +1,6 @@
 # Story 1.5: Winston Logging Infrastructure
 
-Status: drafted
+Status: ready-for-dev
 
 ## Story
 
@@ -115,7 +115,7 @@ Story 1.4 successfully established test infrastructure (Jest + Playwright). Key 
 
 ### Context Reference
 
-<!-- Path(s) to story context XML will be added here by context workflow -->
+- `docs/sprint-artifacts/1-5-winston-logging-infrastructure.context.xml` (Generated: 2025-11-20)
 
 ### Agent Model Used
 
