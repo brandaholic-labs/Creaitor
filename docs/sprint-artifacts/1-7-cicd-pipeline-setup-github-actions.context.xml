@@ -1,0 +1,167 @@
+<story-context id=".bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>1</epicId>
+    <storyId>7</storyId>
+    <title>CI/CD Pipeline Setup (GitHub Actions)</title>
+    <status>ready-for-dev</status>
+    <generatedAt>2025-11-20</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/sprint-artifacts/1-7-cicd-pipeline-setup-github-actions.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>developer</asA>
+    <iWant>GitHub Actions CI/CD pipeline for automated testing and deployment</iWant>
+    <soThat>every commit is tested and deployments are consistent</soThat>
+    <tasks>
+      <task id="1" title="CI workflow (ci.yml) létrehozása" ac="1,3">
+        <subtask>Create .github/workflows/ci.yml with trigger (PR, push to main)</subtask>
+        <subtask>Setup Node.js 20 with actions/setup-node@v4</subtask>
+        <subtask>Install dependencies with npm cache</subtask>
+        <subtask>Run ESLint step (fail on errors)</subtask>
+        <subtask>Run unit tests (npm run test:unit)</subtask>
+        <subtask>Run integration tests (npm run test:integration)</subtask>
+        <subtask>Generate coverage report (npm run test:coverage)</subtask>
+        <subtask>Upload coverage artifacts to GitHub Actions</subtask>
+        <subtask>Add PR check: block merge if ESLint errors, test failures, or coverage &lt; 60%</subtask>
+      </task>
+      <task id="2" title="CD workflow (deploy.yml) létrehozása" ac="2">
+        <subtask>Create .github/workflows/deploy.yml with trigger (push to main, after CI success)</subtask>
+        <subtask>Build Next.js production bundle (npm run build)</subtask>
+        <subtask>Run E2E smoke tests (npm run test:e2e -- --grep "smoke")</subtask>
+        <subtask>Setup SSH connection to Hetzner VPS (GitHub Secrets: HETZNER_SSH_KEY, HETZNER_IP)</subtask>
+        <subtask>SSH deployment steps: git pull, docker-compose build, docker-compose down, docker-compose up -d</subtask>
+        <subtask>Health check verification (curl http://localhost:3000/api/health)</subtask>
+        <subtask>Rollback logic on failure (restart previous containers, log error)</subtask>
+      </task>
+      <task id="3" title="GitHub Secrets konfigurálása" ac="2">
+        <subtask>Document required GitHub Secrets in README or deployment.md</subtask>
+        <subtask>List secrets: HETZNER_SSH_KEY, HETZNER_IP (and optionally: SUPABASE keys, AI keys for E2E tests)</subtask>
+      </task>
+      <task id="4" title="Testing és validálás" ac="1,2,3">
+        <subtask>Test CI workflow locally (if possible with act tool, or manual PR test)</subtask>
+        <subtask>Verify PR checks block merge on ESLint errors</subtask>
+        <subtask>Verify PR checks block merge on test failures</subtask>
+        <subtask>Verify PR checks block merge on coverage &lt; 60%</subtask>
+        <subtask>Test CD workflow (manual push to main, verify deployment)</subtask>
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <ac id="1" title="CI workflow (ci.yml)">
+      <requirement>Runs on every PR and push to main branch</requirement>
+      <requirement>Installs dependencies (with npm cache)</requirement>
+      <requirement>Runs ESLint</requirement>
+      <requirement>Runs unit tests</requirement>
+      <requirement>Runs integration tests</requirement>
+      <requirement>Generates coverage report</requirement>
+      <requirement>Uploads coverage to GitHub Actions artifacts</requirement>
+      <requirement>Fails if tests fail or coverage &lt; 60%</requirement>
+    </ac>
+    <ac id="2" title="CD workflow (deploy.yml)">
+      <requirement>Runs on push to main branch (only after CI passes)</requirement>
+      <requirement>Builds Next.js production bundle</requirement>
+      <requirement>Runs E2E smoke tests (critical paths only)</requirement>
+      <requirement>Deploys to production server via SSH (Hetzner VPS)</requirement>
+      <requirement>Restarts Next.js app service (Docker containers)</requirement>
+      <requirement>Verifies health check endpoint (/api/health)</requirement>
+      <requirement>Rolls back on failure (restart previous containers)</requirement>
+    </ac>
+    <ac id="3" title="Pull Request checks">
+      <requirement>Blocks merge if ESLint has errors</requirement>
+      <requirement>Blocks merge if tests fail</requirement>
+      <requirement>Blocks merge if coverage drops below 60% threshold</requirement>
+    </ac>
+    <ac id="4" title="Deployment notifications (optional)">
+      <requirement>Sends deployment notifications to Discord/Slack (optional, P1 feature)</requirement>
+      <note>AC4 is optional P1 feature, not in P0 scope. No task required for AC4 in this story.</note>
+    </ac>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc path="docs/architecture.md" title="System Architecture" section="CI/CD Pipeline (GitHub Actions)">
+        <snippet>GitHub Actions CI/CD pipeline configuration for automated testing and deployment. Includes ci.yml and deploy.yml workflow examples with SSH deployment to Hetzner VPS.</snippet>
+      </doc>
+      <doc path="docs/architecture.md" title="System Architecture" section="Deployment Architecture">
+        <snippet>Hetzner VPS setup (CX31 plan, €12/month), Docker Compose production configuration, Caddy reverse proxy with automatic HTTPS. Deployment stack: Caddy → Next.js App → BullMQ Worker + Redis → Supabase.</snippet>
+      </doc>
+      <doc path="docs/deployment.md" title="Deployment útmutató" section="Folyamatos deployment (CI/CD)">
+        <snippet>GitHub Actions secrets configuration (HETZNER_SSH_KEY, HETZNER_IP). Deployment workflow documentation for automated deployment on main branch push.</snippet>
+      </doc>
+      <doc path="docs/deployment.md" title="Deployment útmutató" section="Health Check Verification">
+        <snippet>Health check endpoint testing: /api/health returns JSON with status, timestamp, version, environment. Direct Next.js check and Caddy reverse proxy check procedures.</snippet>
+      </doc>
+      <doc path="docs/sprint-artifacts/tech-spec-epic-1.md" title="Epic 1 Technical Specification" section="Story 1.7: CI/CD Pipeline Setup (GitHub Actions)">
+        <snippet>Acceptance criteria for CI/CD pipeline: ci.yml workflow (PR and push triggers, ESLint, tests, coverage), deploy.yml workflow (build, E2E smoke tests, SSH deployment, health check, rollback), PR checks blocking merge on failures.</snippet>
+      </doc>
+      <doc path="docs/epics/epic-1-foundation-development-infrastructure.md" title="Epic 1: Foundation &amp; Development Infrastructure" section="Story 1.7: CI/CD Pipeline Setup (GitHub Actions)">
+        <snippet>Story definition: GitHub Actions CI/CD pipeline for automated testing and deployment. Prerequisites: Story 1.4 (Test Infrastructure), Story 1.6 (Caddy Reverse Proxy). Technical notes: Use actions/checkout@v4, actions/setup-node@v4, cache node_modules, deployment target Hetzner VPS.</snippet>
+      </doc>
+      <doc path="docs/sprint-artifacts/1-6-caddy-reverse-proxy-configuration.md" title="Story 1.6: Caddy Reverse Proxy Configuration" section="Learnings from Previous Story">
+        <snippet>Story 1.6 successfully configured Caddy reverse proxy. Health check endpoint /api/health already available. Deployment documentation exists in docs/deployment.md. Docker Compose setup uses docker-compose.prod.yml for production deployment.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact path="src/app/api/health/route.ts" kind="api-route" symbol="GET" lines="1-10" reason="Health check endpoint used by CD workflow for deployment verification. Returns status, timestamp, version, environment." />
+      <artifact path="tests/integration/api/health.test.ts" kind="test" symbol="Health Check API" lines="1-29" reason="Integration test for health check endpoint. Validates 200 response and JSON structure. Used to ensure health check works in CI/CD pipeline." />
+      <artifact path="package.json" kind="config" symbol="scripts" lines="5-17" reason="Test scripts (test:unit, test:integration, test:e2e, test:coverage) used by CI workflow. Coverage threshold configuration in jest.config.js." />
+      <artifact path="jest.config.js" kind="config" symbol="coverageThreshold" lines="19-26" reason="Jest coverage threshold configuration: 60% for branches, functions, lines, statements. Used by CI workflow to enforce coverage requirements." />
+      <artifact path="playwright.config.ts" kind="config" symbol="defineConfig" lines="1-36" reason="Playwright E2E test configuration. Used by CD workflow for smoke tests. Base URL: http://localhost:3000, retries in CI: 2." />
+      <artifact path="Caddyfile" kind="config" symbol="reverse_proxy" lines="1-42" reason="Caddy reverse proxy configuration with automatic HTTPS. Health check endpoint /api/health is proxied automatically. Used by CD workflow to verify deployment via HTTPS." />
+    </code>
+    <dependencies>
+      <ecosystem name="node">
+        <package name="next" version="^15.0.0" />
+        <package name="typescript" version="^5.3.0" />
+        <package name="jest" version="^30.2.0" />
+        <package name="@swc/jest" version="^0.2.39" />
+        <package name="@playwright/test" version="^1.56.1" />
+        <package name="eslint" version="^8.56.0" />
+        <package name="eslint-config-next" version="^15.0.0" />
+      </ecosystem>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint type="platform">CI/CD Platform: GitHub Actions (Architecture § CI/CD Pipeline)</constraint>
+    <constraint type="deployment">Deployment Target: Hetzner VPS (CX31 plan, €12/month) - Docker containers</constraint>
+    <constraint type="health-check">Health Check Endpoint: /api/health (already implemented in Story 1.1)</constraint>
+    <constraint type="coverage">Coverage Threshold: ≥ 60% for P0 (Architecture § Testing Strategy, jest.config.js)</constraint>
+    <constraint type="node-version">Node.js Version: v20 LTS (Architecture § Development Environment)</constraint>
+    <constraint type="docker">Docker Compose: Production deployment uses docker-compose.prod.yml (Story 1.3)</constraint>
+    <constraint type="testing">Test Scripts: npm run test:unit, npm run test:integration, npm run test:e2e, npm run test:coverage (package.json)</constraint>
+    <constraint type="pr-checks">PR Checks: Must block merge on ESLint errors, test failures, or coverage &lt; 60%</constraint>
+    <constraint type="deployment-verification">Deployment Verification: Must verify health check endpoint after deployment, rollback on failure</constraint>
+  </constraints>
+  <interfaces>
+    <interface name="Health Check API" kind="REST endpoint" signature="GET /api/health" path="src/app/api/health/route.ts">
+      <description>Returns JSON with status: 'ok', timestamp (ISO string), version (from npm_package_version or '1.0.0'), environment (NODE_ENV). Used by CD workflow for deployment verification.</description>
+    </interface>
+    <interface name="GitHub Actions Secrets" kind="Configuration" signature="HETZNER_SSH_KEY, HETZNER_IP" path="GitHub Repository Settings">
+      <description>Required GitHub Secrets for SSH deployment to Hetzner VPS. HETZNER_SSH_KEY: Private SSH key for VPS connection. HETZNER_IP: VPS IP address.</description>
+    </interface>
+  </interfaces>
+  <tests>
+    <standards>
+      <standard>Jest for unit and integration tests with @swc/jest for fast TypeScript compilation. Coverage threshold: 60% (branches, functions, lines, statements). Test scripts: test:unit (Jest unit tests), test:integration (Jest integration tests), test:coverage (coverage report).</standard>
+      <standard>Playwright for E2E tests with Chromium, Firefox, WebKit browsers. Retries in CI: 2, timeout: 30s. Base URL: http://localhost:3000. Smoke tests for critical paths only in CD workflow.</standard>
+      <standard>ESLint with Next.js config (eslint-config-next). Must fail on errors in CI workflow. PR checks block merge on ESLint errors.</standard>
+    </standards>
+    <locations>
+      <location>tests/unit/ - Unit tests (Jest)</location>
+      <location>tests/integration/ - Integration tests (Jest)</location>
+      <location>tests/e2e/ - E2E tests (Playwright)</location>
+      <location>src/app/api/health/route.ts - Health check endpoint (tested in tests/integration/api/health.test.ts)</location>
+    </locations>
+    <ideas>
+      <idea ac="1">Test CI workflow: Verify ci.yml runs on PR and push to main, installs dependencies with cache, runs ESLint, runs unit tests, runs integration tests, generates coverage report, uploads coverage artifacts, fails if tests fail or coverage &lt; 60%</idea>
+      <idea ac="2">Test CD workflow: Verify deploy.yml runs on push to main after CI passes, builds Next.js production bundle, runs E2E smoke tests, deploys via SSH to Hetzner VPS, restarts Docker containers, verifies health check endpoint, rolls back on failure</idea>
+      <idea ac="3">Test PR checks: Verify PR checks block merge on ESLint errors, block merge on test failures, block merge on coverage &lt; 60% threshold</idea>
+      <idea ac="2">Test deployment verification: Verify health check endpoint responds correctly after deployment (curl http://localhost:3000/api/health), verify HTTPS endpoint through Caddy (curl https://creaitor.hu/api/health)</idea>
+      <idea ac="2">Test rollback: Simulate deployment failure, verify rollback logic restarts previous containers and logs error</idea>
+    </ideas>
+  </tests>
+</story-context>
+

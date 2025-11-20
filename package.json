@@ -11,8 +11,8 @@
     "docker:down": "docker-compose down",
     "docker:logs": "docker-compose logs -f",
     "test": "npm run test:unit && npm run test:integration",
-    "test:unit": "jest --testPathPatterns=unit",
-    "test:integration": "jest --testPathPatterns=integration",
+    "test:unit": "jest --testPathPattern=unit",
+    "test:integration": "jest --testPathPattern=integration",
     "test:e2e": "playwright test",
     "test:coverage": "jest --coverage"
   },
