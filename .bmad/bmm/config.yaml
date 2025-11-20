@@ -10,7 +10,7 @@ tea_use_mcp_enhancements: false
 
 # Core Configuration Values
 bmad_folder: .bmad
-user_name: BMad
+user_name: Balazs
 communication_language: Hungarian
 document_output_language: Hungarian
 output_folder: '{project-root}/docs'

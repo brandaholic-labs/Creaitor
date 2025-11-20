@@ -82,6 +82,29 @@ so that **we can track events, errors, and debug issues across all services**.
 - **New Files:** `src/lib/logger/index.ts`, `src/lib/logger/types.ts` (optional for interfaces)
 - **Modified Files:** `README.md`
 
+### Learnings from Previous Story
+
+**From Story 1.4 (Status: done)**
+
+Story 1.4 successfully established test infrastructure (Jest + Playwright). Key context for Story 1.5:
+
+**New Files Created (relevant context):**
+- ✅ `jest.config.js`, `playwright.config.ts` - test configs exist
+- ✅ `tests/` directory structure - can add logger tests here if needed
+- ✅ `package.json` test scripts - can add logging-related scripts
+- ✅ Test utilities (`tests/utils/`) - mock logger can be added for unit tests
+
+**Unresolved Review Items from Story 1.4:**
+- ⚠️ Advisory: Consider increasing coverage threshold to 80% in future stories (currently 60%)
+- ⚠️ Advisory: Enable Playwright parallel execution when test suite grows and stability is confirmed
+
+**Implications for Story 1.5:**
+- Logger should integrate with test utilities (mock logger for tests)
+- Logging can be tested using existing Jest infrastructure
+- Logger errors should be captured in test output for debugging
+
+[Source: docs/sprint-artifacts/1-4-test-infrastructure-setup-jest-playwright.md]
+
 ### References
 
 - [Source: docs/architecture.md § Logging Strategy (lines 101-106)]
@@ -107,3 +130,5 @@ so that **we can track events, errors, and debug issues across all services**.
 ## Change Log
 
 - **2025-11-20:** Story drafted by SM agent (Bob)
+- **2025-11-20:** Added "Learnings from Previous Story" subsection to Dev Notes (validation fix - Story Quality Validation)
+
