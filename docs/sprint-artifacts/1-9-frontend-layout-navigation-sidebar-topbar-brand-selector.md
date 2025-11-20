@@ -1,6 +1,6 @@
 # Story 1.9: Frontend Layout & Navigation (Sidebar, TopBar, Brand Selector)
 
-Status: drafted
+Status: ready-for-dev
 
 ## Story
 
@@ -225,7 +225,7 @@ Story 1.8 successfully set up the frontend design system with Tailwind CSS, Shad
 
 ### Context Reference
 
-<!-- Path(s) to story context XML will be added here by context workflow -->
+- `docs/sprint-artifacts/1-9-frontend-layout-navigation-sidebar-topbar-brand-selector.context.xml`
 
 ### Agent Model Used
 
