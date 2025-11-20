@@ -45,7 +45,7 @@ development_status:
   1-5-winston-logging-infrastructure: done  # Review: APPROVED (2025-11-20) - All ACs verified, tests passing
   1-6-caddy-reverse-proxy-configuration: done  # Review: APPROVED (2025-11-20) - All ACs met, 100% test coverage
   1-7-cicd-pipeline-setup-github-actions: done  # Review: APPROVED (2025-11-20) - All review findings resolved
-  1-8-frontend-design-system-setup-tailwind-shadcn-design-tokens: backlog
+  1-8-frontend-design-system-setup-tailwind-shadcn-design-tokens: drafted
   1-9-frontend-layout-navigation-sidebar-topbar-brand-selector: backlog
   epic-1-retrospective: optional
 
