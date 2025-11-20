@@ -1,6 +1,6 @@
 # Story 1.7: CI/CD Pipeline Setup (GitHub Actions)
 
-Status: drafted
+Status: ready-for-dev
 
 ## Story
 
@@ -130,7 +130,7 @@ Story 1.6 successfully configured Caddy reverse proxy with automatic HTTPS. Key 
 
 ### Context Reference
 
-<!-- Path(s) to story context XML will be added here by context workflow -->
+- `docs/sprint-artifacts/1-7-cicd-pipeline-setup-github-actions.context.xml`
 
 ### Agent Model Used
 
