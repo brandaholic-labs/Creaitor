@@ -12,9 +12,61 @@ Design tokens are defined as CSS variables in `src/styles/design-tokens.css`.
 
 ### Components
 UI components are located in `src/components/ui/`.
-To add a new component:
+
+**Adding a new component:**
 ```bash
 npx shadcn@latest add [component-name]
+```
+
+**Customizing components:**
+
+All Shadcn UI components accept a `className` prop for Tailwind customization. Components automatically merge your custom classes with their defaults using the `cn()` utility.
+
+Example - Customizing a Button:
+```tsx
+import { Button } from '@/components/ui/button';
+
+// Custom brand color button
+<Button className="bg-brand-600 hover:bg-brand-700">
+  Custom Button
+</Button>
+
+// Using design tokens directly
+<Button className="shadow-lg rounded-2xl px-8">
+  Elevated Button
+</Button>
+
+// Variant override with custom spacing
+<Button variant="outline" className="border-brand-500 text-brand-700 px-6 py-3">
+  Outlined Brand Button
+</Button>
+```
+
+Example - Customizing a Card:
+```tsx
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+
+<Card className="shadow-xl border-brand-200 bg-gradient-to-br from-white to-brand-50">
+  <CardHeader className="pb-3">
+    <CardTitle className="text-brand-700 font-heading">Custom Card</CardTitle>
+  </CardHeader>
+  <CardContent className="space-y-4">
+    <p className="text-muted-foreground">Card content with design tokens</p>
+  </CardContent>
+</Card>
+```
+
+**Using design tokens in custom components:**
+```tsx
+// Direct CSS variable access
+<div style={{ backgroundColor: 'var(--color-brand-500)' }}>
+  Brand background
+</div>
+
+// Tailwind utility classes (preferred)
+<div className="bg-brand-500 text-primary-foreground p-4 rounded-lg shadow-md">
+  Using Tailwind utilities with design tokens
+</div>
 ```
 
 ### Dark Mode

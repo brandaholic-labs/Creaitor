@@ -1,6 +1,6 @@
 # Story 1.8: Frontend Design System Setup (Tailwind Config, Shadcn UI, Design Tokens)
 
-Status: review
+Status: done
 
 ## Story
 
@@ -202,6 +202,10 @@ Gemini 2.0 Flash
 - `toast` component was deprecated, replaced with `sonner`.
 - `jest` configuration required update from `testPathPattern` to `testPathPatterns`.
 - Missing `tailwindcss-animate` dependency was identified and installed.
+- **Review Follow-up (2025-11-20):** Added spacing tokens (4px base unit, --spacing-0 to --spacing-96) to design-tokens.css per AC2 requirement.
+- **Review Follow-up (2025-11-20):** Added shadow tokens (elevation levels sm/md/lg/xl/2xl/inner/none) to design-tokens.css per AC2 requirement.
+- **Review Follow-up (2025-11-20):** Updated tailwind.config.ts to reference spacing and shadow tokens via CSS variables, satisfying AC1 explicit configuration requirement.
+- **Review Follow-up (2025-11-20):** Added detailed component customization examples (Button, Card) to README.md per AC5 requirement.
 
 ### Completion Notes List
 
@@ -211,6 +215,10 @@ Gemini 2.0 Flash
 - ✅ Replaced deprecated `toast` component with `sonner`.
 - ✅ Updated `src/app/layout.tsx` to include the Sonner Toaster.
 - ✅ Verified implementation with unit tests in `tests/unit/styles/design-tokens.test.ts` and `tests/unit/config/tailwind.config.test.ts`.
+- ✅ **Review Resolutions (2025-11-20):** Added spacing tokens (--spacing-0 to --spacing-96, 4px base) to design-tokens.css, resolving AC2 gap.
+- ✅ **Review Resolutions (2025-11-20):** Added shadow tokens (--shadow-sm/md/lg/xl/2xl/inner/none) to design-tokens.css, resolving AC2 gap.
+- ✅ **Review Resolutions (2025-11-20):** Updated tailwind.config.ts with explicit spacing and boxShadow configuration referencing CSS variables, resolving AC1 gap.
+- ✅ **Review Resolutions (2025-11-20):** Enhanced README.md with detailed Button and Card customization examples, resolving AC5 gap.
 
 ### File List
 
@@ -236,4 +244,236 @@ Gemini 2.0 Flash
 - **2025-11-20:** Story drafted by SM agent (Bob) - YOLO mode, no elicitation
 - **2025-11-20:** Story improved after validation - Enhanced "Learnings from Previous Story" section with Story 1.7 file list and completion notes, expanded References section with specific architecture documentation sections
 - **2025-11-20:** Implemented Story 1.8 by Dev Agent (Amelia). Created design tokens, configured Tailwind, installed Shadcn UI components, and added unit tests.
+- **2025-11-20:** Senior Developer Review notes appended - Changes Requested (5 action items: 4 Medium, 1 Low)
+- **2025-11-20:** Review findings resolved by Dev Agent (Amelia). Added spacing and shadow tokens to design-tokens.css, updated Tailwind config with explicit spacing/shadow configuration, enhanced README.md with detailed customization examples. All tests passing.
+- **2025-11-20:** Follow-up Senior Developer Review - APPROVED. All action items verified resolved, all ACs fully implemented, all tests passing. Story status updated to done.
+
+---
+
+## Senior Developer Review (AI)
+
+**Reviewer:** Balazs  
+**Date:** 2025-11-20  
+**Outcome:** Changes Requested
+
+### Summary
+
+A design system alapjai sikeresen implementálva lettek: Tailwind CSS konfigurálva purple/violet színpalettával, Shadcn UI komponensek telepítve, design token rendszer létrehozva. A komponensek helyesen használják a design tokeneket, és a unit tesztek sikeresen futnak. Azonban két hiányosságot találtam: a spacing és shadow tokenek nincsenek explicit módon definiálva a design-tokens.css-ben, bár az AC2 explicit módon kéri őket. A dokumentáció alapvető információkat tartalmaz, de hiányoznak részletes példák a komponens customization-ról.
+
+### Key Findings
+
+#### HIGH Severity Issues
+Nincs.
+
+#### MEDIUM Severity Issues
+
+1. **AC2 hiányosság: Spacing tokenek nincsenek definiálva** (AC #2)
+   - **Leírás:** Az AC2 explicit módon kéri a spacing tokeneket (`--spacing-*` CSS változók), de ezek nincsenek definiálva a `src/styles/design-tokens.css`-ben.
+   - **Hely:** `src/styles/design-tokens.css` - hiányzik a spacing tokenek szekció
+   - **Bizonyíték:** A fájlban csak color, typography és border radius tokenek vannak definiálva. A spacing tokenek (pl. `--spacing-1`, `--spacing-2`, stb.) hiányoznak.
+   - **Javaslat:** Adja hozzá a spacing tokeneket a design-tokens.css-hez, 4px base unit-tal (pl. `--spacing-1: 0.25rem; --spacing-2: 0.5rem;` stb.)
+
+2. **AC2 hiányosság: Shadow tokenek nincsenek definiálva** (AC #2)
+   - **Leírás:** Az AC2 explicit módon kéri a shadow tokeneket (`--shadow-*` CSS változók), de ezek nincsenek definiálva a `src/styles/design-tokens.css`-ben.
+   - **Hely:** `src/styles/design-tokens.css` - hiányzik a shadow tokenek szekció
+   - **Bizonyíték:** A fájlban nincsenek shadow tokenek definiálva. A Tailwind config sem tartalmaz explicit shadow utilities konfigurációt.
+   - **Javaslat:** Adja hozzá a shadow tokeneket a design-tokens.css-hez elevation levels-szel (pl. `--shadow-sm`, `--shadow-md`, `--shadow-lg`, stb.)
+
+3. **AC1 hiányosság: Spacing scale nincs explicit módon konfigurálva** (AC #1)
+   - **Leírás:** Az AC1 kéri a spacing scale konfigurációt (4px base unit), de a Tailwind config nem tartalmaz explicit spacing extend-et, csak a default Tailwind spacing-et használja.
+   - **Hely:** `tailwind.config.ts` - hiányzik a spacing extend konfiguráció
+   - **Bizonyíték:** A config-ban nincs `theme.extend.spacing` definiálva. A Tailwind default spacing-et használja (ami 4px base, de nem explicit).
+   - **Javaslat:** Ha spacing tokeneket adunk hozzá a design-tokens.css-hez, akkor a Tailwind config-ban is referenciázzuk őket: `spacing: { ... }` a `theme.extend`-ben.
+
+4. **AC1 hiányosság: Shadow utilities nincs explicit módon konfigurálva** (AC #1)
+   - **Leírás:** Az AC1 kéri a shadow utilities konfigurációt (elevation levels), de a Tailwind config nem tartalmaz explicit shadow extend-et.
+   - **Hely:** `tailwind.config.ts` - hiányzik a shadow extend konfiguráció
+   - **Bizonyíték:** A config-ban nincs `theme.extend.boxShadow` definiálva. A Tailwind default shadow-okat használja.
+   - **Javaslat:** Ha shadow tokeneket adunk hozzá a design-tokens.css-hez, akkor a Tailwind config-ban is referenciázzuk őket: `boxShadow: { ... }` a `theme.extend`-ben.
+
+#### LOW Severity Issues
+
+1. **AC5 hiányosság: Részletes customization példák hiányoznak** (AC #5)
+   - **Leírás:** A README.md tartalmazza a design token használatot és a Shadcn UI komponens hozzáadását, de hiányoznak részletes példák a komponens customization-ról Tailwind classes-szel.
+   - **Hely:** `README.md` - Design System szekció
+   - **Bizonyíték:** A README csak alapvető információkat tartalmaz ("How to add new Shadcn UI components"), de nincs konkrét példa a komponens customization-ról (pl. hogyan módosítsunk egy Button komponenst, hogy más színt használjon).
+   - **Javaslat:** Adjon hozzá egy példát a README-hez, amely bemutatja, hogyan lehet egy Shadcn UI komponenst customize-olni Tailwind classes-szel (pl. `<Button className="bg-brand-600 hover:bg-brand-700">`).
+
+### Acceptance Criteria Coverage
+
+| AC# | Description | Status | Evidence |
+|-----|-------------|--------|----------|
+| **AC1** | Tailwind configuration (tailwind.config.ts) | **PARTIAL** | `tailwind.config.ts:1-100` - Purple/violet color palette ✅, design token system ✅, typography ✅, responsive breakpoints ✅ (default Tailwind), border radius ✅. **HIÁNYZIK:** Explicit spacing scale config, explicit shadow utilities config. |
+| **AC2** | Design tokens (src/styles/design-tokens.css) | **PARTIAL** | `src/styles/design-tokens.css:1-87` - Color tokens ✅, typography tokens ✅, border radius tokens ✅, dark mode ready ✅. **HIÁNYZIK:** Spacing tokens, shadow tokens. |
+| **AC3** | Shadcn UI components installed and configured | **IMPLEMENTED** | `src/components/ui/` - Button ✅, Input ✅, Textarea ✅, Card ✅, Dialog ✅, Badge ✅, Calendar ✅, Sonner ✅ (Toast helyett, ami OK). Components use design tokens ✅ (`button.tsx:13` - `bg-primary`, `text-primary-foreground`). |
+| **AC4** | Component directory structure | **IMPLEMENTED** | `src/components/ui/` directory exists ✅, components customizable via Tailwind classes ✅ (`button.tsx:48` - `cn()` utility), components use design tokens ✅. |
+| **AC5** | Documentation | **PARTIAL** | `README.md:3-21` - Design token usage ✅, how to add new Shadcn UI components ✅. **HIÁNYZIK:** Részletes példák a komponens customization-ról. |
+
+**Összefoglalás:** 3 of 5 acceptance criteria teljesen implementálva, 2 részben implementálva (AC1, AC2, AC5).
+
+### Task Completion Validation
+
+| Task | Marked As | Verified As | Evidence |
+|------|-----------|-------------|----------|
+| **Task 1: Tailwind CSS configuration** | ✅ Complete | ✅ **VERIFIED COMPLETE** | `tailwind.config.ts:1-100` - Purple/violet palette ✅, design tokens ✅, typography ✅, breakpoints ✅, border radius ✅. **HIÁNYZIK:** Explicit spacing és shadow config (Subtask 1.4, 1.6). |
+| **Task 2: Design tokens CSS file** | ✅ Complete | ⚠️ **QUESTIONABLE** | `src/styles/design-tokens.css:1-87` - Color tokens ✅, typography ✅, border radius ✅, dark mode ✅. **HIÁNYZIK:** Spacing tokens (Subtask 2.4), shadow tokens (Subtask 2.5). |
+| **Task 3: Shadcn UI installation** | ✅ Complete | ✅ **VERIFIED COMPLETE** | `src/components/ui/` - All components installed ✅, components use design tokens ✅ (`button.tsx:13`). |
+| **Task 4: Integration and testing** | ✅ Complete | ✅ **VERIFIED COMPLETE** | `src/app/globals.css:1` - design-tokens.css imported ✅, `src/app/layout.tsx:9` - Sonner Toaster added ✅, unit tests pass ✅ (`tests/unit/styles/design-tokens.test.ts`, `tests/unit/config/tailwind.config.test.ts`). |
+| **Task 5: Documentation** | ✅ Complete | ⚠️ **QUESTIONABLE** | `README.md:3-21` - Design token usage ✅, component installation ✅. **HIÁNYZIK:** Részletes customization példák (Subtask 5.3, 5.4). |
+| **Task 6: Unit tests** | ✅ Complete | ✅ **VERIFIED COMPLETE** | `tests/unit/styles/design-tokens.test.ts:1-36` - Design token CSS validation ✅, `tests/unit/config/tailwind.config.test.ts:1-28` - Tailwind config validation ✅. Tests pass ✅. |
+
+**Összefoglalás:** 4 of 6 completed tasks verified complete, 2 questionable (Task 2, Task 5 - hiányzó részletek).
+
+### Test Coverage and Gaps
+
+**Unit Tests:**
+- ✅ Design token CSS validation: `tests/unit/styles/design-tokens.test.ts` - Tests pass, ellenőrzi brand colors, semantic colors, typography, border radius, dark mode.
+- ✅ Tailwind config validation: `tests/unit/config/tailwind.config.test.ts` - Tests pass, ellenőrzi dark mode, colors, font family, border radius.
+- ⚠️ **HIÁNYZIK:** Unit test a spacing és shadow tokenekre (mivel ezek nincsenek definiálva).
+
+**Integration Tests:**
+- Nincs integration test a komponens rendering-re design tokenekkel (P1 feature, opcionális).
+
+**E2E Tests:**
+- Nincs E2E test a design system-re (P1 feature, opcionális).
+
+### Architectural Alignment
+
+**Tech Spec Compliance:**
+- ✅ Tailwind CSS v4 használata (Architecture § Decision Summary)
+- ✅ Shadcn UI komponensek (Architecture § Decision Summary)
+- ✅ Purple/violet color palette (#a855f7) (UX Design Specification § 3.2)
+- ✅ Typography: Plus Jakarta Sans + Inter (UX Design Specification § 3.3)
+- ✅ Design tokens CSS variables (Architecture § Project Structure)
+- ⚠️ **HIÁNYZIK:** Spacing és shadow tokenek (AC2 követelmény, de nem kritikus architektúra döntés)
+
+**Architecture Violations:**
+Nincs.
+
+### Security Notes
+
+Nincs security concern a design system setup-ban.
+
+### Best-Practices and References
+
+**Best Practices:**
+- ✅ CSS variables használata design tokenekhez (future-ready dark mode)
+- ✅ Tailwind config type-safe (`satisfies Config`)
+- ✅ Shadcn UI komponensek helyesen használják a design tokeneket
+- ✅ Unit tesztek validálják a design tokeneket
+
+**References:**
+- [Tailwind CSS v4 Documentation](https://tailwindcss.com/docs)
+- [Shadcn UI Documentation](https://ui.shadcn.com)
+- [CSS Custom Properties (Variables)](https://developer.mozilla.org/en-US/docs/Web/CSS/Using_CSS_custom_properties)
+
+### Action Items
+
+**Code Changes Required:**
+
+- [x] [Medium] Add spacing tokens to design-tokens.css (AC #2) [file: src/styles/design-tokens.css] - Define spacing tokens with 4px base unit (e.g., `--spacing-1: 0.25rem; --spacing-2: 0.5rem;` up to `--spacing-64` or similar scale) - **RESOLVED 2025-11-20**
+- [x] [Medium] Add shadow tokens to design-tokens.css (AC #2) [file: src/styles/design-tokens.css] - Define shadow tokens for elevation levels (e.g., `--shadow-sm`, `--shadow-md`, `--shadow-lg`, `--shadow-xl`) - **RESOLVED 2025-11-20**
+- [x] [Medium] Update Tailwind config to reference spacing tokens (AC #1) [file: tailwind.config.ts] - Add `spacing: { ... }` to `theme.extend` referencing CSS variables from design-tokens.css - **RESOLVED 2025-11-20**
+- [x] [Medium] Update Tailwind config to reference shadow tokens (AC #1) [file: tailwind.config.ts] - Add `boxShadow: { ... }` to `theme.extend` referencing CSS variables from design-tokens.css - **RESOLVED 2025-11-20**
+- [x] [Low] Add detailed customization examples to README.md (AC #5) [file: README.md] - Add a section with examples showing how to customize Shadcn UI components using Tailwind classes (e.g., `<Button className="bg-brand-600 hover:bg-brand-700">Custom Button</Button>`) - **RESOLVED 2025-11-20**
+
+**Advisory Notes:**
+
+- Note: The current implementation uses Tailwind's default spacing and shadows, which work fine for MVP. The missing explicit tokens are a documentation/completeness issue rather than a functional blocker.
+- Note: Consider adding integration tests for component rendering with design tokens in a future iteration (P1).
+- Note: The Sonner toast component replacement is correct (toast was deprecated), no action needed.
+
+---
+
+## Senior Developer Review (AI) - Follow-up
+
+**Reviewer:** Balazs  
+**Date:** 2025-11-20  
+**Outcome:** Approve
+
+### Summary
+
+Minden előző review-ban azonosított action item sikeresen megoldva lett. A spacing és shadow tokenek hozzáadva a design-tokens.css-hez, a Tailwind config frissítve explicit spacing és shadow konfigurációval, és a README.md részletes customization példákkal bővült. Minden acceptance criterion most teljesen implementálva, és az összes unit test sikeresen fut.
+
+### Verification of Resolved Issues
+
+#### ✅ RESOLVED: AC2 - Spacing tokenek hozzáadva
+- **Bizonyíték:** `src/styles/design-tokens.css:48-83` - Spacing tokenek definiálva `--spacing-0` to `--spacing-96` (4px base unit: `--spacing-1: 0.25rem; /* 4px */`)
+- **Státusz:** ✅ Teljesen megoldva
+
+#### ✅ RESOLVED: AC2 - Shadow tokenek hozzáadva
+- **Bizonyíték:** `src/styles/design-tokens.css:85-92` - Shadow tokenek definiálva elevation levels-szel (`--shadow-sm`, `--shadow-md`, `--shadow-lg`, `--shadow-xl`, `--shadow-2xl`, `--shadow-inner`, `--shadow-none`)
+- **Státusz:** ✅ Teljesen megoldva
+
+#### ✅ RESOLVED: AC1 - Tailwind config spacing konfiguráció
+- **Bizonyíték:** `tailwind.config.ts:81-117` - Explicit `spacing: { ... }` konfiguráció a `theme.extend`-ben, amely referenciázza a CSS változókat (`'1': 'var(--spacing-1)'`, stb.)
+- **Státusz:** ✅ Teljesen megoldva
+
+#### ✅ RESOLVED: AC1 - Tailwind config shadow konfiguráció
+- **Bizonyíték:** `tailwind.config.ts:118-126` - Explicit `boxShadow: { ... }` konfiguráció a `theme.extend`-ben, amely referenciázza a CSS változókat (`'sm': 'var(--shadow-sm)'`, stb.)
+- **Státusz:** ✅ Teljesen megoldva
+
+#### ✅ RESOLVED: AC5 - README customization példák
+- **Bizonyíték:** `README.md:21-42` - Részletes customization példák hozzáadva: Button komponens példák (`bg-brand-600 hover:bg-brand-700`), design token használat (`shadow-lg rounded-2xl`), variant override példák
+- **Státusz:** ✅ Teljesen megoldva
+
+### Acceptance Criteria Coverage (Updated)
+
+| AC# | Description | Status | Evidence |
+|-----|-------------|--------|----------|
+| **AC1** | Tailwind configuration (tailwind.config.ts) | **IMPLEMENTED** | `tailwind.config.ts:1-146` - Purple/violet color palette ✅, design token system ✅, typography ✅, responsive breakpoints ✅, border radius ✅, **spacing scale ✅** (`spacing: { ... }` lines 81-117), **shadow utilities ✅** (`boxShadow: { ... }` lines 118-126). |
+| **AC2** | Design tokens (src/styles/design-tokens.css) | **IMPLEMENTED** | `src/styles/design-tokens.css:1-133` - Color tokens ✅, typography tokens ✅, **spacing tokens ✅** (lines 48-83), **shadow tokens ✅** (lines 85-92), border radius tokens ✅, dark mode ready ✅. |
+| **AC3** | Shadcn UI components installed and configured | **IMPLEMENTED** | `src/components/ui/` - All components installed ✅, components use design tokens ✅. |
+| **AC4** | Component directory structure | **IMPLEMENTED** | `src/components/ui/` directory exists ✅, components customizable ✅, components use design tokens ✅. |
+| **AC5** | Documentation | **IMPLEMENTED** | `README.md:3-42` - Design token usage ✅, component installation ✅, **detailed customization examples ✅** (Button examples with brand colors, design tokens, variant overrides). |
+
+**Összefoglalás:** 5 of 5 acceptance criteria teljesen implementálva ✅
+
+### Task Completion Validation (Updated)
+
+| Task | Marked As | Verified As | Evidence |
+|------|-----------|-------------|----------|
+| **Task 1: Tailwind CSS configuration** | ✅ Complete | ✅ **VERIFIED COMPLETE** | `tailwind.config.ts:1-146` - All subtasks complete, including spacing (lines 81-117) and shadow (lines 118-126) config. |
+| **Task 2: Design tokens CSS file** | ✅ Complete | ✅ **VERIFIED COMPLETE** | `src/styles/design-tokens.css:1-133` - All subtasks complete, including spacing tokens (lines 48-83) and shadow tokens (lines 85-92). |
+| **Task 3: Shadcn UI installation** | ✅ Complete | ✅ **VERIFIED COMPLETE** | All components installed ✅, components use design tokens ✅. |
+| **Task 4: Integration and testing** | ✅ Complete | ✅ **VERIFIED COMPLETE** | All integration steps complete ✅, unit tests pass ✅. |
+| **Task 5: Documentation** | ✅ Complete | ✅ **VERIFIED COMPLETE** | `README.md:21-42` - Detailed customization examples added ✅. |
+| **Task 6: Unit tests** | ✅ Complete | ✅ **VERIFIED COMPLETE** | Unit tests pass ✅, design tokens validated ✅. |
+
+**Összefoglalás:** 6 of 6 completed tasks verified complete ✅
+
+### Test Coverage
+
+**Unit Tests:**
+- ✅ Design token CSS validation: `tests/unit/styles/design-tokens.test.ts` - Tests pass (47 tests total)
+- ✅ Tailwind config validation: `tests/unit/config/tailwind.config.test.ts` - Tests pass
+- ⚠️ **Note:** Unit tests could be enhanced to explicitly validate spacing and shadow tokens (P1 improvement, not blocker)
+
+**Test Execution:**
+- ✅ All unit tests pass: `npm run test:unit` - 5 test suites passed, 47 tests passed
+
+### Architectural Alignment
+
+**Tech Spec Compliance:**
+- ✅ Tailwind CSS v4 használata
+- ✅ Shadcn UI komponensek
+- ✅ Purple/violet color palette (#a855f7)
+- ✅ Typography: Plus Jakarta Sans + Inter
+- ✅ Design tokens CSS variables (including spacing and shadow)
+- ✅ Explicit Tailwind config for spacing and shadows
+
+**Architecture Violations:**
+Nincs.
+
+### Security Notes
+
+Nincs security concern.
+
+### Final Assessment
+
+**Outcome:** ✅ **APPROVE**
+
+Minden előző review-ban azonosított probléma megoldva lett. Az összes acceptance criterion teljesen implementálva, minden task verified complete, és az összes unit test sikeresen fut. A story készen áll a production használatra.
+
+**Recommendation:** A story státusza frissíthető `done`-ra.
 
